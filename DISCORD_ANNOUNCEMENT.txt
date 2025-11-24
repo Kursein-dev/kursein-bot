@@ -1,0 +1,79 @@
+```
+╔═══════════════════════════════════════════════════════╗
+║         🎰 MAJOR BOT UPDATE - NEW FEATURES! 🎰        ║
+╚═══════════════════════════════════════════════════════╝
+```
+
+## 🚀 **WHAT'S NEW**
+
+### ✨ **Complete VIP System Overhaul**
+We've redesigned our VIP system with **6 incredible tiers** and massive rewards!
+
+**VIP TIERS:**
+🚀 **Booster** (Server Boosters Only)
+> +25% chips | +40% XP | +25k daily bonus
+
+🥉 **Bronze** (1M wagered)
+> +10% chips | +15% XP | +2.5k daily bonus
+
+🥈 **Silver** (5M wagered)
+> +20% chips | +30% XP | +10k daily bonus
+
+🥇 **Gold** (25M wagered)
+> +35% chips | +50% XP | +50k daily bonus
+
+💎 **Platinum** (100M wagered)
+> +60% chips | +80% XP | +250k daily bonus
+
+👑 **Elite** (500M wagered)
+> **+100% chips (DOUBLE!)** | +150% XP | +1.5M daily bonus
+
+---
+
+### 🎁 **VIP Daily Bonuses Now Live!**
+✅ All VIP tiers receive **bonus chips** on top of regular claims
+✅ Bonuses stack with daily, weekly, monthly, AND yearly claims
+✅ Higher tiers = bigger bonuses!
+
+---
+
+### 🎨 **Custom Casino Chip Emoji**
+✅ Brand new custom Casino Chip emoji throughout the bot
+✅ Cleaner, more professional interface
+✅ Replaced all old money emojis
+
+---
+
+## 📊 **NEW COMMANDS**
+
+**`~viptiers` or `~tiers`**
+View all VIP requirements and benefits
+
+**`~resetdailyclaims`** (Owner Only)
+Mass reset daily claims with DM notifications
+
+**`~id`**
+Get Discord emoji IDs for customization
+
+---
+
+## 🏆 **SERVER BOOSTER REWARDS**
+
+**Boost our server to instantly unlock Booster VIP tier!**
+🎁 Get exclusive perks immediately - no wagering required!
+
+---
+
+## 💡 **WHAT THIS MEANS FOR YOU**
+
+🚀 **Server Boosters** → Instant exclusive VIP benefits!
+💰 **Active Players** → Daily claims are worth WAY more now!
+👑 **High Rollers** → Elite tier = DOUBLE your winnings!
+🎮 **Everyone** → More rewards & better progression!
+
+---
+
+```
+🎰 Ready to dominate? Start playing and climb those VIP tiers! 🎰
+Use ~help to see all commands!
+```

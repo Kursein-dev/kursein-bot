@@ -1,0 +1,672 @@
+[
+  {
+    "type": "bump",
+    "guild_id": 1410420544939098245,
+    "channel_id": 1410712750568505507,
+    "ping_target": 343055455263916045,
+    "ping_type": "user",
+    "created_at": "2025-11-06T17:01:06.552105",
+    "remind_at": "2025-11-06T19:01:06.552093",
+    "completed": true
+  },
+  {
+    "type": "bump",
+    "guild_id": 1410420544939098245,
+    "channel_id": 1410712750568505507,
+    "ping_target": 343055455263916045,
+    "ping_type": "user",
+    "created_at": "2025-11-06T19:01:32.848362",
+    "remind_at": "2025-11-06T21:01:32.848351",
+    "completed": true
+  },
+  {
+    "type": "bump",
+    "guild_id": 1410420544939098245,
+    "channel_id": 1410712750568505507,
+    "ping_target": 343055455263916045,
+    "ping_type": "user",
+    "created_at": "2025-11-06T21:02:07.083441",
+    "remind_at": "2025-11-06T23:02:07.083430",
+    "completed": true
+  },
+  {
+    "type": "bump",
+    "guild_id": 1410420544939098245,
+    "channel_id": 1410712750568505507,
+    "ping_target": 732102581106769920,
+    "ping_type": "user",
+    "created_at": "2025-11-06T23:02:20.546663",
+    "remind_at": "2025-11-07T01:02:20.546651",
+    "completed": true
+  },
+  {
+    "type": "bump",
+    "guild_id": 1410420544939098245,
+    "channel_id": 1410712750568505507,
+    "ping_target": 732102581106769920,
+    "ping_type": "user",
+    "created_at": "2025-11-07T01:05:16.401462",
+    "remind_at": "2025-11-07T03:05:16.401450",
+    "completed": true
+  },
+  {
+    "type": "bump",
+    "guild_id": 1410420544939098245,
+    "channel_id": 1410712750568505507,
+    "ping_target": 732102581106769920,
+    "ping_type": "user",
+    "created_at": "2025-11-07T03:05:55.699355",
+    "remind_at": "2025-11-07T05:05:55.699343",
+    "completed": true
+  },
+  {
+    "type": "bump",
+    "guild_id": 1410420544939098245,
+    "channel_id": 1410712750568505507,
+    "ping_target": 732102581106769920,
+    "ping_type": "user",
+    "created_at": "2025-11-07T05:06:16.996017",
+    "remind_at": "2025-11-07T07:06:16.995723",
+    "completed": true
+  },
+  {
+    "type": "bump",
+    "guild_id": 1410420544939098245,
+    "channel_id": 1410712750568505507,
+    "ping_target": 732102581106769920,
+    "ping_type": "user",
+    "created_at": "2025-11-07T07:06:56.032738",
+    "remind_at": "2025-11-07T09:06:56.032729",
+    "completed": true
+  },
+  {
+    "type": "bump",
+    "guild_id": 1410420544939098245,
+    "channel_id": 1410712750568505507,
+    "ping_target": 732102581106769920,
+    "ping_type": "user",
+    "created_at": "2025-11-07T18:26:32.442688",
+    "remind_at": "2025-11-07T20:26:32.442677",
+    "completed": true
+  },
+  {
+    "type": "bump",
+    "guild_id": 1410420544939098245,
+    "channel_id": 1410712750568505507,
+    "ping_target": 1436421726727700542,
+    "ping_type": "role",
+    "created_at": "2025-11-07T20:30:35.056748",
+    "remind_at": "2025-11-07T22:30:35.056737",
+    "completed": true
+  },
+  {
+    "type": "bump",
+    "guild_id": 1410420544939098245,
+    "channel_id": 1410712750568505507,
+    "ping_target": 1436421726727700542,
+    "ping_type": "role",
+    "created_at": "2025-11-07T22:32:16.949156",
+    "remind_at": "2025-11-08T00:32:16.949142",
+    "completed": true
+  },
+  {
+    "type": "bump",
+    "guild_id": 1410420544939098245,
+    "channel_id": 1410712750568505507,
+    "ping_target": 1436421726727700542,
+    "ping_type": "role",
+    "created_at": "2025-11-08T00:32:37.559531",
+    "remind_at": "2025-11-08T02:32:37.559522",
+    "completed": true
+  },
+  {
+    "type": "bump",
+    "guild_id": 1410420544939098245,
+    "channel_id": 1410712750568505507,
+    "ping_target": 1436421726727700542,
+    "ping_type": "role",
+    "created_at": "2025-11-08T02:33:21.322735",
+    "remind_at": "2025-11-08T04:33:21.322725",
+    "completed": true
+  },
+  {
+    "type": "bump",
+    "guild_id": 1410420544939098245,
+    "channel_id": 1410712750568505507,
+    "ping_target": 1436421726727700542,
+    "ping_type": "role",
+    "created_at": "2025-11-08T06:13:14.123887",
+    "remind_at": "2025-11-08T08:13:14.123875",
+    "completed": true
+  },
+  {
+    "type": "bump",
+    "guild_id": 1410420544939098245,
+    "channel_id": 1410712750568505507,
+    "ping_target": 1436421726727700542,
+    "ping_type": "role",
+    "created_at": "2025-11-08T18:25:03.877626",
+    "remind_at": "2025-11-08T20:25:03.877615",
+    "completed": true
+  },
+  {
+    "type": "bump",
+    "guild_id": 1410420544939098245,
+    "channel_id": 1410712750568505507,
+    "ping_target": 1436421726727700542,
+    "ping_type": "role",
+    "created_at": "2025-11-08T20:25:24.989735",
+    "remind_at": "2025-11-08T22:25:24.989724",
+    "completed": true
+  },
+  {
+    "type": "bump",
+    "guild_id": 1410420544939098245,
+    "channel_id": 1410712750568505507,
+    "ping_target": 1436421726727700542,
+    "ping_type": "role",
+    "created_at": "2025-11-08T22:32:13.807476",
+    "remind_at": "2025-11-09T00:32:13.807464",
+    "completed": true
+  },
+  {
+    "type": "bump",
+    "guild_id": 1410420544939098245,
+    "channel_id": 1410712750568505507,
+    "ping_target": 1436421726727700542,
+    "ping_type": "role",
+    "created_at": "2025-11-09T00:32:31.169212",
+    "remind_at": "2025-11-09T02:32:31.169199",
+    "completed": true
+  },
+  {
+    "type": "bump",
+    "guild_id": 1410420544939098245,
+    "channel_id": 1410712750568505507,
+    "ping_target": 1436421726727700542,
+    "ping_type": "role",
+    "created_at": "2025-11-09T03:23:51.400292",
+    "remind_at": "2025-11-09T05:23:51.400280",
+    "completed": true
+  },
+  {
+    "type": "bump",
+    "guild_id": 1410420544939098245,
+    "channel_id": 1410712750568505507,
+    "ping_target": 1436421726727700542,
+    "ping_type": "role",
+    "created_at": "2025-11-09T05:23:55.509626",
+    "remind_at": "2025-11-09T07:23:55.509616",
+    "completed": true
+  },
+  {
+    "type": "bump",
+    "guild_id": 1410420544939098245,
+    "channel_id": 1410712750568505507,
+    "ping_target": 1436421726727700542,
+    "ping_type": "role",
+    "created_at": "2025-11-09T08:42:50.036851",
+    "remind_at": "2025-11-09T10:42:50.036840",
+    "completed": true
+  },
+  {
+    "type": "bump",
+    "guild_id": 1410420544939098245,
+    "channel_id": 1410712750568505507,
+    "ping_target": 1436421726727700542,
+    "ping_type": "role",
+    "created_at": "2025-11-09T11:18:44.514902",
+    "remind_at": "2025-11-09T13:18:44.514890",
+    "completed": true
+  },
+  {
+    "type": "bump",
+    "guild_id": 1410420544939098245,
+    "channel_id": 1410712750568505507,
+    "ping_target": 1436421726727700542,
+    "ping_type": "role",
+    "created_at": "2025-11-09T16:20:36.441317",
+    "remind_at": "2025-11-09T18:20:36.441306",
+    "completed": true
+  },
+  {
+    "type": "bump",
+    "guild_id": 1410420544939098245,
+    "channel_id": 1410712750568505507,
+    "ping_target": 1436421726727700542,
+    "ping_type": "role",
+    "created_at": "2025-11-09T18:20:53.193873",
+    "remind_at": "2025-11-09T20:20:53.193863",
+    "completed": true
+  },
+  {
+    "type": "bump",
+    "guild_id": 1410420544939098245,
+    "channel_id": 1410712750568505507,
+    "ping_target": 1436421726727700542,
+    "ping_type": "role",
+    "created_at": "2025-11-10T10:14:53.174000",
+    "remind_at": "2025-11-10T12:14:53.173988",
+    "completed": true
+  },
+  {
+    "type": "bump",
+    "guild_id": 1410420544939098245,
+    "channel_id": 1410712750568505507,
+    "ping_target": 1436421726727700542,
+    "ping_type": "role",
+    "created_at": "2025-11-10T13:14:08.277631",
+    "remind_at": "2025-11-10T15:14:08.277622",
+    "completed": true
+  },
+  {
+    "type": "bump",
+    "guild_id": 1410420544939098245,
+    "channel_id": 1410712750568505507,
+    "ping_target": 1436421726727700542,
+    "ping_type": "role",
+    "created_at": "2025-11-10T15:14:32.542559",
+    "remind_at": "2025-11-10T17:14:32.542464",
+    "completed": true
+  },
+  {
+    "type": "bump",
+    "guild_id": 1410420544939098245,
+    "channel_id": 1410712750568505507,
+    "ping_target": 1436421726727700542,
+    "ping_type": "role",
+    "created_at": "2025-11-10T17:16:31.805982",
+    "remind_at": "2025-11-10T19:16:31.805972",
+    "completed": true
+  },
+  {
+    "type": "bump",
+    "guild_id": 1410420544939098245,
+    "channel_id": 1410712750568505507,
+    "ping_target": 1436421726727700542,
+    "ping_type": "role",
+    "created_at": "2025-11-10T19:17:09.287834",
+    "remind_at": "2025-11-10T21:17:09.287820",
+    "completed": true
+  },
+  {
+    "type": "bump",
+    "guild_id": 1410420544939098245,
+    "channel_id": 1410712750568505507,
+    "ping_target": 1436421726727700542,
+    "ping_type": "role",
+    "created_at": "2025-11-11T04:52:40.211818",
+    "remind_at": "2025-11-11T06:52:40.211786",
+    "completed": true
+  },
+  {
+    "type": "bump",
+    "guild_id": 1410420544939098245,
+    "channel_id": 1410712750568505507,
+    "ping_target": 1436421726727700542,
+    "ping_type": "role",
+    "created_at": "2025-11-11T13:27:17.481872",
+    "remind_at": "2025-11-11T15:27:17.481860",
+    "completed": true
+  },
+  {
+    "type": "bump",
+    "guild_id": 1410420544939098245,
+    "channel_id": 1410712750568505507,
+    "ping_target": 1436421726727700542,
+    "ping_type": "role",
+    "created_at": "2025-11-11T15:27:59.511551",
+    "remind_at": "2025-11-11T17:27:59.511539",
+    "completed": true
+  },
+  {
+    "type": "bump",
+    "guild_id": 1410420544939098245,
+    "channel_id": 1410712750568505507,
+    "ping_target": 1436421726727700542,
+    "ping_type": "role",
+    "created_at": "2025-11-11T17:30:00.513230",
+    "remind_at": "2025-11-11T19:30:00.513221",
+    "completed": true
+  },
+  {
+    "type": "bump",
+    "guild_id": 1410420544939098245,
+    "channel_id": 1410712750568505507,
+    "ping_target": 1436421726727700542,
+    "ping_type": "role",
+    "created_at": "2025-11-11T19:31:36.249801",
+    "remind_at": "2025-11-11T21:31:36.249790",
+    "completed": true
+  },
+  {
+    "type": "bump",
+    "guild_id": 1410420544939098245,
+    "channel_id": 1410712750568505507,
+    "ping_target": 1436421726727700542,
+    "ping_type": "role",
+    "created_at": "2025-11-11T22:20:21.696895",
+    "remind_at": "2025-11-12T00:20:21.696884",
+    "completed": true
+  },
+  {
+    "type": "bump",
+    "guild_id": 1410420544939098245,
+    "channel_id": 1410712750568505507,
+    "ping_target": 1436421726727700542,
+    "ping_type": "role",
+    "created_at": "2025-11-12T10:22:30.213468",
+    "remind_at": "2025-11-12T12:22:30.213459",
+    "completed": true
+  },
+  {
+    "type": "bump",
+    "guild_id": 1410420544939098245,
+    "channel_id": 1410712750568505507,
+    "ping_target": 1436421726727700542,
+    "ping_type": "role",
+    "created_at": "2025-11-12T13:31:52.568049",
+    "remind_at": "2025-11-12T15:31:52.568026",
+    "completed": true
+  },
+  {
+    "type": "bump",
+    "guild_id": 1410420544939098245,
+    "channel_id": 1410712750568505507,
+    "ping_target": 1436421726727700542,
+    "ping_type": "role",
+    "created_at": "2025-11-12T15:32:12.637223",
+    "remind_at": "2025-11-12T17:32:12.637212",
+    "completed": true
+  },
+  {
+    "type": "bump",
+    "guild_id": 1410420544939098245,
+    "channel_id": 1410712750568505507,
+    "ping_target": 1436421726727700542,
+    "ping_type": "role",
+    "created_at": "2025-11-12T17:32:47.356861",
+    "remind_at": "2025-11-12T19:32:47.356850",
+    "completed": true
+  },
+  {
+    "type": "bump",
+    "guild_id": 1410420544939098245,
+    "channel_id": 1410712750568505507,
+    "ping_target": 1436421726727700542,
+    "ping_type": "role",
+    "created_at": "2025-11-12T19:33:01.508032",
+    "remind_at": "2025-11-12T21:33:01.508018",
+    "completed": true
+  },
+  {
+    "type": "bump",
+    "guild_id": 1410420544939098245,
+    "channel_id": 1410712750568505507,
+    "ping_target": 1436421726727700542,
+    "ping_type": "role",
+    "created_at": "2025-11-12T21:33:02.071449",
+    "remind_at": "2025-11-12T23:33:02.071420",
+    "completed": true
+  },
+  {
+    "type": "bump",
+    "guild_id": 1410420544939098245,
+    "channel_id": 1410712750568505507,
+    "ping_target": 1436421726727700542,
+    "ping_type": "role",
+    "created_at": "2025-11-12T23:33:17.948845",
+    "remind_at": "2025-11-13T01:33:17.948833",
+    "completed": true
+  },
+  {
+    "type": "bump",
+    "guild_id": 1410420544939098245,
+    "channel_id": 1410712750568505507,
+    "ping_target": 1436421726727700542,
+    "ping_type": "role",
+    "created_at": "2025-11-13T01:34:02.152915",
+    "remind_at": "2025-11-13T03:34:02.152903",
+    "completed": true
+  },
+  {
+    "type": "bump",
+    "guild_id": 1410420544939098245,
+    "channel_id": 1410712750568505507,
+    "ping_target": 1436421726727700542,
+    "ping_type": "role",
+    "created_at": "2025-11-13T03:34:22.089062",
+    "remind_at": "2025-11-13T05:34:22.089051",
+    "completed": true
+  },
+  {
+    "type": "bump",
+    "guild_id": 1410420544939098245,
+    "channel_id": 1410712750568505507,
+    "ping_target": 1436421726727700542,
+    "ping_type": "role",
+    "created_at": "2025-11-13T05:34:58.120765",
+    "remind_at": "2025-11-13T07:34:58.120754",
+    "completed": true
+  },
+  {
+    "type": "bump",
+    "guild_id": 1410420544939098245,
+    "channel_id": 1410712750568505507,
+    "ping_target": 1436421726727700542,
+    "ping_type": "role",
+    "created_at": "2025-11-13T10:25:25.064435",
+    "remind_at": "2025-11-13T12:25:25.064425",
+    "completed": true
+  },
+  {
+    "type": "bump",
+    "guild_id": 1410420544939098245,
+    "channel_id": 1410712750568505507,
+    "ping_target": 1436421726727700542,
+    "ping_type": "role",
+    "created_at": "2025-11-13T12:31:29.662019",
+    "remind_at": "2025-11-13T14:31:29.662007",
+    "completed": true
+  },
+  {
+    "type": "bump",
+    "guild_id": 1410420544939098245,
+    "channel_id": 1410712750568505507,
+    "ping_target": 1436421726727700542,
+    "ping_type": "role",
+    "created_at": "2025-11-13T14:48:53.124395",
+    "remind_at": "2025-11-13T16:48:53.124385",
+    "completed": true
+  },
+  {
+    "type": "bump",
+    "guild_id": 1410420544939098245,
+    "channel_id": 1410712750568505507,
+    "ping_target": 1436421726727700542,
+    "ping_type": "role",
+    "created_at": "2025-11-13T16:51:04.210941",
+    "remind_at": "2025-11-13T18:51:04.210928",
+    "completed": true
+  },
+  {
+    "type": "bump",
+    "guild_id": 1410420544939098245,
+    "channel_id": 1410712750568505507,
+    "ping_target": 1436421726727700542,
+    "ping_type": "role",
+    "created_at": "2025-11-13T18:51:59.253826",
+    "remind_at": "2025-11-13T20:51:59.253814",
+    "completed": true
+  },
+  {
+    "type": "bump",
+    "guild_id": 1410420544939098245,
+    "channel_id": 1410712750568505507,
+    "ping_target": 1436421726727700542,
+    "ping_type": "role",
+    "created_at": "2025-11-17T21:33:24.044870",
+    "remind_at": "2025-11-17T23:33:24.044859",
+    "completed": true
+  },
+  {
+    "type": "bump",
+    "guild_id": 1410420544939098245,
+    "channel_id": 1410712750568505507,
+    "ping_target": 1436421726727700542,
+    "ping_type": "role",
+    "created_at": "2025-11-18T02:44:40.422583",
+    "remind_at": "2025-11-18T04:44:40.422571",
+    "completed": true
+  },
+  {
+    "type": "bump",
+    "guild_id": 1410420544939098245,
+    "channel_id": 1410712750568505507,
+    "ping_target": 1436421726727700542,
+    "ping_type": "role",
+    "created_at": "2025-11-18T04:46:44.253946",
+    "remind_at": "2025-11-18T06:46:44.253937",
+    "completed": true
+  },
+  {
+    "type": "bump",
+    "guild_id": 1410420544939098245,
+    "channel_id": 1410712750568505507,
+    "ping_target": 1436421726727700542,
+    "ping_type": "role",
+    "created_at": "2025-11-18T07:10:55.085776",
+    "remind_at": "2025-11-18T09:10:55.085763",
+    "completed": true
+  },
+  {
+    "type": "bump",
+    "guild_id": 1410420544939098245,
+    "channel_id": 1410712750568505507,
+    "ping_target": 1436421726727700542,
+    "ping_type": "role",
+    "created_at": "2025-11-18T09:47:45.338732",
+    "remind_at": "2025-11-18T11:47:45.338722",
+    "completed": true
+  },
+  {
+    "type": "bump",
+    "guild_id": 1410420544939098245,
+    "channel_id": 1410712750568505507,
+    "ping_target": 1436421726727700542,
+    "ping_type": "role",
+    "created_at": "2025-11-18T13:13:36.887653",
+    "remind_at": "2025-11-18T15:13:36.887645",
+    "completed": true
+  },
+  {
+    "type": "bump",
+    "guild_id": 1410420544939098245,
+    "channel_id": 1410712750568505507,
+    "ping_target": 1436421726727700542,
+    "ping_type": "role",
+    "created_at": "2025-11-18T16:30:48.902861",
+    "remind_at": "2025-11-18T18:30:48.902850",
+    "completed": true
+  },
+  {
+    "type": "bump",
+    "guild_id": 1410420544939098245,
+    "channel_id": 1410712750568505507,
+    "ping_target": 1436421726727700542,
+    "ping_type": "role",
+    "created_at": "2025-11-18T19:25:07.481818",
+    "remind_at": "2025-11-18T21:25:07.481805",
+    "completed": true
+  },
+  {
+    "type": "bump",
+    "guild_id": 1410420544939098245,
+    "channel_id": 1410712750568505507,
+    "ping_target": 1436421726727700542,
+    "ping_type": "role",
+    "created_at": "2025-11-19T17:20:35.759349",
+    "remind_at": "2025-11-19T19:20:35.759339",
+    "completed": true
+  },
+  {
+    "type": "bump",
+    "guild_id": 1410420544939098245,
+    "channel_id": 1410712750568505507,
+    "ping_target": 1436421726727700542,
+    "ping_type": "role",
+    "created_at": "2025-11-19T19:22:39.725376",
+    "remind_at": "2025-11-19T21:22:39.725364",
+    "completed": true
+  },
+  {
+    "type": "bump",
+    "guild_id": 1410420544939098245,
+    "channel_id": 1410712750568505507,
+    "ping_target": 1436421726727700542,
+    "ping_type": "role",
+    "created_at": "2025-11-19T21:24:05.082943",
+    "remind_at": "2025-11-19T23:24:05.082931",
+    "completed": true
+  },
+  {
+    "type": "bump",
+    "guild_id": 1410420544939098245,
+    "channel_id": 1410712750568505507,
+    "ping_target": 1436421726727700542,
+    "ping_type": "role",
+    "created_at": "2025-11-20T10:34:17.275911",
+    "remind_at": "2025-11-20T12:34:17.275898",
+    "completed": true
+  },
+  {
+    "type": "bump",
+    "guild_id": 1410420544939098245,
+    "channel_id": 1410712750568505507,
+    "ping_target": 1436421726727700542,
+    "ping_type": "role",
+    "created_at": "2025-11-21T00:35:32.497082",
+    "remind_at": "2025-11-21T02:35:32.497070",
+    "completed": true
+  },
+  {
+    "type": "bump",
+    "guild_id": 1410420544939098245,
+    "channel_id": 1410712750568505507,
+    "ping_target": 1436421726727700542,
+    "ping_type": "role",
+    "created_at": "2025-11-21T03:19:46.375296",
+    "remind_at": "2025-11-21T05:19:46.375284",
+    "completed": true
+  },
+  {
+    "type": "bump",
+    "guild_id": 1410420544939098245,
+    "channel_id": 1410712750568505507,
+    "ping_target": 1436421726727700542,
+    "ping_type": "role",
+    "created_at": "2025-11-21T19:37:03.625529",
+    "remind_at": "2025-11-21T21:37:03.625518",
+    "completed": true
+  },
+  {
+    "type": "bump",
+    "guild_id": 1410420544939098245,
+    "channel_id": 1410712750568505507,
+    "ping_target": 1436421726727700542,
+    "ping_type": "role",
+    "created_at": "2025-11-22T04:25:44.935469",
+    "remind_at": "2025-11-22T06:25:44.935460",
+    "completed": true
+  },
+  {
+    "type": "bump",
+    "guild_id": 1410420544939098245,
+    "channel_id": 1410712750568505507,
+    "ping_target": 1436421726727700542,
+    "ping_type": "role",
+    "created_at": "2025-11-22T18:03:13.757169",
+    "remind_at": "2025-11-22T20:03:13.757159",
+    "completed": false
+  }
+]

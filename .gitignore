@@ -1,0 +1,14 @@
+.env
+reminders.json
+prefixes.json
+bump_config.json
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+.pythonlibs/
+.cache/
+.local/
+.upm/
+uv.lock

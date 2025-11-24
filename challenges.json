@@ -1,0 +1,280 @@
+{
+  "732102581106769920": {
+    "progress": {
+      "slots_enthusiast": 25,
+      "roulette_master": 5,
+      "jackpot_hunter": 1
+    },
+    "completed": [
+      "lucky_streak",
+      "chip_collector",
+      "slots_enthusiast",
+      "high_roller",
+      "jackpot_hunter"
+    ],
+    "total_winnings": 4984990,
+    "current_streak": 1,
+    "claims_made": [
+      "weekly",
+      "monthly",
+      "daily",
+      "yearly"
+    ]
+  },
+  "525815097847840798": {
+    "progress": {
+      "slots_enthusiast": 7,
+      "roulette_master": 10,
+      "crash_veteran": 8,
+      "crash_winner": 2,
+      "jackpot_hunter": 1
+    },
+    "completed": [
+      "roulette_master",
+      "chip_collector",
+      "high_roller",
+      "jackpot_hunter"
+    ],
+    "total_winnings": 92631320,
+    "current_streak": 2,
+    "claims_made": [
+      "weekly",
+      "monthly",
+      "daily",
+      "yearly"
+    ]
+  },
+  "343055455263916045": {
+    "progress": {
+      "slots_enthusiast": 4,
+      "poker_novice": 3,
+      "poker_champion": 1,
+      "crash_veteran": 25,
+      "crash_winner": 15,
+      "coinflip_gambler": 2,
+      "mines_explorer": 1,
+      "hilo_expert": 1,
+      "wheel_spinner": 1,
+      "roulette_master": 2
+    },
+    "completed": [
+      "chip_collector",
+      "crash_winner",
+      "crash_veteran"
+    ],
+    "total_winnings": 350,
+    "current_streak": 0,
+    "claims_made": [
+      "weekly",
+      "monthly",
+      "daily",
+      "yearly"
+    ],
+    "poker_plays": 43,
+    "poker_wins": 7
+  },
+  "187729483174903808": {
+    "progress": {
+      "crash_veteran": 25,
+      "crash_winner": 15,
+      "roulette_master": 5,
+      "slots_enthusiast": 7
+    },
+    "completed": [
+      "chip_collector",
+      "high_roller",
+      "crash_veteran",
+      "crash_winner"
+    ],
+    "total_winnings": 10103000,
+    "current_streak": 0,
+    "claims_made": [
+      "weekly",
+      "monthly",
+      "daily",
+      "yearly"
+    ]
+  },
+  "1237598739041091652": {
+    "progress": {
+      "slots_enthusiast": 30,
+      "crash_veteran": 25,
+      "crash_winner": 15,
+      "roulette_master": 10
+    },
+    "completed": [
+      "chip_collector",
+      "slots_enthusiast",
+      "lucky_streak",
+      "crash_winner",
+      "crash_veteran",
+      "roulette_master"
+    ],
+    "total_winnings": 100,
+    "current_streak": 0,
+    "claims_made": [
+      "weekly",
+      "monthly",
+      "daily",
+      "yearly"
+    ]
+  },
+  "934168336579825774": {
+    "progress": {
+      "poker_novice": 9,
+      "slots_enthusiast": 7,
+      "poker_champion": 3,
+      "crash_veteran": 25,
+      "crash_winner": 15,
+      "coinflip_gambler": 1,
+      "coinflip_winner": 1,
+      "hilo_expert": 9
+    },
+    "completed": [
+      "chip_collector",
+      "high_roller",
+      "lucky_streak",
+      "crash_winner",
+      "crash_veteran"
+    ],
+    "total_winnings": NaN,
+    "current_streak": 0,
+    "claims_made": [
+      "weekly",
+      "monthly",
+      "daily",
+      "yearly"
+    ],
+    "poker_plays": 7,
+    "poker_wins": 1
+  },
+  "760075655374176277": {
+    "progress": {
+      "slots_enthusiast": 2,
+      "crash_veteran": 12,
+      "crash_winner": 5,
+      "roulette_master": 9
+    },
+    "completed": [
+      "chip_collector"
+    ],
+    "total_winnings": 0,
+    "current_streak": 0,
+    "claims_made": [
+      "weekly",
+      "monthly",
+      "daily",
+      "yearly"
+    ]
+  },
+  "697495071737511997": {
+    "progress": {
+      "roulette_master": 10,
+      "crash_veteran": 17,
+      "crash_winner": 13
+    },
+    "completed": [
+      "chip_collector",
+      "roulette_master"
+    ],
+    "total_winnings": 0,
+    "current_streak": 0,
+    "claims_made": [
+      "weekly",
+      "monthly",
+      "daily",
+      "yearly"
+    ]
+  },
+  "504812129560428554": {
+    "progress": {
+      "crash_veteran": 3,
+      "crash_winner": 1,
+      "slots_enthusiast": 2
+    },
+    "completed": [
+      "chip_collector",
+      "high_roller"
+    ],
+    "total_winnings": 120000,
+    "current_streak": 2,
+    "claims_made": [
+      "weekly",
+      "monthly",
+      "daily",
+      "yearly"
+    ]
+  },
+  "205383259368980480": {
+    "progress": {
+      "roulette_master": 3
+    },
+    "completed": [],
+    "total_winnings": 0,
+    "current_streak": 0,
+    "claims_made": [
+      "weekly",
+      "daily",
+      "yearly"
+    ]
+  },
+  "667815627422957599": {
+    "progress": {
+      "roulette_master": 1,
+      "mines_explorer": 1,
+      "mines_master": 1,
+      "craps_roller": 6,
+      "crash_veteran": 9,
+      "crash_winner": 2
+    },
+    "completed": [],
+    "total_winnings": 0,
+    "current_streak": 0,
+    "claims_made": [
+      "daily",
+      "yearly"
+    ]
+  },
+  "1204102438366220338": {
+    "progress": {
+      "coinflip_gambler": 1,
+      "slots_enthusiast": 1
+    },
+    "completed": [],
+    "total_winnings": 10,
+    "current_streak": 1,
+    "claims_made": [
+      "daily"
+    ]
+  },
+  "1350672053979840522": {
+    "progress": {
+      "crash_veteran": 25,
+      "crash_winner": 15,
+      "roulette_master": 10
+    },
+    "completed": [
+      "chip_collector",
+      "crash_winner",
+      "crash_veteran",
+      "roulette_master"
+    ],
+    "total_winnings": 0,
+    "current_streak": 0,
+    "claims_made": [
+      "weekly",
+      "monthly",
+      "daily",
+      "yearly"
+    ]
+  },
+  "662760802398371880": {
+    "progress": {
+      "crash_veteran": 1
+    },
+    "completed": [],
+    "total_winnings": 0,
+    "current_streak": 0,
+    "claims_made": []
+  }
+}
