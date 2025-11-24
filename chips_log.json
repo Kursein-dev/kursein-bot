@@ -1,14 +1,5 @@
 [
   {
-    "timestamp": "2025-11-11T22:53:57.630710",
-    "user_id": "1350672053979840522",
-    "user_name": "System",
-    "amount": 3300,
-    "reason": "Level 34 reward",
-    "balance_before": 9300,
-    "balance_after": 12600
-  },
-  {
     "timestamp": "2025-11-11T22:53:57.652766",
     "user_id": "1350672053979840522",
     "user_name": "k1ll.mys3lf_16225",
@@ -8998,5 +8989,14 @@
     "reason": "Crash game win (cashed out at 1.14x)",
     "balance_before": 6725,
     "balance_after": 15157
+  },
+  {
+    "timestamp": "2025-11-24T16:34:17.773993",
+    "user_id": "343055455263916045",
+    "user_name": "kursein",
+    "amount": -31875,
+    "reason": "Crash game bet",
+    "balance_before": 63750,
+    "balance_after": 31875
   }
 ]

@@ -667,6 +667,16 @@
     "ping_type": "role",
     "created_at": "2025-11-22T18:03:13.757169",
     "remind_at": "2025-11-22T20:03:13.757159",
-    "completed": false
+    "completed": true
+  },
+  {
+    "type": "bump",
+    "guild_id": 1410420544939098245,
+    "channel_id": 1410712750568505507,
+    "ping_target": 1436421726727700542,
+    "ping_type": "role",
+    "created_at": "2025-11-24T16:02:34.199270",
+    "remind_at": "2025-11-24T18:02:34.199260",
+    "completed": true
   }
 ]

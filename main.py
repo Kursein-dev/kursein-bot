@@ -45,6 +45,7 @@ BANKS_FILE = "banks.json"
 CLANS_FILE = "clans.json"
 RL_RANKS_FILE = "rl_ranks.json"
 RL_PROFILES_FILE = "rl_profiles.json"
+STREAMS_CONFIG_FILE = "streams_config.json"
 DEFAULT_PREFIX = "~"
 DISBOARD_BOT_ID = 302050872383242240
 ERROR_CHANNEL_ID = 1435009092782522449  # Channel for error logging
@@ -79,6 +80,7 @@ user_banks = {}  # user_id: bank_balance (safe from robberies)
 clans = {}  # clan_id: {'name': str, 'leader_id': int, 'members': [user_ids], 'vault': int, 'created': timestamp}
 rl_ranks = {}  # user_id: rank_value (0-22)
 rl_profiles = {}  # user_id: {'username': str, 'platform': str}
+streams_config = {}  # guild_id: {'role_id': int, 'channel_id': int, 'streamers': [{username: str, platform: str, live: bool, last_check: timestamp}]}
 
 # Game state storage
 active_blackjack_games = {}  # channel_id: BlackjackGame
@@ -2764,6 +2766,7 @@ async def on_ready():
     load_pets()
     load_tickets()
     load_profile_banners()
+    load_streams_config()
     
     # Backfill guild players for existing players
     print("Backfilling guild player data...")
@@ -2807,6 +2810,14 @@ async def on_ready():
             print("Started shop rotation checker task")
         except Exception as e:
             print(f"Error starting shop rotation checker: {e}")
+    
+    # Start the stream checker if not already started
+    if not check_streams.is_running():
+        try:
+            check_streams.start()
+            print("Started stream checker task")
+        except Exception as e:
+            print(f"Error starting stream checker: {e}")
     
     # Sync slash commands
     try:
@@ -3344,159 +3355,6 @@ async def emoji_id_command(ctx, *, emoji_input: Optional[str] = None):
         if not found:
             await ctx.send("❌ Could not find emoji information. Make sure to:\n• Use the actual emoji in your message\n• Use the emoji name with colons (e.g., `:Casino_Chip:`)\n• Ensure the emoji is from this server")
 
-@bot.command(name='commands')
-async def prefix_commands(ctx):
-    """Show all commands with short descriptions"""
-    prefix = get_prefix(bot, ctx.message)
-    
-    embed = discord.Embed(
-        title="📋 All Commands — Quick Reference",
-        description=f"All available commands at a glance!\n**Current Prefix:** `{prefix}` | Use `{prefix}help` for detailed help",
-        color=0x5865F2
-    )
-    
-    embed.add_field(
-        name="🎰 Solo Casino Games",
-        value=(
-            f"`{prefix}slots [bet]` — 3-reel slot machine\n"
-            f"`{prefix}blackjack <bet>` — Beat dealer to 21\n"
-            f"`{prefix}roulette <bet> <type>` — Roulette wheel\n"
-            f"`{prefix}hilo <bet>` — Interactive higher/lower\n"
-            f"`{prefix}poker <bet>` — 5-card video poker\n"
-            f"`{prefix}crash <bet>` — Cash out before crash\n"
-            f"`{prefix}mines <bet> <diff>` — Avoid bombs\n"
-            f"`{prefix}wheel <bet>` — Prize wheel\n"
-            f"`{prefix}craps <bet>` — Interactive dice game (button)"
-        ),
-        inline=True
-    )
-    
-    embed.add_field(
-        name="🎲 Quick Games",
-        value=(
-            f"`{prefix}coinflip` — Flip a coin\n"
-            f"`{prefix}coinflip @user <bet>` — 1v1 battle\n"
-            f"`{prefix}roll [dice]` — Roll dice\n"
-            f"`{prefix}8ball <q>` — Magic 8-ball"
-        ),
-        inline=True
-    )
-    
-    embed.add_field(
-        name="🃏 Multiplayer Games",
-        value=(
-            f"`{prefix}pokermp start <bet>` — Texas Hold'em\n"
-            f"`{prefix}pokermp join` — Join poker table\n"
-            f"`{prefix}pokermp play` — Deal cards\n"
-            f"`{prefix}roulettemp open` — Open roulette\n"
-            f"`{prefix}roulettemp bet <amt> <type>` — Place bet\n"
-            f"`{prefix}roulettemp spin` — Spin wheel\n"
-            f"`{prefix}sportsbet start <t1> <t2>` — Sports bet\n"
-            f"`{prefix}sportsbet bet <team> <amt>` — Bet on team\n"
-            f"`{prefix}sportsbet result <team>` — Declare winner"
-        ),
-        inline=True
-    )
-    
-    embed.add_field(
-        name="<:Casino_Chip:1437456315025719368> Economy & Trading",
-        value=(
-            f"`{prefix}verify` — Verify to play casino\n"
-            f"`{prefix}balance [@user]` — Check balance\n"
-            f"`{prefix}buytickets [amt]` — Trade chips for tickets\n"
-            f"`{prefix}leaderboard` — Top players\n"
-            f"`{prefix}give @user <amt>` — Transfer chips\n"
-            f"`{prefix}mt @user` — Multi-trade chips\n"
-            f"`{prefix}rob @user` — Rob someone\n"
-            f"`{prefix}bounty @user <amt>` — Place bounty\n"
-            f"`{prefix}bounties` — View bounties\n"
-            f"`{prefix}claim @user` — Claim bounty\n"
-            f"`{prefix}loan <amount>` — Borrow chips\n"
-            f"`{prefix}repay` — Repay loan\n"
-            f"`{prefix}shop` — Buy items/boosters\n"
-            f"`{prefix}use <item>` — Activate items\n"
-            f"`{prefix}inventory` — View items"
-        ),
-        inline=True
-    )
-    
-    embed.add_field(
-        name="🎁 Rewards & Claims",
-        value=(
-            f"`{prefix}daily` — 100 chips (12hr)\n"
-            f"`{prefix}weekly` — 3k chips (7d)\n"
-            f"`{prefix}monthly` — 10k chips (30d)\n"
-            f"`{prefix}yearly` — 100k chips (365d)\n"
-            f"`{prefix}monthlyrewards` — Tier rewards\n"
-            f"`{prefix}work` — Work a job (30min)\n"
-            f"`{prefix}job` — View all jobs\n"
-            f"`{prefix}challenges` — View challenges"
-        ),
-        inline=True
-    )
-    
-    embed.add_field(
-        name="📊 Progression System",
-        value=(
-            f"`{prefix}profile [@user]` — View profile\n"
-            f"`{prefix}setbanner <url>` — Set profile banner\n"
-            f"`{prefix}removebanner` — Remove banner\n"
-            f"`{prefix}setidol <pet>` — Set profile idol\n"
-            f"`{prefix}jackpot` — Check jackpot pool\n"
-            f"`{prefix}achievements` — View achievements\n"
-            f"`{prefix}tournament` — View tournaments"
-        ),
-        inline=True
-    )
-    
-    embed.add_field(
-        name="🔔 Bump Tools",
-        value=(
-            f"`{prefix}bumpreminder <type> <@>` — Set reminders (Admin)\n"
-            f"`{prefix}bumpinfo` — Bump settings\n"
-            f"`{prefix}bumpdisable` — Disable (Admin)"
-        ),
-        inline=True
-    )
-    
-    embed.add_field(
-        name="⚙️ Settings & Admin",
-        value=(
-            f"`{prefix}setprefix <symbol>` — Change prefix (Admin)\n"
-            f"`{prefix}chipslog [lines]` — Transaction log (Admin)\n"
-            f"`{prefix}resetclaim @user <type>` — Reset claims (Admin)\n"
-            f"`{prefix}addchips @user <amt>` — Add chips (Owner)\n"
-            f"`{prefix}resetbalance @user [amt]` — Reset balance (Owner)\n"
-            f"`{prefix}infinite @user [amt]` — Toggle ∞ chips (Owner)"
-        ),
-        inline=True
-    )
-    
-    embed.add_field(
-        name="🐾 Pet Collection",
-        value=(
-            f"`{prefix}rollpet` — Roll for a pet (1 ticket)\n"
-            f"`{prefix}pets [@user]` — View collection"
-        ),
-        inline=True
-    )
-    
-    embed.add_field(
-        name="ℹ️ Help & Info",
-        value=(
-            f"`{prefix}help` — Detailed help menu\n"
-            f"`{prefix}commands` — This command list\n"
-            f"`{prefix}viptiers` — View VIP tiers\n"
-            f"`{prefix}ping` — Check bot latency\n"
-            f"`{prefix}id <emoji>` — Get emoji ID\n"
-            f"`{prefix}gameinfo` — Learn about games\n"
-            "💡 **Tip:** Use `all` or `half` for bets!"
-        ),
-        inline=True
-    )
-    
-    embed.set_footer(text="🎰 Everyone starts with 1000 chips | 🎁 Daily rewards & secret codes available!")
-    await ctx.send(embed=embed)
 
 @bot.command(name='viptiers', aliases=['tiers'])
 async def vip_tiers_command(ctx):
@@ -4156,11 +4014,14 @@ class CrapsGameView(discord.ui.View):
                 total = 7
             else:
                 # Force rolling the point
-                if self.point <= 6:
+                if self.point is not None and self.point <= 6:
                     die1, die2 = self.point - 1, 1
-                else:
+                elif self.point is not None:
                     die1, die2 = 6, self.point - 6
-                total = self.point
+                    total = self.point
+                else:
+                    die1, die2 = 3, 4
+                    total = 7
         
         if self.phase == "come_out":
             # Come Out Roll
@@ -5846,7 +5707,7 @@ async def prefix_leaderboard(ctx, limit: int = 10):
     await ctx.send(embed=embed)
 
 @bot.command(name='setrank', aliases=['rlrank'])
-async def set_rl_rank(ctx, *, rank_name: str = None):
+async def set_rl_rank(ctx, *, rank_name: Optional[str] = None):
     """Set your Rocket League rank
     
     Usage: ~setrank <rank>
@@ -6007,7 +5868,7 @@ async def rl_leaderboard(ctx, limit: int = 10):
     await ctx.send(embed=embed)
 
 @bot.command(name='setrlprofile', aliases=['linkrl', 'rluser'])
-async def set_rl_profile(ctx, platform: str = None, *, username: str = None):
+async def set_rl_profile(ctx, platform: Optional[str] = None, *, username: Optional[str] = None):
     """Link your Rocket League Tracker.gg profile
     
     Usage: ~setrlprofile <platform> <username>
@@ -6060,7 +5921,7 @@ async def set_rl_profile(ctx, platform: str = None, *, username: str = None):
     await ctx.send(embed=embed)
 
 @bot.command(name='rlstats', aliases=['rlprofile', 'rltracker'])
-async def rl_stats(ctx, member: discord.Member = None):
+async def rl_stats(ctx, member: Optional[discord.Member] = None):
     """View a player's live Rocket League stats from Tracker.gg
     
     Usage: ~rlstats [@user]
@@ -6141,8 +6002,10 @@ async def rl_stats(ctx, member: discord.Member = None):
     
     # Parse stats
     try:
-        stats_data.get('data', {}).get('platformInfo', {})
-        segments = stats_data.get('data', {}).get('segments', [])
+        if not stats_data or not isinstance(stats_data, dict):
+            stats_data = {}  # type: ignore
+        data_dict: dict = stats_data if isinstance(stats_data, dict) else {}
+        segments = data_dict.get('data', {}).get('segments', [])
         
         # Get overview segment
         overview = None
@@ -6312,7 +6175,7 @@ async def clan_info_command(ctx):
     try:
         leader = await bot.fetch_user(int(clan_data['leader_id']))
         leader_name = leader.name
-    except:
+    except Exception:
         leader_name = "Unknown"
     
     # Build member list
@@ -6322,7 +6185,7 @@ async def clan_info_command(ctx):
             member = await bot.fetch_user(int(member_id))
             role = "👑" if member_id == clan_data['leader_id'] else "⭐" if member_id in clan_data.get('officers', []) else "👤"
             member_names.append(f"{role} {member.name}")
-        except:
+        except Exception:
             pass
     
     embed = discord.Embed(
@@ -6416,11 +6279,9 @@ async def clan_join_command(ctx, *, clan_name: str):
         return
     
     # Find clan by name
-    target_clan_id = None
     target_clan = None
     for cid, cdata in clans.items():
         if cdata['name'].lower() == clan_name.lower():
-            target_clan_id = cid
             target_clan = cdata
             break
     
@@ -7072,19 +6933,184 @@ class GuidePaginator(discord.ui.View):
 
 @bot.command(name='guide')
 async def guide_command(ctx):
-    """Complete guide of all bot commands with interactive pages
+    """Complete guide of all bot commands
     
     Usage: ~guide
+    Shows all available commands organized by category.
     """
-    # Check if user is admin
-    is_admin = ctx.author.guild_permissions.administrator if ctx.guild else False
+    prefix = get_prefix(bot, ctx.message)
     
-    # Create paginated view
-    view = GuidePaginator(ctx, is_admin)
+    embed = discord.Embed(
+        title="📋 Complete Casino Bot Guide",
+        description=f"All available commands at a glance!\n**Current Prefix:** `{prefix}` | Use `{prefix}help` for detailed help",
+        color=0x5865F2
+    )
     
-    # Send initial page
-    message = await ctx.send(embed=view.pages[0], view=view)
-    view.message = message
+    embed.add_field(
+        name="🎰 Solo Casino Games",
+        value=(
+            f"`{prefix}slots [bet]` — 3-reel slot machine\n"
+            f"`{prefix}blackjack <bet>` — Beat dealer to 21\n"
+            f"`{prefix}roulette <bet> <type>` — Roulette wheel\n"
+            f"`{prefix}hilo <bet>` — Interactive higher/lower\n"
+            f"`{prefix}poker <bet>` — 5-card video poker\n"
+            f"`{prefix}crash <bet>` — Cash out before crash\n"
+            f"`{prefix}mines <bet> <diff>` — Avoid bombs\n"
+            f"`{prefix}wheel <bet>` — Prize wheel\n"
+            f"`{prefix}craps <bet>` — Interactive dice game"
+        ),
+        inline=True
+    )
+    
+    embed.add_field(
+        name="🎲 Quick Games",
+        value=(
+            f"`{prefix}coinflip` — Flip a coin\n"
+            f"`{prefix}coinflip @user <bet>` — 1v1 battle\n"
+            f"`{prefix}roll [dice]` — Roll dice\n"
+            f"`{prefix}8ball <q>` — Magic 8-ball"
+        ),
+        inline=True
+    )
+    
+    embed.add_field(
+        name="🃏 Multiplayer Games",
+        value=(
+            f"`{prefix}pokermp start <bet>` — Texas Hold'em\n"
+            f"`{prefix}pokermp join` — Join poker table\n"
+            f"`{prefix}pokermp play` — Deal cards\n"
+            f"`{prefix}roulettemp open` — Open roulette\n"
+            f"`{prefix}roulettemp bet <amt> <type>` — Place bet\n"
+            f"`{prefix}roulettemp spin` — Spin wheel\n"
+            f"`{prefix}sportsbet start <t1> <t2>` — Sports bet\n"
+            f"`{prefix}sportsbet bet <team> <amt>` — Bet on team\n"
+            f"`{prefix}sportsbet result <team>` — Declare winner"
+        ),
+        inline=True
+    )
+    
+    embed.add_field(
+        name="<:Casino_Chip:1437456315025719368> Economy & Trading",
+        value=(
+            f"`{prefix}verify` — Verify to play casino\n"
+            f"`{prefix}balance [@user]` — Check balance\n"
+            f"`{prefix}buytickets [amt]` — Trade chips for tickets\n"
+            f"`{prefix}leaderboard` — Top players\n"
+            f"`{prefix}give @user <amt>` — Transfer chips\n"
+            f"`{prefix}mt @user` — Multi-trade chips\n"
+            f"`{prefix}rob @user` — Rob someone\n"
+            f"`{prefix}bounty @user <amt>` — Place bounty\n"
+            f"`{prefix}bounties` — View bounties\n"
+            f"`{prefix}claim @user` — Claim bounty\n"
+            f"`{prefix}loan <amount>` — Borrow chips\n"
+            f"`{prefix}repay` — Repay loan\n"
+            f"`{prefix}shop` — Buy items/boosters\n"
+            f"`{prefix}use <item>` — Activate items\n"
+            f"`{prefix}inventory` — View items"
+        ),
+        inline=True
+    )
+    
+    embed.add_field(
+        name="🎁 Rewards & Claims",
+        value=(
+            f"`{prefix}daily` — 100 chips (12hr)\n"
+            f"`{prefix}weekly` — 3k chips (7d)\n"
+            f"`{prefix}monthly` — 10k chips (30d)\n"
+            f"`{prefix}yearly` — 100k chips (365d)\n"
+            f"`{prefix}monthlyrewards` — Tier rewards\n"
+            f"`{prefix}work` — Work a job (30min)\n"
+            f"`{prefix}job` — View all jobs\n"
+            f"`{prefix}challenges` — View challenges"
+        ),
+        inline=True
+    )
+    
+    embed.add_field(
+        name="📊 Progression System",
+        value=(
+            f"`{prefix}profile [@user]` — View profile\n"
+            f"`{prefix}setbanner <url>` — Set profile banner\n"
+            f"`{prefix}removebanner` — Remove banner\n"
+            f"`{prefix}setidol <pet>` — Set profile idol\n"
+            f"`{prefix}jackpot` — Check jackpot pool\n"
+            f"`{prefix}achievements` — View achievements\n"
+            f"`{prefix}tournament` — View tournaments"
+        ),
+        inline=True
+    )
+    
+    embed.add_field(
+        name="🔔 Bump Tools",
+        value=(
+            f"`{prefix}bumpreminder <type> <@>` — Set reminders (Admin)\n"
+            f"`{prefix}bumpinfo` — Bump settings\n"
+            f"`{prefix}bumpdisable` — Disable (Admin)"
+        ),
+        inline=True
+    )
+    
+    embed.add_field(
+        name="⚙️ Settings & Admin",
+        value=(
+            f"`{prefix}setprefix <symbol>` — Change prefix (Admin)\n"
+            f"`{prefix}chipslog [lines]` — Transaction log (Admin)\n"
+            f"`{prefix}resetclaim @user <type>` — Reset claims (Admin)\n"
+            f"`{prefix}addchips @user <amt>` — Add chips (Owner)\n"
+            f"`{prefix}resetbalance @user [amt]` — Reset balance (Owner)\n"
+            f"`{prefix}infinite @user [amt]` — Toggle ∞ chips (Owner)"
+        ),
+        inline=True
+    )
+    
+    embed.add_field(
+        name="🐾 Pet Collection",
+        value=(
+            f"`{prefix}rollpet` — Roll for a pet (1 ticket)\n"
+            f"`{prefix}pets [@user]` — View collection"
+        ),
+        inline=True
+    )
+    
+    embed.add_field(
+        name="🚗 Rocket League",
+        value=(
+            f"`{prefix}setrlprofile <platform> <username>` — Link RL profile\n"
+            f"`{prefix}rlstats [@user]` — View live RL stats\n"
+            f"`{prefix}setrank <rank>` — Set your RL rank\n"
+            f"`{prefix}rlranks` — View RL rank leaderboard"
+        ),
+        inline=True
+    )
+    
+    embed.add_field(
+        name="📡 Stream Notifications",
+        value=(
+            f"`{prefix}streamnotify setup <#channel> @role` — Setup notifications\n"
+            f"`{prefix}twitch add <username>` — Monitor Twitch streamer\n"
+            f"`{prefix}youtube add <username>` — Monitor YouTube creator\n"
+            f"`{prefix}twitch list` — View monitored Twitch streamers\n"
+            f"`{prefix}youtube list` — View monitored YouTube creators"
+        ),
+        inline=True
+    )
+    
+    embed.add_field(
+        name="ℹ️ Help & Info",
+        value=(
+            f"`{prefix}help` — Detailed help menu\n"
+            f"`{prefix}guide` — This command guide\n"
+            f"`{prefix}viptiers` — View VIP tiers\n"
+            f"`{prefix}ping` — Check bot latency\n"
+            f"`{prefix}id <emoji>` — Get emoji ID\n"
+            f"`{prefix}gameinfo` — Learn about games\n"
+            "💡 **Tip:** Use `all` or `half` for bets!"
+        ),
+        inline=True
+    )
+    
+    embed.set_footer(text="🎰 Everyone starts with 1000 chips | 🎁 Daily rewards & secret codes available!")
+    await ctx.send(embed=embed)
 
 class ShopPaginator(discord.ui.View):
     """Interactive paginated shop with buy buttons"""
@@ -7273,7 +7299,8 @@ class ShopPaginator(discord.ui.View):
     async def on_timeout(self):
         """Disable all buttons when view times out"""
         for item in self.children:
-            item.disabled = True
+            if hasattr(item, 'disabled'):
+                item.disabled = True  # type: ignore
         
         if self.message:
             try:
@@ -7662,8 +7689,6 @@ async def profile_command(ctx, user: Optional[discord.User] = None):
     stats["vip_tier"] = tier_data
     save_player_stats()
     
-    vip_benefits = get_vip_benefits(tier_data)
-    
     # Build VIP tier display name
     base_tier = tier_data.get("base_tier", "none")
     is_booster = tier_data.get("is_booster", False)
@@ -7679,7 +7704,6 @@ async def profile_command(ctx, user: Optional[discord.User] = None):
     current_xp = stats["xp"]
     current_level = stats["level"]
     xp_needed = get_level_xp_requirement(current_level)
-    xp_progress = int((current_xp / xp_needed) * 100)
     
     # Calculate server rank (based on XP in current guild)
     server_rank = "—"
@@ -9182,7 +9206,7 @@ async def rob_player(ctx, member: discord.Member):
     await message.edit(embed=result_embed)
 
 @bot.command(name='selectjob', aliases=['choosejob', 'jobselect'])
-async def select_job_command(ctx, *, job_name: str = None):
+async def select_job_command(ctx, *, job_name: Optional[str] = None):
     """Select a job to work (unlocks at higher levels)
     
     Usage: ~selectjob <job name>
@@ -12732,6 +12756,118 @@ async def before_check_shop_rotation():
     """Wait for bot to be ready before starting the loop"""
     await bot.wait_until_ready()
 
+def load_streams_config():
+    """Load streams configuration from file"""
+    global streams_config
+    if os.path.exists(STREAMS_CONFIG_FILE):
+        try:
+            with open(STREAMS_CONFIG_FILE, "r") as f:
+                streams_config = json.load(f)
+        except Exception as e:
+            print(f"Error loading streams config: {e}")
+            streams_config = {}
+
+def save_streams_config():
+    """Save streams configuration to file"""
+    try:
+        with open(STREAMS_CONFIG_FILE, "w") as f:
+            json.dump(streams_config, f, indent=2)
+    except Exception as e:
+        print(f"Error saving streams config: {e}")
+
+@tasks.loop(minutes=5)
+async def check_streams():
+    """Check if streamers are live on Twitch/YouTube"""
+    import re
+    
+    for guild_id, config in streams_config.items():
+        try:
+            guild = bot.get_guild(int(guild_id))
+            if not guild or not config.get('channel_id') or not config.get('role_id'):
+                continue
+            
+            channel = bot.get_channel(config['channel_id'])
+            role = guild.get_role(config['role_id'])
+            
+            if not channel or not role:
+                continue
+            
+            for streamer in config.get('streamers', []):
+                platform = streamer.get('platform', '').lower()
+                username = streamer.get('username', '')
+                
+                if not username or platform not in ['twitch', 'youtube']:
+                    continue
+                
+                # Check if currently live
+                is_live = False
+                stream_url = ""
+                
+                try:
+                    async with aiohttp.ClientSession() as session:
+                        if platform == 'twitch':
+                            # Try to access Twitch page
+                            async with session.get(f'https://www.twitch.tv/{username}', timeout=aiohttp.ClientTimeout(total=5)) as resp:
+                                if resp.status == 200:
+                                    text = await resp.text()
+                                    # Simple check for "is live" indicators
+                                    is_live = '"isLiveBroadcast":true' in text or '"type":"live"' in text
+                                    if is_live:
+                                        stream_url = f"https://twitch.tv/{username}"
+                        
+                        elif platform == 'youtube':
+                            # Try to access YouTube channel
+                            async with session.get(f'https://www.youtube.com/@{username}', timeout=aiohttp.ClientTimeout(total=5)) as resp:
+                                if resp.status == 200:
+                                    text = await resp.text()
+                                    # Check for live indicator
+                                    is_live = '"isLiveContent":true' in text or '"isUpcoming":false' in text and 'live' in text.lower()
+                                    if is_live:
+                                        stream_url = f"https://youtube.com/@{username}/live"
+                except Exception as e:
+                    print(f"Error checking stream {username} on {platform}: {e}")
+                    continue
+                
+                # If live status changed to true and wasn't live before, send notification
+                if is_live and not streamer.get('live'):
+                    try:
+                        embed = discord.Embed(
+                            title=f"🔴 LIVE: {username}",
+                            description=f"{username} is now streaming on {platform.capitalize()}!",
+                            url=stream_url,
+                            color=0xFF0000
+                        )
+                        embed.add_field(name="Platform", value=platform.capitalize(), inline=True)
+                        embed.add_field(name="Status", value="🟢 LIVE", inline=True)
+                        
+                        if isinstance(channel, discord.TextChannel):
+                            await channel.send(
+                                content=f"{role.mention}",
+                                embed=embed
+                            )
+                        
+                        # Update live status
+                        streamer['live'] = True
+                        streamer['last_check'] = datetime.now(timezone.utc).isoformat()
+                        save_streams_config()
+                        print(f"[STREAMS] Notified {guild.name} that {username} is live on {platform}")
+                    except Exception as e:
+                        print(f"Error sending stream notification: {e}")
+                
+                # If was live but now offline, update status
+                elif not is_live and streamer.get('live'):
+                    streamer['live'] = False
+                    streamer['last_check'] = datetime.now(timezone.utc).isoformat()
+                    save_streams_config()
+        
+        except Exception as e:
+            print(f"Error checking streams for guild {guild_id}: {e}")
+
+@check_streams.before_loop
+async def before_check_streams():
+    """Wait for bot to be ready before starting the loop"""
+    await bot.wait_until_ready()
+
 # Error handling and logging
 async def send_error_to_channel(error_title: str, error_details: str, context: Optional[str] = None):
     """Send error message to the designated error channel"""
@@ -12749,6 +12885,269 @@ async def send_error_to_channel(error_title: str, error_details: str, context: O
             await channel.send(embed=embed)
     except Exception as e:
         print(f"Failed to send error to channel: {e}")
+
+@bot.command(name='streamnotify')
+@commands.has_permissions(manage_guild=True)
+async def stream_setup_command(ctx, action: Optional[str] = None):
+    """Setup stream notifications for your server
+    
+    Usage:
+    ~streamnotify setup <#channel> @role - Configure notification channel and role
+    """
+    
+    guild_id = str(ctx.guild.id)
+    
+    if not action or action.lower() != 'setup':
+        return await ctx.send("❌ Please use: `~streamnotify setup <#channel> @role`")
+    
+    # Parse channel and role mentions
+    channel = None
+    role = None
+    
+    # Try to find channel in message
+    if ctx.message.channel_mentions:
+        channel = ctx.message.channel_mentions[0]
+    
+    # Try to find role in message
+    if ctx.message.role_mentions:
+        role = ctx.message.role_mentions[0]
+    
+    if not channel or not role:
+        return await ctx.send("❌ Please use: `~streamnotify setup <#channel> @role`")
+    
+    if guild_id not in streams_config:
+        streams_config[guild_id] = {}
+    
+    streams_config[guild_id]['channel_id'] = channel.id
+    streams_config[guild_id]['role_id'] = role.id
+    streams_config[guild_id]['streamers'] = streams_config[guild_id].get('streamers', [])
+    
+    save_streams_config()
+    
+    embed = discord.Embed(
+        title="✅ Stream Notifications Setup",
+        description=f"Notifications will be sent to {channel.mention} with {role.mention} pinged",
+        color=0x00FF00
+    )
+    return await ctx.send(embed=embed)
+
+@bot.command(name='twitch')
+@commands.has_permissions(manage_guild=True)
+async def twitch_command(ctx, action: Optional[str] = None, username: Optional[str] = None):
+    """Manage Twitch stream monitoring
+    
+    Usage:
+    ~twitch add <username> - Monitor a Twitch streamer
+    ~twitch remove <username> - Stop monitoring a Twitch streamer
+    ~twitch list - Show all monitored Twitch streamers
+    """
+    
+    guild_id = str(ctx.guild.id)
+    
+    if not action:
+        embed = discord.Embed(
+            title="📺 Twitch Commands",
+            description="Manage Twitch stream monitoring",
+            color=0x9146FF
+        )
+        embed.add_field(name="Add", value="`~twitch add <username>` - Monitor a streamer", inline=False)
+        embed.add_field(name="Remove", value="`~twitch remove <username>` - Stop monitoring", inline=False)
+        embed.add_field(name="List", value="`~twitch list` - View all monitored streamers", inline=False)
+        return await ctx.send(embed=embed)
+    
+    action = action.lower()
+    
+    if action == 'add':
+        if not username:
+            return await ctx.send("❌ Please use: `~twitch add <username>`")
+        
+        if guild_id not in streams_config:
+            streams_config[guild_id] = {'streamers': []}
+        
+        if 'streamers' not in streams_config[guild_id]:
+            streams_config[guild_id]['streamers'] = []
+        
+        # Check if already added
+        for streamer in streams_config[guild_id]['streamers']:
+            if streamer['username'].lower() == username.lower() and streamer['platform'] == 'twitch':
+                return await ctx.send(f"⚠️ **{username}** is already being monitored on Twitch")
+        
+        streams_config[guild_id]['streamers'].append({
+            'username': username,
+            'platform': 'twitch',
+            'live': False,
+            'last_check': datetime.now(timezone.utc).isoformat()
+        })
+        
+        save_streams_config()
+        
+        embed = discord.Embed(
+            title="✅ Twitch Streamer Added",
+            description=f"Now monitoring **{username}** on Twitch",
+            color=0x9146FF
+        )
+        return await ctx.send(embed=embed)
+    
+    elif action == 'remove':
+        if not username:
+            return await ctx.send("❌ Please use: `~twitch remove <username>`")
+        
+        if guild_id not in streams_config or not streams_config[guild_id].get('streamers'):
+            return await ctx.send("❌ No Twitch streamers to remove")
+        
+        original_count = len(streams_config[guild_id]['streamers'])
+        streams_config[guild_id]['streamers'] = [
+            s for s in streams_config[guild_id]['streamers']
+            if not (s['username'].lower() == username.lower() and s['platform'] == 'twitch')
+        ]
+        
+        if len(streams_config[guild_id]['streamers']) == original_count:
+            return await ctx.send(f"❌ Twitch streamer `{username}` not found")
+        
+        save_streams_config()
+        
+        embed = discord.Embed(
+            title="✅ Twitch Streamer Removed",
+            description=f"Stopped monitoring **{username}** on Twitch",
+            color=0x9146FF
+        )
+        return await ctx.send(embed=embed)
+    
+    elif action == 'list':
+        if guild_id not in streams_config or not streams_config[guild_id].get('streamers'):
+            return await ctx.send("❌ No streamers being monitored")
+        
+        twitch_streamers = [s for s in streams_config[guild_id]['streamers'] if s['platform'] == 'twitch']
+        
+        if not twitch_streamers:
+            return await ctx.send("❌ No Twitch streamers being monitored in this server")
+        
+        embed = discord.Embed(
+            title="📺 Monitored Twitch Streamers",
+            color=0x9146FF
+        )
+        
+        for streamer in twitch_streamers:
+            status = "🟢 Live" if streamer.get('live') else "⚫ Offline"
+            embed.add_field(
+                name=f"{streamer['username']}",
+                value=f"Status: {status}",
+                inline=False
+            )
+        
+        return await ctx.send(embed=embed)
+    
+    else:
+        return await ctx.send("❌ Unknown action. Use `~twitch` for help")
+
+@bot.command(name='youtube')
+@commands.has_permissions(manage_guild=True)
+async def youtube_command(ctx, action: Optional[str] = None, username: Optional[str] = None):
+    """Manage YouTube stream monitoring
+    
+    Usage:
+    ~youtube add <username> - Monitor a YouTube creator
+    ~youtube remove <username> - Stop monitoring a YouTube creator
+    ~youtube list - Show all monitored YouTube creators
+    """
+    
+    guild_id = str(ctx.guild.id)
+    
+    if not action:
+        embed = discord.Embed(
+            title="▶️ YouTube Commands",
+            description="Manage YouTube stream monitoring",
+            color=0xFF0000
+        )
+        embed.add_field(name="Add", value="`~youtube add <username>` - Monitor a creator", inline=False)
+        embed.add_field(name="Remove", value="`~youtube remove <username>` - Stop monitoring", inline=False)
+        embed.add_field(name="List", value="`~youtube list` - View all monitored creators", inline=False)
+        return await ctx.send(embed=embed)
+    
+    action = action.lower()
+    
+    if action == 'add':
+        if not username:
+            return await ctx.send("❌ Please use: `~youtube add <username>`")
+        
+        if guild_id not in streams_config:
+            streams_config[guild_id] = {'streamers': []}
+        
+        if 'streamers' not in streams_config[guild_id]:
+            streams_config[guild_id]['streamers'] = []
+        
+        # Check if already added
+        for streamer in streams_config[guild_id]['streamers']:
+            if streamer['username'].lower() == username.lower() and streamer['platform'] == 'youtube':
+                return await ctx.send(f"⚠️ **{username}** is already being monitored on YouTube")
+        
+        streams_config[guild_id]['streamers'].append({
+            'username': username,
+            'platform': 'youtube',
+            'live': False,
+            'last_check': datetime.now(timezone.utc).isoformat()
+        })
+        
+        save_streams_config()
+        
+        embed = discord.Embed(
+            title="✅ YouTube Creator Added",
+            description=f"Now monitoring **{username}** on YouTube",
+            color=0xFF0000
+        )
+        return await ctx.send(embed=embed)
+    
+    elif action == 'remove':
+        if not username:
+            return await ctx.send("❌ Please use: `~youtube remove <username>`")
+        
+        if guild_id not in streams_config or not streams_config[guild_id].get('streamers'):
+            return await ctx.send("❌ No YouTube creators to remove")
+        
+        original_count = len(streams_config[guild_id]['streamers'])
+        streams_config[guild_id]['streamers'] = [
+            s for s in streams_config[guild_id]['streamers']
+            if not (s['username'].lower() == username.lower() and s['platform'] == 'youtube')
+        ]
+        
+        if len(streams_config[guild_id]['streamers']) == original_count:
+            return await ctx.send(f"❌ YouTube creator `{username}` not found")
+        
+        save_streams_config()
+        
+        embed = discord.Embed(
+            title="✅ YouTube Creator Removed",
+            description=f"Stopped monitoring **{username}** on YouTube",
+            color=0xFF0000
+        )
+        return await ctx.send(embed=embed)
+    
+    elif action == 'list':
+        if guild_id not in streams_config or not streams_config[guild_id].get('streamers'):
+            return await ctx.send("❌ No streamers being monitored")
+        
+        youtube_streamers = [s for s in streams_config[guild_id]['streamers'] if s['platform'] == 'youtube']
+        
+        if not youtube_streamers:
+            return await ctx.send("❌ No YouTube creators being monitored in this server")
+        
+        embed = discord.Embed(
+            title="▶️ Monitored YouTube Creators",
+            color=0xFF0000
+        )
+        
+        for streamer in youtube_streamers:
+            status = "🟢 Live" if streamer.get('live') else "⚫ Offline"
+            embed.add_field(
+                name=f"{streamer['username']}",
+                value=f"Status: {status}",
+                inline=False
+            )
+        
+        return await ctx.send(embed=embed)
+    
+    else:
+        return await ctx.send("❌ Unknown action. Use `~youtube` for help")
 
 @bot.command(name='testchannel')
 @commands.is_owner()
