@@ -46,14 +46,25 @@ CLANS_FILE = "clans.json"
 RL_RANKS_FILE = "rl_ranks.json"
 RL_PROFILES_FILE = "rl_profiles.json"
 STREAMS_CONFIG_FILE = "streams_config.json"
+STAFF_FILE = "staff.json"
+STREAKS_FILE = "streaks.json"
+GAME_HISTORY_FILE = "game_history.json"
 DEFAULT_PREFIX = "~"
 DISBOARD_BOT_ID = 302050872383242240
 ERROR_CHANNEL_ID = 1435009092782522449  # Channel for error logging
 GOD_MODE_USER_ID = 525815097847840798  # User with 100% win rate on all games
 
+# Admin/Staff IDs
+OWNER_ID = 343055455263916045  # kursein
+ADMIN_IDS = {697495071737511997, 187729483174903808, 343055455263916045, 525815097847840798, 760075655374176277}  # cocoa.trees, getsleepad, kursein, luvlis_time, nanizzz
+MOD_IDS = {504812129560428554}  # tillyoudecay
+JRMOD_IDS = {878870610158178335, 1131474199286907000}  # lightningmint., shanksdagoat
+STAFF_IDS = ADMIN_IDS | MOD_IDS | JRMOD_IDS | {OWNER_ID}  # All staff combined
+
 reminders = []
 prefixes = {}
 bump_config = {}
+staff_data = {}  # user_id: {name, position, description, extras}
 claims = {}  # user_id: {'daily': timestamp, 'weekly': timestamp, 'monthly': timestamp, 'yearly': timestamp}
 claim_reminders_sent = {}  # user_id: {'daily': bool, 'weekly': bool, 'monthly': bool, 'yearly': bool}
 user_challenges = {}  # user_id: {challenge_id: progress}
@@ -64,6 +75,8 @@ monthly_claims = {}  # user_id: {'month': 'YYYY-MM', 'count': int, 'claimed_tier
 player_stats = {}  # user_id: {'xp': int, 'level': int, 'vip_tier': str, 'total_wagered': int, 'total_won': int, 'games_played': int, 'achievements': [], 'inventory': []}
 jackpot_pool = 0  # Progressive jackpot amount
 shop_items = {}  # item_id: {'name': str, 'price': int, 'type': str, 'effect': dict}
+login_streaks = {}  # user_id: {'current_streak': int, 'last_login': timestamp, 'longest_streak': int}
+game_history = {}  # user_id: [{'game': str, 'wager': int, 'result': 'win'/'loss'/'push', 'amount': int, 'timestamp': str}]
 house_stats = {}  # {'total_wagered': int, 'total_paid': int, 'profit': int, 'tax_rate': float}
 player_loans = {}  # user_id: {'amount': int, 'interest_rate': float, 'due_date': timestamp}
 active_tournament = None  # Current weekly tournament data
@@ -2147,6 +2160,20 @@ def init_player_stats(user_id):
         }
         save_player_stats()
     
+    # Initialize login streak
+    if user_id not in login_streaks:
+        login_streaks[user_id] = {
+            "current_streak": 0,
+            "last_login": None,
+            "longest_streak": 0
+        }
+        save_login_streaks()
+    
+    # Initialize game history
+    if user_id not in game_history:
+        game_history[user_id] = []
+        save_game_history()
+    
     # Migrate existing accounts to new job system
     if "losing_streak" not in player_stats[user_id]:
         player_stats[user_id]["losing_streak"] = 0
@@ -2352,13 +2379,14 @@ def apply_vip_bonus_to_winnings(user_id, base_winnings, member=None):
 # WIN/LOSS STREAK TRACKING
 # ========================================
 
-def track_game_stats(user_id, wager, net_profit):
+def track_game_stats(user_id, wager, net_profit, game_name="Unknown"):
     """Track game statistics: games played, total wagered, and total won
     
     Args:
         user_id: The player's ID
         wager: Total amount bet/wagered (always positive)
         net_profit: Net profit from the game (positive if won, negative if lost, 0 if push)
+        game_name: Name of the game played
     """
     user_id = str(user_id)
     init_player_stats(user_id)
@@ -2371,6 +2399,31 @@ def track_game_stats(user_id, wager, net_profit):
     if net_profit > 0:
         player_stats[user_id]["total_won"] += net_profit
     
+    # Track game in history
+    if net_profit > 0:
+        result = "win"
+    elif net_profit < 0:
+        result = "loss"
+    else:
+        result = "push"
+    
+    game_entry = {
+        "game": game_name,
+        "wager": wager,
+        "result": result,
+        "amount": abs(net_profit),
+        "timestamp": datetime.now().isoformat()
+    }
+    
+    if user_id not in game_history:
+        game_history[user_id] = []
+    
+    game_history[user_id].append(game_entry)
+    # Keep only last 50 games
+    if len(game_history[user_id]) > 50:
+        game_history[user_id] = game_history[user_id][-50:]
+    
+    save_game_history()
     save_player_stats()
     
     # Check VIP tier (may have changed with new wager amount)
@@ -2767,6 +2820,9 @@ async def on_ready():
     load_tickets()
     load_profile_banners()
     load_streams_config()
+    load_staff_data()
+    load_login_streaks()
+    load_game_history()
     
     # Backfill guild players for existing players
     print("Backfilling guild player data...")
@@ -6933,183 +6989,306 @@ class GuidePaginator(discord.ui.View):
 
 @bot.command(name='guide')
 async def guide_command(ctx):
-    """Complete guide of all bot commands
+    """Complete interactive guide of all bot commands with pagination
     
     Usage: ~guide
-    Shows all available commands organized by category.
+    Use Previous/Next buttons to navigate through command categories
     """
-    prefix = get_prefix(bot, ctx.message)
+    # Check if user is admin
+    is_admin = ctx.author.guild_permissions.administrator if ctx.guild else False
+    
+    # Create paginated view
+    view = GuidePaginator(ctx, is_admin)
+    
+    # Send initial page
+    message = await ctx.send(embed=view.pages[0], view=view)
+    view.message = message
+
+def load_staff_data():
+    """Load staff data from file"""
+    global staff_data
+    if os.path.exists(STAFF_FILE):
+        try:
+            with open(STAFF_FILE, "r") as f:
+                staff_data = json.load(f)
+        except Exception as e:
+            print(f"Error loading staff data: {e}")
+            init_staff_data()
+    else:
+        init_staff_data()
+
+def init_staff_data():
+    """Initialize default staff data"""
+    global staff_data
+    staff_data = {
+        "343055455263916045": {
+            "name": "Kurse",
+            "position": "Owner",
+            "description": "he/him | 21 | NA/PST. Gaming, streaming, Pokémon Go, and Rocket League enthusiast. Loves Rocket League, Pokémon Go, and Tokyo Ghoul-inspired games. Open to VC and text!",
+            "extras": "Proud owner of Re: Kurse! Got server suggestions? I'm all ears ❤️ Streams on Twitch + YouTube (check out the stream alerts for when I go live!)"
+        },
+        "697495071737511997": {
+            "name": "Cocoa",
+            "position": "Admin",
+            "description": "Gaming, running, fútbol. Plays almost any game when asked. Open DMs and friend requests.",
+            "extras": "Mile time is 5:30."
+        },
+        "187729483174903808": {
+            "name": "Getsleepad",
+            "position": "Admin",
+            "description": "Add your description here!",
+            "extras": "Add fun facts here!"
+        },
+        "525815097847840798": {
+            "name": "Luvlis_time",
+            "position": "Admin",
+            "description": "Add your description here!",
+            "extras": "Add fun facts here!"
+        },
+        "760075655374176277": {
+            "name": "Nanizzz",
+            "position": "Admin",
+            "description": "Add your description here!",
+            "extras": "Add fun facts here!"
+        },
+        "504812129560428554": {
+            "name": "Tillyoudecay",
+            "position": "Mod",
+            "description": "Add your description here!",
+            "extras": "Add fun facts here!"
+        },
+        "878870610158178335": {
+            "name": "Lightningmint.",
+            "position": "Jr Mod",
+            "description": "Add your description here!",
+            "extras": "Add fun facts here!"
+        },
+        "1131474199286907000": {
+            "name": "Shanksdagoat",
+            "position": "Jr Mod",
+            "description": "Add your description here!",
+            "extras": "Add fun facts here!"
+        }
+    }
+    save_staff_data()
+
+def save_staff_data():
+    """Save staff data to file"""
+    try:
+        with open(STAFF_FILE, "w") as f:
+            json.dump(staff_data, f, indent=2)
+    except Exception as e:
+        print(f"Error saving staff data: {e}")
+
+def load_login_streaks():
+    """Load login streaks from file"""
+    global login_streaks
+    try:
+        if os.path.exists(STREAKS_FILE):
+            with open(STREAKS_FILE, 'r') as f:
+                login_streaks = json.load(f)
+    except Exception as e:
+        print(f"Error loading login streaks: {e}")
+        login_streaks = {}
+
+def save_login_streaks():
+    """Save login streaks to file"""
+    try:
+        with open(STREAKS_FILE, 'w') as f:
+            json.dump(login_streaks, f, indent=2)
+    except Exception as e:
+        print(f"Error saving login streaks: {e}")
+
+def load_game_history():
+    """Load game history from file"""
+    global game_history
+    try:
+        if os.path.exists(GAME_HISTORY_FILE):
+            with open(GAME_HISTORY_FILE, 'r') as f:
+                game_history = json.load(f)
+    except Exception as e:
+        print(f"Error loading game history: {e}")
+        game_history = {}
+
+def save_game_history():
+    """Save game history to file"""
+    try:
+        with open(GAME_HISTORY_FILE, 'w') as f:
+            json.dump(game_history, f, indent=2)
+    except Exception as e:
+        print(f"Error saving game history: {e}")
+
+def update_login_streak(user_id):
+    """Update login streak for user and award bonus chips"""
+    user_id = str(user_id)
+    init_player_stats(user_id)
+    
+    today = datetime.now().date().isoformat()
+    last_login = login_streaks[user_id].get("last_login")
+    
+    if last_login == today:
+        # Already logged in today
+        return 0
+    
+    yesterday = (datetime.now().date() - timedelta(days=1)).isoformat()
+    
+    if last_login == yesterday:
+        # Consecutive day
+        login_streaks[user_id]["current_streak"] += 1
+    else:
+        # Streak broken or first login
+        login_streaks[user_id]["current_streak"] = 1
+    
+    login_streaks[user_id]["last_login"] = today
+    
+    # Update longest streak
+    if login_streaks[user_id]["current_streak"] > login_streaks[user_id].get("longest_streak", 0):
+        login_streaks[user_id]["longest_streak"] = login_streaks[user_id]["current_streak"]
+    
+    # Award bonus chips: 10 * current_streak
+    bonus = 10 * login_streaks[user_id]["current_streak"]
+    add_chips(user_id, bonus)
+    save_login_streaks()
+    
+    return bonus
+
+class StaffPaginator(discord.ui.View):
+    """Interactive paginated staff directory"""
+    def __init__(self, ctx):
+        super().__init__(timeout=180)
+        self.ctx = ctx
+        self.current_page = 0
+        self.message = None
+        self.staff_list = list(staff_data.items())  # [(user_id, data), ...]
+        self.create_pages()
+        self.update_buttons()
+    
+    def create_pages(self):
+        """Create pages for each staff member"""
+        self.pages = []
+        
+        for user_id, member_data in self.staff_list:
+            embed = discord.Embed(
+                title="[STAFF DIRECTORY]",
+                description="",
+                color=0xFF8C00
+            )
+            
+            name = member_data.get("name", "Unknown")
+            position = member_data.get("position", "Staff")
+            description = member_data.get("description", "No description")
+            extras = member_data.get("extras", "")
+            
+            member_info = f"**Name:** {name}\n**Position:** {position}\n\n**About:**\n{description}"
+            if extras:
+                member_info += f"\n\n**Fun Fact:**\n{extras}"
+            
+            embed.add_field(
+                name="=" * 36,
+                value=member_info,
+                inline=False
+            )
+            
+            embed.set_footer(text=f"Page {len(self.pages) + 1}/{len(self.staff_list)}")
+            self.pages.append(embed)
+    
+    def update_buttons(self):
+        """Update button states"""
+        self.previous_button.disabled = self.current_page == 0
+        self.next_button.disabled = self.current_page == len(self.pages) - 1
+        self.page_indicator.label = f"{self.current_page + 1}/{len(self.pages)}"
+    
+    @discord.ui.button(label="◀ Previous", style=discord.ButtonStyle.primary, disabled=True)
+    async def previous_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        if interaction.user.id != self.ctx.author.id:
+            await interaction.response.send_message("❌ This isn't your staff list!", ephemeral=True)
+            return
+        
+        self.current_page -= 1
+        self.update_buttons()
+        await interaction.response.edit_message(embed=self.pages[self.current_page], view=self)
+    
+    @discord.ui.button(label="1/4", style=discord.ButtonStyle.secondary, disabled=True)
+    async def page_indicator(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.defer()
+    
+    @discord.ui.button(label="Next ▶", style=discord.ButtonStyle.primary)
+    async def next_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        if interaction.user.id != self.ctx.author.id:
+            await interaction.response.send_message("❌ This isn't your staff list!", ephemeral=True)
+            return
+        
+        self.current_page += 1
+        self.update_buttons()
+        await interaction.response.edit_message(embed=self.pages[self.current_page], view=self)
+    
+    async def on_timeout(self):
+        """Disable all buttons when timeout occurs"""
+        for child in self.children:
+            if isinstance(child, discord.ui.Button):
+                child.disabled = True
+        
+        if self.message:
+            try:
+                await self.message.edit(view=self)
+            except discord.HTTPException:
+                pass
+
+@bot.command(name='staff')
+async def staff_command(ctx):
+    """View the server staff directory with pagination
+    
+    Usage: ~staff
+    Navigate through pages using Previous/Next buttons
+    """
+    view = StaffPaginator(ctx)
+    message = await ctx.send(embed=view.pages[0], view=view)
+    view.message = message
+
+@bot.command(name='staffedit')
+async def staffedit_command(ctx, *, new_description: Optional[str] = None):
+    """Edit your own staff profile (Staff only)
+    
+    Usage: ~staffedit <description>|<fun_fact>
+    Separate description and fun fact with a pipe |
+    Example: ~staffedit Gaming and coding lover|I have 2 cats
+    """
+    user_id = str(ctx.author.id)
+    
+    # Check if user is staff
+    if ctx.author.id not in STAFF_IDS:
+        await ctx.send("❌ Only staff members can edit staff profiles!")
+        return
+    
+    if not new_description or '|' not in new_description:
+        await ctx.send("❌ Usage: `~staffedit <description>|<fun_fact>`\nExample: `~staffedit Gaming lover|I have 2 cats`")
+        return
+    
+    parts = new_description.split('|', 1)
+    description = parts[0].strip()
+    extras = parts[1].strip()
+    
+    if user_id not in staff_data:
+        await ctx.send("❌ You're not in the staff directory!")
+        return
+    
+    # Check if trying to edit someone else's profile
+    if user_id != str(ctx.author.id):
+        await ctx.send("❌ You can only edit your own profile!")
+        return
+    
+    # Update staff data
+    staff_data[user_id]['description'] = description
+    staff_data[user_id]['extras'] = extras
+    save_staff_data()
     
     embed = discord.Embed(
-        title="📋 Complete Casino Bot Guide",
-        description=f"All available commands at a glance!\n**Current Prefix:** `{prefix}` | Use `{prefix}help` for detailed help",
-        color=0x5865F2
+        title="✅ Profile Updated!",
+        color=0x00FF00
     )
+    embed.add_field(name="About", value=description, inline=False)
+    embed.add_field(name="Fun Fact", value=extras, inline=False)
     
-    embed.add_field(
-        name="🎰 Solo Casino Games",
-        value=(
-            f"`{prefix}slots [bet]` — 3-reel slot machine\n"
-            f"`{prefix}blackjack <bet>` — Beat dealer to 21\n"
-            f"`{prefix}roulette <bet> <type>` — Roulette wheel\n"
-            f"`{prefix}hilo <bet>` — Interactive higher/lower\n"
-            f"`{prefix}poker <bet>` — 5-card video poker\n"
-            f"`{prefix}crash <bet>` — Cash out before crash\n"
-            f"`{prefix}mines <bet> <diff>` — Avoid bombs\n"
-            f"`{prefix}wheel <bet>` — Prize wheel\n"
-            f"`{prefix}craps <bet>` — Interactive dice game"
-        ),
-        inline=True
-    )
-    
-    embed.add_field(
-        name="🎲 Quick Games",
-        value=(
-            f"`{prefix}coinflip` — Flip a coin\n"
-            f"`{prefix}coinflip @user <bet>` — 1v1 battle\n"
-            f"`{prefix}roll [dice]` — Roll dice\n"
-            f"`{prefix}8ball <q>` — Magic 8-ball"
-        ),
-        inline=True
-    )
-    
-    embed.add_field(
-        name="🃏 Multiplayer Games",
-        value=(
-            f"`{prefix}pokermp start <bet>` — Texas Hold'em\n"
-            f"`{prefix}pokermp join` — Join poker table\n"
-            f"`{prefix}pokermp play` — Deal cards\n"
-            f"`{prefix}roulettemp open` — Open roulette\n"
-            f"`{prefix}roulettemp bet <amt> <type>` — Place bet\n"
-            f"`{prefix}roulettemp spin` — Spin wheel\n"
-            f"`{prefix}sportsbet start <t1> <t2>` — Sports bet\n"
-            f"`{prefix}sportsbet bet <team> <amt>` — Bet on team\n"
-            f"`{prefix}sportsbet result <team>` — Declare winner"
-        ),
-        inline=True
-    )
-    
-    embed.add_field(
-        name="<:Casino_Chip:1437456315025719368> Economy & Trading",
-        value=(
-            f"`{prefix}verify` — Verify to play casino\n"
-            f"`{prefix}balance [@user]` — Check balance\n"
-            f"`{prefix}buytickets [amt]` — Trade chips for tickets\n"
-            f"`{prefix}leaderboard` — Top players\n"
-            f"`{prefix}give @user <amt>` — Transfer chips\n"
-            f"`{prefix}mt @user` — Multi-trade chips\n"
-            f"`{prefix}rob @user` — Rob someone\n"
-            f"`{prefix}bounty @user <amt>` — Place bounty\n"
-            f"`{prefix}bounties` — View bounties\n"
-            f"`{prefix}claim @user` — Claim bounty\n"
-            f"`{prefix}loan <amount>` — Borrow chips\n"
-            f"`{prefix}repay` — Repay loan\n"
-            f"`{prefix}shop` — Buy items/boosters\n"
-            f"`{prefix}use <item>` — Activate items\n"
-            f"`{prefix}inventory` — View items"
-        ),
-        inline=True
-    )
-    
-    embed.add_field(
-        name="🎁 Rewards & Claims",
-        value=(
-            f"`{prefix}daily` — 100 chips (12hr)\n"
-            f"`{prefix}weekly` — 3k chips (7d)\n"
-            f"`{prefix}monthly` — 10k chips (30d)\n"
-            f"`{prefix}yearly` — 100k chips (365d)\n"
-            f"`{prefix}monthlyrewards` — Tier rewards\n"
-            f"`{prefix}work` — Work a job (30min)\n"
-            f"`{prefix}job` — View all jobs\n"
-            f"`{prefix}challenges` — View challenges"
-        ),
-        inline=True
-    )
-    
-    embed.add_field(
-        name="📊 Progression System",
-        value=(
-            f"`{prefix}profile [@user]` — View profile\n"
-            f"`{prefix}setbanner <url>` — Set profile banner\n"
-            f"`{prefix}removebanner` — Remove banner\n"
-            f"`{prefix}setidol <pet>` — Set profile idol\n"
-            f"`{prefix}jackpot` — Check jackpot pool\n"
-            f"`{prefix}achievements` — View achievements\n"
-            f"`{prefix}tournament` — View tournaments"
-        ),
-        inline=True
-    )
-    
-    embed.add_field(
-        name="🔔 Bump Tools",
-        value=(
-            f"`{prefix}bumpreminder <type> <@>` — Set reminders (Admin)\n"
-            f"`{prefix}bumpinfo` — Bump settings\n"
-            f"`{prefix}bumpdisable` — Disable (Admin)"
-        ),
-        inline=True
-    )
-    
-    embed.add_field(
-        name="⚙️ Settings & Admin",
-        value=(
-            f"`{prefix}setprefix <symbol>` — Change prefix (Admin)\n"
-            f"`{prefix}chipslog [lines]` — Transaction log (Admin)\n"
-            f"`{prefix}resetclaim @user <type>` — Reset claims (Admin)\n"
-            f"`{prefix}addchips @user <amt>` — Add chips (Owner)\n"
-            f"`{prefix}resetbalance @user [amt]` — Reset balance (Owner)\n"
-            f"`{prefix}infinite @user [amt]` — Toggle ∞ chips (Owner)"
-        ),
-        inline=True
-    )
-    
-    embed.add_field(
-        name="🐾 Pet Collection",
-        value=(
-            f"`{prefix}rollpet` — Roll for a pet (1 ticket)\n"
-            f"`{prefix}pets [@user]` — View collection"
-        ),
-        inline=True
-    )
-    
-    embed.add_field(
-        name="🚗 Rocket League",
-        value=(
-            f"`{prefix}setrlprofile <platform> <username>` — Link RL profile\n"
-            f"`{prefix}rlstats [@user]` — View live RL stats\n"
-            f"`{prefix}setrank <rank>` — Set your RL rank\n"
-            f"`{prefix}rlranks` — View RL rank leaderboard"
-        ),
-        inline=True
-    )
-    
-    embed.add_field(
-        name="📡 Stream Notifications",
-        value=(
-            f"`{prefix}streamnotify setup <#channel> @role` — Setup notifications\n"
-            f"`{prefix}twitch add <username>` — Monitor Twitch streamer\n"
-            f"`{prefix}youtube add <username>` — Monitor YouTube creator\n"
-            f"`{prefix}twitch list` — View monitored Twitch streamers\n"
-            f"`{prefix}youtube list` — View monitored YouTube creators"
-        ),
-        inline=True
-    )
-    
-    embed.add_field(
-        name="ℹ️ Help & Info",
-        value=(
-            f"`{prefix}help` — Detailed help menu\n"
-            f"`{prefix}guide` — This command guide\n"
-            f"`{prefix}viptiers` — View VIP tiers\n"
-            f"`{prefix}ping` — Check bot latency\n"
-            f"`{prefix}id <emoji>` — Get emoji ID\n"
-            f"`{prefix}gameinfo` — Learn about games\n"
-            "💡 **Tip:** Use `all` or `half` for bets!"
-        ),
-        inline=True
-    )
-    
-    embed.set_footer(text="🎰 Everyone starts with 1000 chips | 🎁 Daily rewards & secret codes available!")
     await ctx.send(embed=embed)
 
 class ShopPaginator(discord.ui.View):
@@ -7796,6 +7975,313 @@ async def profile_command(ctx, user: Optional[discord.User] = None):
         value=profile_text,
         inline=False
     )
+    
+    await ctx.send(embed=embed)
+
+@bot.command(name='streak', aliases=['login'])
+async def streak_command(ctx):
+    """View your daily login streak and rewards
+    
+    Usage: ~streak
+    Get bonus chips for consecutive daily logins!
+    """
+    user_id = str(ctx.author.id)
+    init_player_stats(ctx.author.id)
+    
+    # Update streak (first time using this triggers it)
+    bonus = update_login_streak(user_id)
+    
+    streak_data = login_streaks[user_id]
+    current = streak_data.get("current_streak", 0)
+    longest = streak_data.get("longest_streak", 0)
+    last_login = streak_data.get("last_login")
+    
+    # Determine milestone emoji
+    milestone = ""
+    if current == 7:
+        milestone = "🔥 Week Warrior!"
+    elif current == 14:
+        milestone = "⭐ Two Weeks Strong!"
+    elif current == 30:
+        milestone = "👑 Monthly Legend!"
+    elif current > 30:
+        milestone = "🚀 Unstoppable!"
+    
+    embed = discord.Embed(
+        title="📅 Login Streak",
+        color=0xFF8C00,
+        description=milestone
+    )
+    
+    embed.add_field(
+        name="Current Streak",
+        value=f"🔥 {current} days",
+        inline=True
+    )
+    embed.add_field(
+        name="Longest Streak",
+        value=f"⭐ {longest} days",
+        inline=True
+    )
+    embed.add_field(
+        name="Bonus Earned Today",
+        value=f"💰 +{bonus:,} chips" if bonus > 0 else "✅ Already claimed today",
+        inline=False
+    )
+    
+    if last_login:
+        embed.add_field(
+            name="Last Login",
+            value=last_login,
+            inline=False
+        )
+    
+    embed.set_footer(text="Bonus = 10 chips × current streak | Miss a day and your streak resets!")
+    
+    await ctx.send(embed=embed)
+
+class GameHistoryPaginator(discord.ui.View):
+    """Paginated game history display"""
+    def __init__(self, ctx, user_id):
+        super().__init__(timeout=180)
+        self.ctx = ctx
+        self.user_id = user_id
+        self.current_page = 0
+        self.message = None
+        
+        # Get game history
+        self.games = game_history.get(user_id, [])
+        self.games.reverse()  # Most recent first
+        self.games_per_page = 5
+        self.total_pages = max(1, (len(self.games) + self.games_per_page - 1) // self.games_per_page)
+        
+        self.create_pages()
+        self.update_buttons()
+    
+    def create_pages(self):
+        """Create paginated embeds"""
+        self.pages = []
+        
+        if not self.games:
+            embed = discord.Embed(
+                title="📊 Game History",
+                description="No games played yet!",
+                color=0x5865F2
+            )
+            self.pages.append(embed)
+            return
+        
+        for page_num in range(self.total_pages):
+            start_idx = page_num * self.games_per_page
+            end_idx = start_idx + self.games_per_page
+            page_games = self.games[start_idx:end_idx]
+            
+            embed = discord.Embed(
+                title="📊 Game History",
+                color=0x5865F2
+            )
+            
+            for game in page_games:
+                game_name = game.get("game", "Unknown")
+                wager = game.get("wager", 0)
+                result = game.get("result", "push")
+                amount = game.get("amount", 0)
+                timestamp = game.get("timestamp", "")
+                
+                # Parse timestamp to show relative time
+                try:
+                    game_time = datetime.fromisoformat(timestamp)
+                    now = datetime.now()
+                    delta = now - game_time
+                    if delta.total_seconds() < 60:
+                        time_ago = "just now"
+                    elif delta.total_seconds() < 3600:
+                        time_ago = f"{int(delta.total_seconds() // 60)}m ago"
+                    elif delta.total_seconds() < 86400:
+                        time_ago = f"{int(delta.total_seconds() // 3600)}h ago"
+                    else:
+                        time_ago = f"{int(delta.total_seconds() // 86400)}d ago"
+                except Exception:
+                    time_ago = "?"
+                
+                # Result emoji and color
+                if result == "win":
+                    result_emoji = "✅"
+                    amount_str = f"+{amount:,}"
+                elif result == "loss":
+                    result_emoji = "❌"
+                    amount_str = f"-{amount:,}"
+                else:
+                    result_emoji = "➡️"
+                    amount_str = "0"
+                
+                game_info = f"{result_emoji} **{game_name}** | Wager: {wager:,} | {amount_str}\n*{time_ago}*"
+                
+                embed.add_field(
+                    name="",
+                    value=game_info,
+                    inline=False
+                )
+            
+            embed.set_footer(text=f"Page {page_num + 1}/{self.total_pages} • {len(self.games)} total games")
+            self.pages.append(embed)
+    
+    def update_buttons(self):
+        """Update button states"""
+        self.previous_btn.disabled = self.current_page == 0
+        self.next_btn.disabled = self.current_page == self.total_pages - 1
+    
+    @discord.ui.button(label="◀ Previous", style=discord.ButtonStyle.primary, disabled=True)
+    async def previous_btn(self, interaction: discord.Interaction, button: discord.ui.Button):
+        if interaction.user.id != self.ctx.author.id:
+            await interaction.response.send_message("❌ Not your history!", ephemeral=True)
+            return
+        
+        self.current_page -= 1
+        self.update_buttons()
+        await interaction.response.edit_message(embed=self.pages[self.current_page], view=self)
+    
+    @discord.ui.button(label="Next ▶", style=discord.ButtonStyle.primary)
+    async def next_btn(self, interaction: discord.Interaction, button: discord.ui.Button):
+        if interaction.user.id != self.ctx.author.id:
+            await interaction.response.send_message("❌ Not your history!", ephemeral=True)
+            return
+        
+        self.current_page += 1
+        self.update_buttons()
+        await interaction.response.edit_message(embed=self.pages[self.current_page], view=self)
+
+@bot.command(name='history', aliases=['hist'])
+async def history_command(ctx, user: Optional[discord.User] = None):
+    """View your game history with results
+    
+    Usage: ~history [@user]
+    Shows your last 50 games with wins, losses, and amounts
+    """
+    target_user = user if user is not None else ctx.author
+    user_id = str(target_user.id)
+    
+    init_player_stats(target_user.id)
+    
+    if user_id not in game_history or not game_history[user_id]:
+        embed = discord.Embed(
+            title="📊 Game History",
+            description=f"**{target_user.name}** hasn't played any games yet!",
+            color=0x5865F2
+        )
+        await ctx.send(embed=embed)
+        return
+    
+    view = GameHistoryPaginator(ctx, user_id)
+    message = await ctx.send(embed=view.pages[0], view=view)
+    view.message = message
+
+@bot.command(name='admin', aliases=['adminboard', 'botadmin'])
+async def admin_command(ctx):
+    """View bot economy analytics (Owner only)
+    
+    Usage: ~admin
+    Shows total chips, active players, popular games, and house stats
+    """
+    if ctx.author.id != OWNER_ID:
+        await ctx.send("❌ Only the bot owner can use this command!")
+        return
+    
+    # Calculate total chips in circulation
+    total_chips = 0
+    for user_id in player_chips:
+        if is_infinite(user_id):
+            continue
+        total_chips += get_chips(user_id)
+    
+    # Count active players (anyone who played in last 7 days)
+    today = datetime.now().date()
+    seven_days_ago = today - timedelta(days=7)
+    active_players = 0
+    
+    for user_id, games in game_history.items():
+        if games:
+            last_game_time = datetime.fromisoformat(games[-1].get("timestamp", "")).date()
+            if last_game_time >= seven_days_ago:
+                active_players += 1
+    
+    # Count total players with stats
+    total_players = len(player_stats)
+    
+    # Find top 5 games
+    game_counts = {}
+    for user_id, games in game_history.items():
+        for game in games:
+            game_name = game.get("game", "Unknown")
+            game_counts[game_name] = game_counts.get(game_name, 0) + 1
+    
+    top_games = sorted(game_counts.items(), key=lambda x: x[1], reverse=True)[:5]
+    
+    # Calculate today's stats
+    today_str = today.isoformat()
+    today_wagered = 0
+    today_wins = 0
+    today_losses = 0
+    
+    for user_id, games in game_history.items():
+        for game in games:
+            game_date = datetime.fromisoformat(game.get("timestamp", "")).date().isoformat()
+            if game_date == today_str:
+                today_wagered += game.get("wager", 0)
+                if game.get("result") == "win":
+                    today_wins += 1
+                elif game.get("result") == "loss":
+                    today_losses += 1
+    
+    # Calculate house profit (negative for house = player wins)
+    total_wagered_all = sum(stats.get("total_wagered", 0) for stats in player_stats.values())
+    total_won_all = sum(stats.get("total_won", 0) for stats in player_stats.values())
+    house_profit = total_wagered_all - total_won_all
+    
+    # Build embed
+    embed = discord.Embed(
+        title="📊 BOT ECONOMY DASHBOARD",
+        color=0xFFD700,
+        timestamp=datetime.now()
+    )
+    
+    embed.add_field(
+        name="💰 Chips in Circulation",
+        value=f"{total_chips:,}",
+        inline=True
+    )
+    embed.add_field(
+        name="👥 Total Players",
+        value=f"{total_players:,}",
+        inline=True
+    )
+    embed.add_field(
+        name="🔥 Active (7d)",
+        value=f"{active_players:,}",
+        inline=True
+    )
+    
+    embed.add_field(
+        name="📈 Today's Stats",
+        value=f"Wagered: {today_wagered:,}\nWins: {today_wins} | Losses: {today_losses}",
+        inline=False
+    )
+    
+    embed.add_field(
+        name="💹 All-Time Stats",
+        value=f"Total Wagered: {total_wagered_all:,}\nTotal Won: {total_won_all:,}\nHouse Profit: {house_profit:,}",
+        inline=False
+    )
+    
+    if top_games:
+        games_text = "\n".join([f"{i+1}. {game[0]}: {game[1]} plays" for i, game in enumerate(top_games)])
+        embed.add_field(
+            name="🎮 Top 5 Games",
+            value=games_text,
+            inline=False
+        )
+    
+    embed.set_footer(text="Updated every command • Dashboard is real-time")
     
     await ctx.send(embed=embed)
 
@@ -12756,6 +13242,92 @@ async def before_check_shop_rotation():
     """Wait for bot to be ready before starting the loop"""
     await bot.wait_until_ready()
 
+# Twitch API integration variables
+twitch_access_token = None
+twitch_token_expiry = None
+
+async def get_twitch_access_token():
+    """Get Twitch OAuth access token using Client Credentials"""
+    global twitch_access_token, twitch_token_expiry
+    
+    client_id = os.getenv('CLIENT_ID')
+    client_secret = os.getenv('CLIENT_SECRET')
+    
+    if not client_id or not client_secret:
+        print("[TWITCH] Missing CLIENT_ID or CLIENT_SECRET")
+        return None
+    
+    try:
+        async with aiohttp.ClientSession() as session:
+            data = {
+                'client_id': client_id,
+                'client_secret': client_secret,
+                'grant_type': 'client_credentials'
+            }
+            async with session.post('https://id.twitch.tv/oauth2/token', data=data, timeout=aiohttp.ClientTimeout(total=5)) as resp:
+                if resp.status == 200:
+                    result = await resp.json()
+                    twitch_access_token = result.get('access_token')
+                    twitch_token_expiry = datetime.now(timezone.utc) + timedelta(seconds=result.get('expires_in', 3600))
+                    print(f"[TWITCH] Got new access token, expires at {twitch_token_expiry}")
+                    return twitch_access_token
+                else:
+                    print(f"[TWITCH] Failed to get token: {resp.status}")
+                    return None
+    except Exception as e:
+        print(f"[TWITCH] Error getting access token: {e}")
+        return None
+
+async def get_twitch_stream_data(username: str):
+    """Get live stream data from Twitch API"""
+    global twitch_access_token, twitch_token_expiry
+    
+    client_id = os.getenv('CLIENT_ID')
+    
+    # Get fresh token if needed
+    if not twitch_access_token or (twitch_token_expiry and datetime.now(timezone.utc) >= twitch_token_expiry):
+        twitch_access_token = await get_twitch_access_token()
+    
+    if not twitch_access_token or not client_id:
+        return None
+    
+    try:
+        async with aiohttp.ClientSession() as session:
+            headers = {
+                'Client-ID': client_id,
+                'Authorization': f'Bearer {twitch_access_token}'
+            }
+            # Get user ID first
+            async with session.get(f'https://api.twitch.tv/helix/users?login={username}', headers=headers, timeout=aiohttp.ClientTimeout(total=5)) as resp:
+                if resp.status != 200:
+                    return None
+                
+                users = await resp.json()
+                if not users.get('data'):
+                    return None
+                
+                user_id = users['data'][0]['id']
+            
+            # Get stream data
+            async with session.get(f'https://api.twitch.tv/helix/streams?user_id={user_id}', headers=headers, timeout=aiohttp.ClientTimeout(total=5)) as resp:
+                if resp.status == 200:
+                    streams = await resp.json()
+                    if streams.get('data') and len(streams['data']) > 0:
+                        stream = streams['data'][0]
+                        return {
+                            'is_live': True,
+                            'title': stream.get('title', 'No title'),
+                            'game_name': stream.get('game_name', 'Unknown game'),
+                            'viewer_count': stream.get('viewer_count', 0)
+                        }
+                    else:
+                        return {'is_live': False}
+                else:
+                    return None
+    except Exception as e:
+        print(f"[TWITCH] Error fetching stream data for {username}: {e}")
+        return None
+
 def load_streams_config():
     """Load streams configuration from file"""
     global streams_config
@@ -12778,7 +13350,6 @@ def save_streams_config():
 @tasks.loop(minutes=5)
 async def check_streams():
     """Check if streamers are live on Twitch/YouTube"""
-    import re
     
     for guild_id, config in streams_config.items():
         try:
@@ -12802,25 +13373,31 @@ async def check_streams():
                 # Check if currently live
                 is_live = False
                 stream_url = ""
+                stream_data = {}
                 
                 try:
-                    async with aiohttp.ClientSession() as session:
-                        if platform == 'twitch':
-                            # Try to access Twitch page
-                            async with session.get(f'https://www.twitch.tv/{username}', timeout=aiohttp.ClientTimeout(total=5)) as resp:
-                                if resp.status == 200:
-                                    text = await resp.text()
-                                    # Simple check for "is live" indicators
-                                    is_live = '"isLiveBroadcast":true' in text or '"type":"live"' in text
-                                    if is_live:
-                                        stream_url = f"https://twitch.tv/{username}"
-                        
-                        elif platform == 'youtube':
-                            # Try to access YouTube channel
+                    if platform == 'twitch':
+                        # Use Twitch API to get live data
+                        stream_data = await get_twitch_stream_data(username)
+                        if stream_data:
+                            is_live = stream_data.get('is_live', False)
+                            stream_url = f"https://twitch.tv/{username}"
+                        else:
+                            # Fallback to page scraping if API fails
+                            async with aiohttp.ClientSession() as session:
+                                async with session.get(f'https://www.twitch.tv/{username}', timeout=aiohttp.ClientTimeout(total=5)) as resp:
+                                    if resp.status == 200:
+                                        text = await resp.text()
+                                        is_live = '"isLiveBroadcast":true' in text or '"type":"live"' in text
+                                        if is_live:
+                                            stream_url = f"https://twitch.tv/{username}"
+                    
+                    elif platform == 'youtube':
+                        # YouTube uses page scraping (no API)
+                        async with aiohttp.ClientSession() as session:
                             async with session.get(f'https://www.youtube.com/@{username}', timeout=aiohttp.ClientTimeout(total=5)) as resp:
                                 if resp.status == 200:
                                     text = await resp.text()
-                                    # Check for live indicator
                                     is_live = '"isLiveContent":true' in text or '"isUpcoming":false' in text and 'live' in text.lower()
                                     if is_live:
                                         stream_url = f"https://youtube.com/@{username}/live"
@@ -12831,19 +13408,50 @@ async def check_streams():
                 # If live status changed to true and wasn't live before, send notification
                 if is_live and not streamer.get('live'):
                     try:
-                        embed = discord.Embed(
-                            title=f"🔴 LIVE: {username}",
-                            description=f"{username} is now streaming on {platform.capitalize()}!",
-                            url=stream_url,
-                            color=0xFF0000
-                        )
-                        embed.add_field(name="Platform", value=platform.capitalize(), inline=True)
-                        embed.add_field(name="Status", value="🟢 LIVE", inline=True)
+                        # Create fancy formatted notification
+                        if platform == 'twitch':
+                            title = stream_data.get('title', 'No title')
+                            game = stream_data.get('game_name', 'Unknown game')
+                            viewers = stream_data.get('viewer_count', 0)
+                            
+                            if viewers > 0:
+                                viewer_text = f"Viewers : **{viewers:,}**"
+                            else:
+                                viewer_text = "Viewers : Just went live!"
+                            
+                            message = f"""━━━━━━━━━━━━━━━━━━━━━━━━━━
+[ LIVE ] TWITCH STREAM ALERT
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Streamer: **{username}**
+Title   : {title}
+Game    : **{game}**
+{viewer_text}
+
+Watch Here:
+{stream_url}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+Click the link to join the stream.
+━━━━━━━━━━━━━━━━━━━━━━━━━━"""
+                        elif platform == 'youtube':
+                            message = f"""━━━━━━━━━━━━━━━━━━━━━━━━━━
+[ LIVE ] YOUTUBE STREAM ALERT
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Creator: **{username}**
+Status : Now Live on YouTube
+
+Watch Here:
+{stream_url}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+Click the link to join the stream.
+━━━━━━━━━━━━━━━━━━━━━━━━━━"""
                         
                         if isinstance(channel, discord.TextChannel):
                             await channel.send(
-                                content=f"{role.mention}",
-                                embed=embed
+                                content=f"{role.mention}\n{message}"
                             )
                         
                         # Update live status

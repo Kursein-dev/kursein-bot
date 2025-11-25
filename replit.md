@@ -12,7 +12,7 @@ This project is a Discord bot designed to boost server engagement through two co
 - All chip transactions should be logged for transparency and monitoring.
 
 ## System Architecture
-The bot is built using Python 3.11 and the discord.py 2.6.4 library, supporting both traditional prefix and native Discord slash commands. All configurations and user data are stored persistently using JSON files. The bot includes background tasks for bump reminders, claim reminders, and daily shop rotation (checks at 2pm PST using pytz timezone handling).
+The bot is built using Python 3.11 and the discord.py 2.6.4 library, supporting both traditional prefix and native Discord slash commands. All configurations and user data are stored persistently using JSON files. The bot includes background tasks for bump reminders, claim reminders, daily shop rotation (checks at 2pm PST using pytz timezone handling), and stream checking every 5 minutes.
 
 **UI/UX Decisions:**
 - Clear, organized, and categorized help interfaces with pagination.
@@ -40,7 +40,8 @@ The bot is built using Python 3.11 and the discord.py 2.6.4 library, supporting 
 - **Pets Collection System**: Roll for 20 unique pets across 6 rarity levels using tickets.
 - **Tickets System**: Premium currency for pet rolls, purchasable in the shop or convertible from chips.
 - **Rocket League Integration**: Full RL rank system and Tracker.gg API integration for live player stats, leaderboards, and profile linking. Supports all major platforms.
-- **Stream Notification System**: Monitors Twitch and YouTube streams every 5 minutes, sending notifications with stream links and role pings when streamers go live. Configurable per server.
+- **Stream Notification System**: Monitors Twitch and YouTube streams every 5 minutes, sending notifications with stream titles, game categories, viewer counts (via Twitch API), and role pings when streamers go live. Configurable per server with anti-spam protection (single notification per stream session).
+- **Interactive Staff Directory**: `~staff` command displays paginated staff member profiles with Name, Position, Description, and Fun Facts. Features reactive navigation buttons and per-member pages.
 
 ## External Dependencies
 - **Discord API**: Core for bot functionality, message handling, slash commands, and interactive components.
