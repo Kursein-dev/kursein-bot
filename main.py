@@ -6715,7 +6715,6 @@ class GuidePaginator(discord.ui.View):
         
         # Create all pages
         self.pages = self.create_pages()
-        self.update_buttons()
     
     def create_pages(self):
         """Create all guide pages"""
@@ -6947,9 +6946,14 @@ class GuidePaginator(discord.ui.View):
     
     def update_buttons(self):
         """Update button states based on current page"""
-        self.previous_button.disabled = self.current_page == 0
-        self.next_button.disabled = self.current_page == len(self.pages) - 1
-        self.page_indicator.label = f"Page {self.current_page + 1}/{len(self.pages)}"
+        for item in self.children:
+            if isinstance(item, discord.ui.Button):
+                if item.label and "Previous" in item.label:
+                    item.disabled = self.current_page == 0
+                elif item.label and "Next" in item.label:
+                    item.disabled = self.current_page == len(self.pages) - 1
+                elif item.label and "Page" in item.label:
+                    item.label = f"Page {self.current_page + 1}/{len(self.pages)}"
     
     @discord.ui.button(label="◀ Previous", style=discord.ButtonStyle.primary, disabled=True)
     async def previous_button(self, interaction: discord.Interaction, button: discord.ui.Button):
@@ -6999,6 +7003,9 @@ async def guide_command(ctx):
     
     # Create paginated view
     view = GuidePaginator(ctx, is_admin)
+    
+    # Initialize button states
+    view.update_buttons()
     
     # Send initial page
     message = await ctx.send(embed=view.pages[0], view=view)
@@ -12022,7 +12029,7 @@ async def setprefix_error(ctx, error):
 
 @bot.command(name='bumpreminder')
 @commands.has_permissions(administrator=True)
-async def setup_bump_reminder(ctx, ping_type: str, target: str):
+async def setup_bump_reminder(ctx, ping_type: Optional[str] = None):
     """Setup DISBOARD bump reminders (Admin only)
     
     Usage:
@@ -12031,6 +12038,10 @@ async def setup_bump_reminder(ctx, ping_type: str, target: str):
     """
     if not ctx.guild:
         await ctx.send("❌ This command can only be used in a server!")
+        return
+    
+    if not ping_type:
+        await ctx.send("❌ Usage: `~bumpreminder user @User` or `~bumpreminder role @Role`")
         return
     
     ping_type = ping_type.lower()
