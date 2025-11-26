@@ -6964,11 +6964,11 @@ class GuidePaginator(discord.ui.View):
         
         # Page 7: Admin Commands (only if admin)
         if self.is_admin:
-            page6 = discord.Embed(
+            page7 = discord.Embed(
                 title="📚 Command Guide - Administrator Commands",
                 color=0xe67e22
             )
-            page6.add_field(
+            page7.add_field(
                 name="👤 User Management",
                 value=(
                     "`~verifyuser @user` - Manually verify user\n"
@@ -6976,7 +6976,7 @@ class GuidePaginator(discord.ui.View):
                 ),
                 inline=False
             )
-            page6.add_field(
+            page7.add_field(
                 name="💎 Economy Management",
                 value=(
                     "`~addchips @user <amount>` - Give chips\n"
@@ -6987,7 +6987,7 @@ class GuidePaginator(discord.ui.View):
                 ),
                 inline=False
             )
-            page6.add_field(
+            page7.add_field(
                 name="📊 Casino Analytics",
                 value=(
                     "`~record` - House profit/loss statistics\n"
@@ -6995,7 +6995,7 @@ class GuidePaginator(discord.ui.View):
                 ),
                 inline=False
             )
-            page6.add_field(
+            page7.add_field(
                 name="⚙️ Bot Configuration",
                 value=(
                     "`~setprefix <prefix>` - Change bot prefix\n"
@@ -7004,8 +7004,8 @@ class GuidePaginator(discord.ui.View):
                 ),
                 inline=False
             )
-            page6.set_footer(text="🛡️ Admin-only commands")
-            pages.append(page6)
+            page7.set_footer(text="🛡️ Admin-only commands")
+            pages.append(page7)
         
         return pages
     
