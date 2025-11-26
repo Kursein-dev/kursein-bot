@@ -6,10 +6,11 @@ from datetime import datetime, timedelta, timezone
 import json
 import asyncio
 import random
-from typing import Optional
+from typing import Optional, Union
 from dotenv import load_dotenv
 import aiohttp
 from urllib.parse import quote
+from openai import AsyncOpenAI
 
 load_dotenv()
 
@@ -49,7 +50,23 @@ STREAMS_CONFIG_FILE = "streams_config.json"
 STAFF_FILE = "staff.json"
 STREAKS_FILE = "streaks.json"
 GAME_HISTORY_FILE = "game_history.json"
+DAILY_QUESTS_FILE = "daily_quests.json"
+PRESTIGE_FILE = "prestige.json"
+BIRTHDAYS_FILE = "birthdays.json"
+REFERRALS_FILE = "referrals.json"
+AI_CHAT_FILE = "ai_chat.json"
 DEFAULT_PREFIX = "~"
+
+# OpenAI Client (lazy init)
+openai_client = None
+
+def init_openai():
+    """Initialize OpenAI client if not already done"""
+    global openai_client
+    if openai_client is None:
+        api_key = os.getenv("OPENAI_API_KEY")
+        if api_key:
+            openai_client = AsyncOpenAI(api_key=api_key)
 DISBOARD_BOT_ID = 302050872383242240
 ERROR_CHANNEL_ID = 1435009092782522449  # Channel for error logging
 GOD_MODE_USER_ID = 525815097847840798  # User with 100% win rate on all games
@@ -77,6 +94,11 @@ jackpot_pool = 0  # Progressive jackpot amount
 shop_items = {}  # item_id: {'name': str, 'price': int, 'type': str, 'effect': dict}
 login_streaks = {}  # user_id: {'current_streak': int, 'last_login': timestamp, 'longest_streak': int}
 game_history = {}  # user_id: [{'game': str, 'wager': int, 'result': 'win'/'loss'/'push', 'amount': int, 'timestamp': str}]
+daily_quests = {}  # user_id: {'quests': [{type, target, progress, reward}, ...], 'last_reset': timestamp}
+prestige_data = {}  # user_id: {'prestige_tier': int, 'total_resets': int, 'multiplier': float}
+user_birthdays = {}  # user_id: 'MM-DD'
+referral_data = {}  # user_id: {'referrer_id': int, 'referred_users': [int], 'bonus_earned': int}
+ai_conversations = {}  # user_id: [{'role': 'user'/'assistant', 'content': str}, ...]
 house_stats = {}  # {'total_wagered': int, 'total_paid': int, 'profit': int, 'tax_rate': float}
 player_loans = {}  # user_id: {'amount': int, 'interest_rate': float, 'due_date': timestamp}
 active_tournament = None  # Current weekly tournament data
@@ -2823,6 +2845,11 @@ async def on_ready():
     load_staff_data()
     load_login_streaks()
     load_game_history()
+    load_daily_quests()
+    load_prestige_data()
+    load_birthdays()
+    load_referrals()
+    load_ai_conversations()
     
     # Backfill guild players for existing players
     print("Backfilling guild player data...")
@@ -6897,7 +6924,45 @@ class GuidePaginator(discord.ui.View):
         page5.set_footer(text="💡 Live stats powered by Tracker.gg API!")
         pages.append(page5)
         
-        # Page 6: Admin Commands (only if admin)
+        # Page 6: New Systems (Quests, Prestige, Stats, Birthday, Referral, AI Chat)
+        page6 = discord.Embed(
+            title="📚 Command Guide - New Systems & Features",
+            color=0x9b59b6
+        )
+        page6.add_field(
+            name="📋 Daily Quests & Progression",
+            value=(
+                "`~quests` - View 3 daily missions with rewards\n"
+                "`~prestige` - Reset for permanent multipliers (+5% per tier)\n"
+                "`~mystats` - Personal game stats (wins %, ROI, favorite game)\n\n"
+                "💡 **Complete quests daily for bonus chips!**"
+            ),
+            inline=False
+        )
+        page6.add_field(
+            name="🎂 Birthday & Referrals",
+            value=(
+                "`~birthday <MM-DD>` - Set birthday for annual bonus\n"
+                "`~refer link` - Get your referral code\n"
+                "`~refer use @user` - Use someone's code (+500 chips)\n"
+                "`~refer` - View referral stats\n\n"
+                "💡 **Invite friends and earn bonuses!**"
+            ),
+            inline=False
+        )
+        page6.add_field(
+            name="🤖 AI Chat with Personality",
+            value=(
+                "`~chat <message>` - Talk to GPT-4o AI\n"
+                "`~clearai` - Reset conversation history\n\n"
+                "💡 **The bot has attitude! Sarcastic & witty responses about casino life.**"
+            ),
+            inline=False
+        )
+        page6.set_footer(text="💫 New progression systems unlock more ways to earn and compete!")
+        pages.append(page6)
+        
+        # Page 7: Admin Commands (only if admin)
         if self.is_admin:
             page6 = discord.Embed(
                 title="📚 Command Guide - Administrator Commands",
@@ -7158,6 +7223,101 @@ def update_login_streak(user_id):
     save_login_streaks()
     
     return bonus
+
+def load_daily_quests():
+    """Load daily quests from file"""
+    global daily_quests
+    try:
+        if os.path.exists(DAILY_QUESTS_FILE):
+            with open(DAILY_QUESTS_FILE, 'r') as f:
+                daily_quests = json.load(f)
+    except Exception as e:
+        print(f"Error loading daily quests: {e}")
+        daily_quests = {}
+
+def save_daily_quests():
+    """Save daily quests to file"""
+    try:
+        with open(DAILY_QUESTS_FILE, 'w') as f:
+            json.dump(daily_quests, f, indent=2)
+    except Exception as e:
+        print(f"Error saving daily quests: {e}")
+
+def load_prestige_data():
+    """Load prestige data from file"""
+    global prestige_data
+    try:
+        if os.path.exists(PRESTIGE_FILE):
+            with open(PRESTIGE_FILE, 'r') as f:
+                prestige_data = json.load(f)
+    except Exception as e:
+        print(f"Error loading prestige data: {e}")
+        prestige_data = {}
+
+def save_prestige_data():
+    """Save prestige data to file"""
+    try:
+        with open(PRESTIGE_FILE, 'w') as f:
+            json.dump(prestige_data, f, indent=2)
+    except Exception as e:
+        print(f"Error saving prestige data: {e}")
+
+def load_birthdays():
+    """Load birthdays from file"""
+    global user_birthdays
+    try:
+        if os.path.exists(BIRTHDAYS_FILE):
+            with open(BIRTHDAYS_FILE, 'r') as f:
+                user_birthdays = json.load(f)
+    except Exception as e:
+        print(f"Error loading birthdays: {e}")
+        user_birthdays = {}
+
+def save_birthdays():
+    """Save birthdays to file"""
+    try:
+        with open(BIRTHDAYS_FILE, 'w') as f:
+            json.dump(user_birthdays, f, indent=2)
+    except Exception as e:
+        print(f"Error saving birthdays: {e}")
+
+def load_referrals():
+    """Load referral data from file"""
+    global referral_data
+    try:
+        if os.path.exists(REFERRALS_FILE):
+            with open(REFERRALS_FILE, 'r') as f:
+                referral_data = json.load(f)
+    except Exception as e:
+        print(f"Error loading referrals: {e}")
+        referral_data = {}
+
+def save_referrals():
+    """Save referral data to file"""
+    try:
+        with open(REFERRALS_FILE, 'w') as f:
+            json.dump(referral_data, f, indent=2)
+    except Exception as e:
+        print(f"Error saving referrals: {e}")
+
+def load_ai_conversations():
+    """Load AI conversation history from file"""
+    global ai_conversations
+    try:
+        if os.path.exists(AI_CHAT_FILE):
+            with open(AI_CHAT_FILE, 'r') as f:
+                ai_conversations = json.load(f)
+    except Exception as e:
+        print(f"Error loading AI conversations: {e}")
+        ai_conversations = {}
+
+def save_ai_conversations():
+    """Save AI conversation history to file"""
+    try:
+        with open(AI_CHAT_FILE, 'w') as f:
+            json.dump(ai_conversations, f, indent=2)
+    except Exception as e:
+        print(f"Error saving AI conversations: {e}")
 
 class StaffPaginator(discord.ui.View):
     """Interactive paginated staff directory"""
@@ -13393,8 +13553,10 @@ async def check_streams():
                         if stream_data:
                             is_live = stream_data.get('is_live', False)
                             stream_url = f"https://twitch.tv/{username}"
+                            print(f"[STREAMS] {username} - API result: is_live={is_live}")
                         else:
                             # Fallback to page scraping if API fails
+                            print(f"[STREAMS] {username} - API returned None, falling back to page scraping")
                             async with aiohttp.ClientSession() as session:
                                 async with session.get(f'https://www.twitch.tv/{username}', timeout=aiohttp.ClientTimeout(total=5)) as resp:
                                     if resp.status == 200:
@@ -13402,6 +13564,7 @@ async def check_streams():
                                         is_live = '"isLiveBroadcast":true' in text or '"type":"live"' in text
                                         if is_live:
                                             stream_url = f"https://twitch.tv/{username}"
+                                        print(f"[STREAMS] {username} - Page scraping result: is_live={is_live}")
                     
                     elif platform == 'youtube':
                         # YouTube uses page scraping (no API)
@@ -13418,6 +13581,7 @@ async def check_streams():
                 
                 # If live status changed to true and wasn't live before, send notification
                 if is_live and not streamer.get('live'):
+                    print(f"[STREAMS] {username} just went live! Sending notification to {guild.name}")
                     try:
                         # Create fancy formatted notification
                         if platform == 'twitch':
@@ -13643,14 +13807,16 @@ async def twitch_command(ctx, action: Optional[str] = None, username: Optional[s
         
         embed = discord.Embed(
             title="📺 Monitored Twitch Streamers",
-            color=0x9146FF
+            color=0x9146FF,
+            description="Click links to verify stream status and correct username"
         )
         
         for streamer in twitch_streamers:
             status = "🟢 Live" if streamer.get('live') else "⚫ Offline"
+            twitch_link = f"https://twitch.tv/{streamer['username']}"
             embed.add_field(
                 name=f"{streamer['username']}",
-                value=f"Status: {status}",
+                value=f"Status: {status}\n[View on Twitch]({twitch_link})",
                 inline=False
             )
         
@@ -13791,6 +13957,331 @@ async def test_channel_command(ctx):
             await ctx.send(f"❌ Could not find or access channel ID: {ERROR_CHANNEL_ID}")
     except Exception as e:
         await ctx.send(f"❌ Error sending test message: {e}")
+
+# ============= NEW SYSTEMS: QUESTS, PRESTIGE, MYSTATS, BIRTHDAY, REFER =============
+
+@bot.command(name='quests')
+async def quests_command(ctx):
+    """View daily quests and track progress"""
+    user_id = str(ctx.author.id)
+    today = datetime.now().date().isoformat()
+    
+    init_player_stats(user_id)
+    
+    if user_id not in daily_quests:
+        daily_quests[user_id] = {
+            'quests': [],
+            'last_reset': today,
+            'completed_today': 0
+        }
+    
+    quest_data = daily_quests[user_id]
+    
+    # Reset quests if it's a new day
+    if quest_data.get('last_reset') != today:
+        quest_types = ['slots_wins', 'blackjack_wins', 'total_wagered', 'xp_earned']
+        daily_quests[user_id]['quests'] = [
+            {
+                'type': random.choice(quest_types),
+                'target': random.randint(5, 20) if 'wins' in quest_types else random.randint(50000, 200000),
+                'progress': 0,
+                'reward': random.randint(500, 2000)
+            } for _ in range(3)
+        ]
+        daily_quests[user_id]['last_reset'] = today
+        daily_quests[user_id]['completed_today'] = 0
+        save_daily_quests()
+    
+    embed = discord.Embed(
+        title="📋 Daily Quests",
+        description="Complete quests for bonus chips!",
+        color=0xFFD700
+    )
+    
+    if not daily_quests[user_id]['quests']:
+        embed.add_field(name="No Quests", value="Come back tomorrow!", inline=False)
+    else:
+        for i, quest in enumerate(daily_quests[user_id]['quests'], 1):
+            progress = f"{quest['progress']}/{quest['target']}"
+            reward_text = f"💰 **{quest['reward']}** chips"
+            embed.add_field(
+                name=f"Quest {i}: {quest['type'].replace('_', ' ').title()}",
+                value=f"Progress: {progress}\nReward: {reward_text}",
+                inline=False
+            )
+    
+    embed.set_footer(text=f"Completed today: {quest_data.get('completed_today', 0)}/3")
+    await ctx.send(embed=embed)
+
+@bot.command(name='prestige')
+async def prestige_command(ctx):
+    """Reset your progress for permanent multipliers"""
+    user_id = str(ctx.author.id)
+    
+    init_player_stats(user_id)
+    
+    if user_id not in prestige_data:
+        prestige_data[user_id] = {'prestige_tier': 0, 'total_resets': 0, 'multiplier': 1.0}
+    
+    prestige = prestige_data[user_id]
+    current_level = player_stats[user_id].get('level', 1)
+    
+    embed = discord.Embed(
+        title="✨ Prestige System",
+        description="Reset your progress to gain permanent multipliers!",
+        color=0x9900FF
+    )
+    
+    embed.add_field(name="Current Level", value=str(current_level), inline=True)
+    embed.add_field(name="Prestige Tier", value=str(prestige['prestige_tier']), inline=True)
+    embed.add_field(name="Multiplier", value=f"{prestige['multiplier']}x", inline=True)
+    
+    next_multiplier = 1.0 + (prestige['total_resets'] + 1) * 0.05
+    embed.add_field(
+        name="Next Prestige",
+        value=f"Reach Level 100+ to prestige\nNew Multiplier: {next_multiplier}x",
+        inline=False
+    )
+    
+    if current_level >= 100:
+        embed.add_field(
+            name="Ready to Prestige!",
+            value="Use `~prestige confirm` to reset (You'll keep your multiplier!)",
+            inline=False
+        )
+    
+    await ctx.send(embed=embed)
+
+@bot.command(name='mystats')
+async def mystats_command(ctx):
+    """View your personal game statistics"""
+    user_id = str(ctx.author.id)
+    
+    init_player_stats(user_id)
+    
+    stats = player_stats[user_id]
+    history = game_history.get(user_id, [])
+    
+    if not history:
+        return await ctx.send("❌ You haven't played any games yet!")
+    
+    total_games = len(history)
+    wins = len([g for g in history if g.get('result') == 'win'])
+    losses = len([g for g in history if g.get('result') == 'loss'])
+    win_rate = (wins / total_games * 100) if total_games > 0 else 0
+    
+    total_wagered = sum(g.get('wager', 0) for g in history)
+    total_won = sum(g.get('amount', 0) for g in history if g.get('result') == 'win')
+    roi = ((total_won - total_wagered) / total_wagered * 100) if total_wagered > 0 else 0
+    
+    game_counts = {}
+    for game in history:
+        game_name = game.get('game', 'unknown')
+        game_counts[game_name] = game_counts.get(game_name, 0) + 1
+    
+    favorite_game: Union[str, None] = "N/A"
+    if game_counts:
+        favorite_game = max(game_counts, key=lambda g: game_counts[g])
+    
+    embed = discord.Embed(
+        title="📊 My Statistics",
+        description=f"Game stats for {ctx.author.name}",
+        color=0x00FFFF
+    )
+    
+    embed.add_field(name="Total Games", value=str(total_games), inline=True)
+    embed.add_field(name="Wins", value=f"{wins} ({win_rate:.1f}%)", inline=True)
+    embed.add_field(name="Losses", value=str(losses), inline=True)
+    
+    embed.add_field(name="Total Wagered", value=f"💰 {total_wagered:,}", inline=True)
+    embed.add_field(name="ROI", value=f"{roi:.2f}%", inline=True)
+    embed.add_field(name="Favorite Game", value=favorite_game.title(), inline=True)
+    
+    embed.add_field(name="Level", value=str(stats.get('level', 1)), inline=True)
+    embed.add_field(name="XP", value=str(stats.get('xp', 0)), inline=True)
+    embed.add_field(name="VIP Tier", value=stats.get('vip_tier', 'None'), inline=True)
+    
+    await ctx.send(embed=embed)
+
+@bot.command(name='birthday')
+async def birthday_command(ctx, date=None):
+    """Set your birthday for annual bonus chips"""
+    user_id = str(ctx.author.id)
+    
+    if not date:
+        if user_id in user_birthdays:
+            return await ctx.send(f"🎂 Your birthday is set to: **{user_birthdays[user_id]}**")
+        return await ctx.send("❌ Use `~birthday MM-DD` to set your birthday (e.g., `~birthday 03-15`)")
+    
+    try:
+        month, day = date.split('-')
+        month, day = int(month), int(day)
+        if not (1 <= month <= 12 and 1 <= day <= 31):
+            raise ValueError
+        
+        user_birthdays[user_id] = f"{month:02d}-{day:02d}"
+        save_birthdays()
+        
+        embed = discord.Embed(
+            title="🎂 Birthday Set!",
+            description=f"Your birthday is now set to **{user_birthdays[user_id]}**\nYou'll get bonus chips on your special day!",
+            color=0xFF69B4
+        )
+        await ctx.send(embed=embed)
+    except (ValueError, IndexError):
+        await ctx.send("❌ Invalid format. Use `~birthday MM-DD` (e.g., `~birthday 03-15`)")
+
+@bot.command(name='refer')
+async def refer_command(ctx, action: Optional[str] = None, user: Optional[discord.User] = None):
+    """Referral system - invite friends and earn bonuses"""
+    user_id = str(ctx.author.id)
+    
+    init_player_stats(user_id)
+    
+    if user_id not in referral_data:
+        referral_data[user_id] = {'referrer_id': None, 'referred_users': [], 'bonus_earned': 0}
+    
+    if action == 'link':
+        embed = discord.Embed(
+            title="🔗 Your Referral Link",
+            description=f"Share this code with friends!\n\n**Referral Code:** `{user_id}`\n\nFriends who verify with your code get **500 bonus chips** and you get **250 chips**!",
+            color=0x00FF00
+        )
+        await ctx.send(embed=embed)
+    
+    elif action == 'use' and user:
+        referrer_id = str(user.id)
+        
+        if referrer_id not in referral_data:
+            referral_data[referrer_id] = {'referrer_id': None, 'referred_users': [], 'bonus_earned': 0}
+        
+        if user_id not in referral_data[referrer_id]['referred_users']:
+            referral_data[referrer_id]['referred_users'].append(user_id)
+            referral_data[user_id]['referrer_id'] = int(referrer_id)
+            
+            add_chips(user_id, 500)
+            add_chips(referrer_id, 250)
+            referral_data[referrer_id]['bonus_earned'] += 250
+            
+            save_referrals()
+            save_player_stats()
+            
+            embed = discord.Embed(
+                title="✅ Referral Bonus!",
+                description=f"You were referred by <@{referrer_id}>!\n\n**You got:** 💰 500 chips\n**They got:** 💰 250 chips",
+                color=0x00FF00
+            )
+            await ctx.send(embed=embed)
+        else:
+            await ctx.send("❌ Already referred by this user!")
+    
+    else:
+        ref_data = referral_data[user_id]
+        embed = discord.Embed(
+            title="🔗 Referral Stats",
+            description="Your referral information",
+            color=0x00FF00
+        )
+        
+        embed.add_field(name="Referred Friends", value=str(len(ref_data['referred_users'])), inline=True)
+        embed.add_field(name="Bonus Earned", value=f"💰 {ref_data['bonus_earned']:,}", inline=True)
+        
+        if ref_data['referrer_id']:
+            embed.add_field(name="Your Referrer", value=f"<@{ref_data['referrer_id']}>", inline=False)
+        
+        embed.add_field(name="Get Started", value="`~refer link` - Get your referral code\n`~refer use @user` - Use someone's referral code", inline=False)
+        
+        await ctx.send(embed=embed)
+
+@bot.command(name='chat')
+async def chat_command(ctx, *, message=None):
+    """Chat with AI (GPT-4o) - The bot has attitude!"""
+    if not message:
+        return await ctx.send("❌ Use `~chat <your message>`")
+    
+    init_openai()
+    
+    if openai_client is None:
+        return await ctx.send("❌ OpenAI API key not set. Contact admin!")
+    
+    user_id = str(ctx.author.id)
+    
+    try:
+        # Initialize conversation if needed
+        if user_id not in ai_conversations:
+            ai_conversations[user_id] = []
+        
+        # System prompt for personality
+        system_prompt = """You are a sarcastic, witty Discord bot in a casino server. You:
+- Have a cheeky personality with sarcasm and dark humor
+- Make casino/gambling jokes and references
+- Are confident and cocky about your knowledge
+- Use Discord-appropriate language and emojis
+- Keep responses concise (2-3 sentences usually)
+- Sometimes roast users playfully but never mean-spirited
+- Reference chips, losses, wins, and gambling terminology when relevant
+Example: "Oh great, another player who thinks they can beat the house. Spoiler: you can't. But good luck, I believe in you! 😏🎰"
+Keep responses brief and punchy."""
+        
+        # Add user message to history
+        ai_conversations[user_id].append({
+            "role": "user",
+            "content": message
+        })
+        
+        # Keep last 20 messages for context (not 10)
+        if len(ai_conversations[user_id]) > 20:
+            ai_conversations[user_id] = ai_conversations[user_id][-20:]
+        
+        # Get AI response
+        async with ctx.typing():
+            response = await openai_client.chat.completions.create(
+                model="gpt-4o",
+                messages=[{"role": "system", "content": system_prompt}] + ai_conversations[user_id],
+                max_tokens=500,
+                temperature=0.8
+            )
+        
+        ai_message = response.choices[0].message.content
+        if ai_message is None:
+            ai_message = "Uh... lost my train of thought there. What were we talking about?"
+        
+        # Add response to history
+        ai_conversations[user_id].append({
+            "role": "assistant",
+            "content": ai_message
+        })
+        
+        save_ai_conversations()
+        
+        # Split long responses into chunks
+        if len(ai_message) > 2000:
+            chunks = [ai_message[i:i+2000] for i in range(0, len(ai_message), 2000)]
+            for chunk in chunks:
+                await ctx.send(chunk)
+        else:
+            await ctx.send(ai_message)
+    
+    except Exception as e:
+        error_str = str(e)[:100] if str(e) else "Unknown error"
+        await ctx.send(f"❌ AI Error: {error_str}")
+
+@bot.command(name='clearai')
+async def clearai_command(ctx):
+    """Clear your AI chat history"""
+    user_id = str(ctx.author.id)
+    
+    if user_id in ai_conversations:
+        ai_conversations[user_id] = []
+        save_ai_conversations()
+        embed = discord.Embed(
+            title="✅ Chat History Cleared",
+            description="Your conversation with AI has been reset",
+            color=0x00FF00
+        )
+        await ctx.send(embed=embed)
+    else:
+        await ctx.send("❌ No chat history to clear")
 
 @bot.event
 async def on_command_error(ctx, error):
