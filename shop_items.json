@@ -1,0 +1,63 @@
+{
+  "double_daily": {
+    "name": "\ud83c\udf81 Double Daily (24 hours)",
+    "price": 850000,
+    "type": "boost",
+    "description": "Double all claim rewards for 24 hours! Daily, weekly, monthly - all doubled!",
+    "effect": {
+      "claim_multiplier": 2,
+      "duration": 86400
+    }
+  },
+  "vip_platinum": {
+    "name": "\ud83d\udc8e Platinum VIP Pass (3 days)",
+    "price": 1200000,
+    "type": "vip",
+    "description": "Unlock Platinum VIP tier for 3 days with maximum perks!",
+    "effect": {
+      "vip_tier": "platinum",
+      "duration": 259200
+    }
+  },
+  "mega_pack": {
+    "name": "\u26a1 MEGA Power Pack",
+    "price": 800000,
+    "type": "boost",
+    "description": "3x Chips, 3x XP, +10% Win Rate for 1 hour!",
+    "effect": {
+      "chip_multiplier": 3,
+      "xp_multiplier": 3,
+      "win_rate_boost": 0.1,
+      "duration": 3600
+    }
+  },
+  "chip_multiplier": {
+    "name": "<:Casino_Chip:1437456315025719368> Chip Multiplier 2x (1 hour)",
+    "price": 200000,
+    "type": "boost",
+    "description": "Doubles all chip winnings from games for 1 hour. Big wins await!",
+    "effect": {
+      "chip_multiplier": 2,
+      "duration": 3600
+    }
+  },
+  "xp_boost": {
+    "name": "\ud83d\ude80 XP Booster (1 hour)",
+    "price": 50000,
+    "type": "boost",
+    "description": "Doubles all XP earned from games for 1 hour. Level up faster!",
+    "effect": {
+      "xp_multiplier": 2,
+      "duration": 3600
+    }
+  },
+  "ticket_bundle_5": {
+    "name": "\ud83c\udfab Ticket Bundle (x5)",
+    "price": 4250000,
+    "type": "ticket",
+    "description": "5 premium tickets! Great value for serious collectors.",
+    "effect": {
+      "tickets": 5
+    }
+  }
+}

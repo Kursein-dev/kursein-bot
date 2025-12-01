@@ -1,0 +1,20 @@
+[project]
+name = "repl-nix-workspace"
+version = "0.1.0"
+description = "Add your description here"
+requires-python = ">=3.11"
+dependencies = [
+    "aiohttp>=3.13.2",
+    "discord-py>=2.6.4",
+    "python-dotenv>=1.2.1",
+    "pytz>=2025.2",
+]
+
+[tool.pyright]
+typeCheckingMode = "basic"
+reportGeneralTypeIssues = false
+reportOptionalMemberAccess = false
+reportOptionalSubscript = false
+reportPrivateImportUsage = false
+pythonVersion = "3.11"
+pythonPlatform = "Linux"

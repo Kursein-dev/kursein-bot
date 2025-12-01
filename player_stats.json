@@ -1,0 +1,487 @@
+{
+  "343055455263916045": {
+    "xp": 11375,
+    "level": 5,
+    "vip_tier": {
+      "base_tier": "none",
+      "is_booster": true
+    },
+    "total_wagered": 361708,
+    "total_won": 37733,
+    "games_played": 6,
+    "achievements": [
+      "first_win",
+      "high_roller_100k"
+    ],
+    "inventory": [],
+    "active_boosts": [
+      {
+        "type": "chip_multiplier",
+        "multiplier": 2,
+        "expires": "2025-11-09T18:22:52.667799"
+      },
+      {
+        "type": "chip_multiplier",
+        "multiplier": 2,
+        "expires": "2025-11-09T20:04:58.228243"
+      },
+      {
+        "type": "luck_charm",
+        "multiplier": 1,
+        "expires": "2025-11-09T20:05:09.340001"
+      }
+    ],
+    "losing_streak": 0,
+    "jobs": {
+      "selected_job": null,
+      "unlocked_jobs": []
+    }
+  },
+  "934168336579825774": {
+    "xp": 106483,
+    "level": 10,
+    "vip_tier": {
+      "base_tier": "bronze",
+      "is_booster": null
+    },
+    "total_wagered": 4636589,
+    "total_won": 3065972,
+    "games_played": 40,
+    "achievements": [
+      "first_win",
+      "loan_free",
+      "high_roller_100k",
+      "millionaire",
+      "level_10"
+    ],
+    "inventory": [
+      "vip_pass"
+    ],
+    "active_boosts": [
+      {
+        "type": "luck_charm",
+        "multiplier": 1,
+        "expires": "2025-11-08T22:22:10.165917"
+      },
+      {
+        "type": "xp_boost",
+        "multiplier": 2,
+        "expires": "2025-11-09T19:54:32.310006"
+      },
+      {
+        "type": "xp_boost",
+        "multiplier": 2,
+        "expires": "2025-11-09T19:54:34.983811"
+      }
+    ],
+    "losing_streak": 0,
+    "vip_status": {
+      "tier": "gold",
+      "expires": "2025-11-10T18:51:57.495828"
+    },
+    "active_insurance": {
+      "refund_rate": 0.5,
+      "uses_remaining": 5
+    },
+    "jobs": {
+      "selected_job": "valet_attendant",
+      "unlocked_jobs": [
+        "valet_attendant"
+      ]
+    }
+  },
+  "1237598739041091652": {
+    "xp": 322102,
+    "level": 21,
+    "vip_tier": {
+      "base_tier": "bronze",
+      "is_booster": false
+    },
+    "total_wagered": 142036195,
+    "total_won": 58507036,
+    "games_played": 141,
+    "achievements": [
+      "first_win",
+      "high_roller_100k",
+      "millionaire",
+      "loan_free",
+      "level_10"
+    ],
+    "inventory": [],
+    "active_boosts": [
+      {
+        "type": "mega_pack",
+        "multiplier": 3,
+        "expires": "2025-11-12T22:40:12.879893"
+      },
+      {
+        "type": "chip_multiplier",
+        "multiplier": 2,
+        "expires": "2025-11-13T00:11:22.503576"
+      }
+    ],
+    "losing_streak": 0,
+    "jobs": {
+      "selected_job": null,
+      "unlocked_jobs": []
+    }
+  },
+  "697495071737511997": {
+    "xp": 0,
+    "level": 1,
+    "vip_tier": {
+      "base_tier": "none",
+      "is_booster": false
+    },
+    "total_wagered": 0,
+    "total_won": 0,
+    "games_played": 0,
+    "achievements": [],
+    "inventory": [
+      "insurance",
+      "vip_pass"
+    ],
+    "active_boosts": [
+      {
+        "type": "chip_multiplier",
+        "multiplier": 2,
+        "expires": "2025-11-09T19:32:10.838899"
+      },
+      {
+        "type": "xp_boost",
+        "multiplier": 2,
+        "expires": "2025-11-09T19:32:22.083842"
+      },
+      {
+        "type": "luck_charm",
+        "multiplier": 1,
+        "expires": "2025-11-09T19:32:29.580144"
+      }
+    ],
+    "losing_streak": 0,
+    "vip_status": {
+      "tier": "gold",
+      "expires": "2025-11-11T16:07:29.908620"
+    }
+  },
+  "187729483174903808": {
+    "xp": 73214,
+    "level": 8,
+    "vip_tier": {
+      "base_tier": "none",
+      "is_booster": false
+    },
+    "total_wagered": 2447262,
+    "total_won": 111680,
+    "games_played": 15,
+    "achievements": [
+      "high_roller_100k",
+      "millionaire",
+      "first_win"
+    ],
+    "inventory": [],
+    "active_boosts": [
+      {
+        "type": "chip_multiplier",
+        "multiplier": 2,
+        "expires": "2025-11-09T18:23:47.695796"
+      },
+      {
+        "type": "luck_charm",
+        "multiplier": 1,
+        "expires": "2025-11-09T18:24:09.452801"
+      },
+      {
+        "type": "xp_boost",
+        "multiplier": 2,
+        "expires": "2025-11-09T18:31:07.467066"
+      },
+      {
+        "type": "super_luck",
+        "multiplier": 1,
+        "expires": "2025-11-17T22:33:53.841831"
+      },
+      {
+        "type": "chip_multiplier",
+        "multiplier": 2,
+        "expires": "2025-11-17T21:34:09.995509"
+      }
+    ],
+    "losing_streak": 0,
+    "active_insurance": {
+      "refund_rate": 0.5,
+      "uses_remaining": 5
+    },
+    "jobs": {
+      "selected_job": null,
+      "unlocked_jobs": []
+    }
+  },
+  "760075655374176277": {
+    "xp": 27476,
+    "level": 7,
+    "vip_tier": {
+      "base_tier": "none",
+      "is_booster": true
+    },
+    "total_wagered": 954058,
+    "total_won": 75900,
+    "games_played": 13,
+    "achievements": [
+      "first_win",
+      "high_roller_100k"
+    ],
+    "inventory": [],
+    "active_boosts": [],
+    "losing_streak": 0,
+    "jobs": {
+      "selected_job": null,
+      "unlocked_jobs": []
+    }
+  },
+  "732102581106769920": {
+    "xp": 5384,
+    "level": 4,
+    "vip_tier": {
+      "base_tier": "none",
+      "is_booster": false
+    },
+    "total_wagered": 171100,
+    "total_won": 4900,
+    "games_played": 16,
+    "achievements": [
+      "first_win",
+      "high_roller_100k"
+    ],
+    "inventory": [],
+    "active_boosts": [],
+    "losing_streak": 0,
+    "jobs": {
+      "selected_job": null,
+      "unlocked_jobs": []
+    }
+  },
+  "525815097847840798": {
+    "xp": 18352169,
+    "level": 22,
+    "vip_tier": {
+      "base_tier": "silver",
+      "is_booster": null
+    },
+    "total_wagered": 383971848,
+    "total_won": 273507127,
+    "games_played": 22,
+    "achievements": [
+      "first_win",
+      "high_roller_100k",
+      "millionaire",
+      "level_10"
+    ],
+    "inventory": [],
+    "active_boosts": [],
+    "losing_streak": 0,
+    "jobs": {
+      "selected_job": "pizza_delivery",
+      "unlocked_jobs": [
+        "pizza_delivery"
+      ]
+    }
+  },
+  "504812129560428554": {
+    "xp": 4374,
+    "level": 4,
+    "vip_tier": {
+      "base_tier": "none",
+      "is_booster": false
+    },
+    "total_wagered": 161000,
+    "total_won": 0,
+    "games_played": 1,
+    "achievements": [
+      "high_roller_100k"
+    ],
+    "inventory": [],
+    "active_boosts": [],
+    "losing_streak": 0,
+    "jobs": {
+      "selected_job": null,
+      "unlocked_jobs": []
+    }
+  },
+  "667815627422957599": {
+    "xp": 0,
+    "level": 1,
+    "vip_tier": {
+      "base_tier": "none",
+      "is_booster": false
+    },
+    "total_wagered": 0,
+    "total_won": 0,
+    "games_played": 0,
+    "achievements": [],
+    "inventory": [],
+    "active_boosts": [],
+    "losing_streak": 0
+  },
+  "205383259368980480": {
+    "xp": 0,
+    "level": 1,
+    "vip_tier": {
+      "base_tier": "none",
+      "is_booster": false
+    },
+    "total_wagered": 0,
+    "total_won": 0,
+    "games_played": 0,
+    "achievements": [],
+    "inventory": [],
+    "active_boosts": [],
+    "losing_streak": 0,
+    "jobs": {
+      "selected_job": null,
+      "unlocked_jobs": []
+    }
+  },
+  "1131474199286907000": {
+    "xp": 0,
+    "level": 1,
+    "vip_tier": {
+      "base_tier": "none",
+      "is_booster": false
+    },
+    "total_wagered": 0,
+    "total_won": 0,
+    "games_played": 0,
+    "achievements": [],
+    "inventory": [],
+    "active_boosts": [],
+    "losing_streak": 0
+  },
+  "1204102438366220338": {
+    "xp": 0,
+    "level": 1,
+    "vip_tier": {
+      "base_tier": "none",
+      "is_booster": false
+    },
+    "total_wagered": 0,
+    "total_won": 0,
+    "games_played": 0,
+    "achievements": [],
+    "inventory": [],
+    "active_boosts": [],
+    "losing_streak": 0
+  },
+  "595703148501401610": {
+    "xp": 0,
+    "level": 1,
+    "vip_tier": {
+      "base_tier": "none",
+      "is_booster": false
+    },
+    "total_wagered": 0,
+    "total_won": 0,
+    "games_played": 0,
+    "achievements": [],
+    "inventory": [],
+    "active_boosts": [],
+    "losing_streak": 0
+  },
+  "369258495469551618": {
+    "xp": 0,
+    "level": 1,
+    "vip_tier": {
+      "base_tier": "none",
+      "is_booster": false
+    },
+    "total_wagered": 0,
+    "total_won": 0,
+    "games_played": 0,
+    "achievements": [],
+    "inventory": [],
+    "active_boosts": [],
+    "losing_streak": 0
+  },
+  "978461518289055744": {
+    "xp": 0,
+    "level": 1,
+    "vip_tier": {
+      "base_tier": "none",
+      "is_booster": false
+    },
+    "total_wagered": 0,
+    "total_won": 0,
+    "games_played": 0,
+    "achievements": [],
+    "inventory": [],
+    "active_boosts": [],
+    "losing_streak": 0
+  },
+  "409777536646643714": {
+    "xp": 0,
+    "level": 1,
+    "vip_tier": {
+      "base_tier": "none",
+      "is_booster": false
+    },
+    "total_wagered": 0,
+    "total_won": 0,
+    "games_played": 0,
+    "achievements": [],
+    "inventory": [],
+    "active_boosts": [],
+    "losing_streak": 0
+  },
+  "878870610158178335": {
+    "xp": 0,
+    "level": 1,
+    "vip_tier": {
+      "base_tier": "none",
+      "is_booster": false
+    },
+    "total_wagered": 0,
+    "total_won": 0,
+    "games_played": 0,
+    "achievements": [],
+    "inventory": [],
+    "active_boosts": [],
+    "losing_streak": 0
+  },
+  "1350672053979840522": {
+    "xp": 68312,
+    "level": 11,
+    "vip_tier": {
+      "base_tier": "none",
+      "is_booster": false
+    },
+    "total_wagered": 3592866,
+    "total_won": 3357265,
+    "games_played": 87,
+    "achievements": [
+      "first_win",
+      "loan_free",
+      "high_roller_100k",
+      "level_10",
+      "millionaire"
+    ],
+    "inventory": [],
+    "active_boosts": [],
+    "losing_streak": 0,
+    "jobs": {
+      "selected_job": null,
+      "unlocked_jobs": []
+    }
+  },
+  "662760802398371880": {
+    "xp": 100,
+    "level": 1,
+    "vip_tier": "none",
+    "total_wagered": 1000,
+    "total_won": 0,
+    "games_played": 1,
+    "achievements": [],
+    "inventory": [],
+    "active_boosts": [],
+    "losing_streak": 0
+  }
+}
