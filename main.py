@@ -1400,7 +1400,7 @@ def unverify_user(user_id):
 async def check_verification(ctx):
     """Check if user is verified, send message if not"""
     if not is_verified(ctx.author.id):
-        prefix = get_prefix(bot, ctx.message)
+        prefix = get_prefix_from_ctx(ctx)
         embed = discord.Embed(
             title="🔒 Verification Required",
             description=(
@@ -2792,9 +2792,15 @@ async def check_challenge_completion(ctx, user_id):
 
 def get_prefix(bot, message):
     """Get the prefix for a guild"""
-    if not message.guild:
+    if message is None or not hasattr(message, 'guild') or not message.guild:
         return DEFAULT_PREFIX
     return prefixes.get(str(message.guild.id), DEFAULT_PREFIX)
+
+def get_prefix_from_ctx(ctx):
+    """Get prefix from context - works for both prefix and slash commands"""
+    if ctx.guild:
+        return prefixes.get(str(ctx.guild.id), DEFAULT_PREFIX)
+    return DEFAULT_PREFIX
 
 # Bot setup
 intents = discord.Intents.default()
@@ -3099,7 +3105,7 @@ async def emoji_id_command(ctx, *, emoji_input: Optional[str] = None):
     Example: ~id :Casino_Chip:
     """
     if not emoji_input:
-        prefix = get_prefix(bot, ctx.message)
+        prefix = get_prefix_from_ctx(ctx)
         await ctx.send(f"❌ Usage: `{prefix}id <emoji>`\nExample: `{prefix}id :MyCustomEmoji:`")
         return
     
@@ -3162,7 +3168,7 @@ async def emoji_id_command(ctx, *, emoji_input: Optional[str] = None):
 @bot.hybrid_command(name='viptiers', aliases=['tiers'])
 async def vip_tiers_command(ctx):
     """View all VIP tiers and their benefits"""
-    prefix = get_prefix(bot, ctx.message)
+    prefix = get_prefix_from_ctx(ctx)
     
     embed = discord.Embed(
         title="👑 VIP Tier System",
@@ -3268,7 +3274,7 @@ async def vip_tiers_command(ctx):
 @bot.hybrid_command(name='gameinfo', aliases=['games'])
 async def prefix_gameinfo(ctx):
     """Show detailed information about all casino games"""
-    prefix = get_prefix(bot, ctx.message)
+    prefix = get_prefix_from_ctx(ctx)
     
     pages = []
     
@@ -3712,7 +3718,7 @@ async def prefix_roll(ctx, dice: str = "1d6"):
 async def prefix_8ball(ctx, *, question: Optional[str] = None):
     """Ask the magic 8-ball a question! (prefix version)"""
     if not question:
-        prefix = get_prefix(bot, ctx.message)
+        prefix = get_prefix_from_ctx(ctx)
         await ctx.send(f"❌ You need to ask a question! Example: `{prefix}8ball Will I win?`")
         return
     
@@ -5551,7 +5557,7 @@ async def set_rl_rank(ctx, *, rank_name: Optional[str] = None):
             
             ranks_list.append(f"{rank_data['emoji']} {rank_full_name}")
         
-        prefix = get_prefix(bot, ctx.message)
+        prefix = get_prefix_from_ctx(ctx)
         embed = discord.Embed(
             title="🚗 Rocket League Ranks",
             description=f"Use `{prefix}setrank <rank>` to set your rank!\n\n" + "\n".join(ranks_list),
@@ -5570,7 +5576,7 @@ async def set_rl_rank(ctx, *, rank_name: Optional[str] = None):
             break
     
     if matched_rank is None:
-        prefix = get_prefix(bot, ctx.message)
+        prefix = get_prefix_from_ctx(ctx)
         await ctx.send(f"❌ Invalid rank! Use `{prefix}setrank` to see available ranks.")
         return
     
@@ -5617,7 +5623,7 @@ async def rl_leaderboard(ctx, limit: int = 10):
             ranked_players.append((member.name, rank_value, rank_info, member.id))
     
     if not ranked_players:
-        prefix = get_prefix(bot, ctx.message)
+        prefix = get_prefix_from_ctx(ctx)
         await ctx.send(f"❌ No players have set their Rocket League rank yet! Use `{prefix}setrank` to join!")
         return
     
@@ -5677,7 +5683,7 @@ async def set_rl_profile(ctx, platform: Optional[str] = None, *, username: Optio
     Platforms: epic, steam, psn, xbl, switch
     """
     if platform is None or username is None:
-        prefix = get_prefix(bot, ctx.message)
+        prefix = get_prefix_from_ctx(ctx)
         embed = discord.Embed(
             title="🚗 Link Rocket League Profile",
             description=f"Link your Rocket League Tracker.gg account!\n\n**Usage:** `{prefix}setrlprofile <platform> <username>`\n**Example:** `{prefix}setrlprofile epic PannH.`",
@@ -5730,7 +5736,7 @@ async def rl_stats(ctx, member: Optional[discord.Member] = None):
     target = member or ctx.author
     
     if target.id not in rl_profiles:
-        prefix = get_prefix(bot, ctx.message)
+        prefix = get_prefix_from_ctx(ctx)
         if target == ctx.author:
             await ctx.send(f"❌ You haven't linked your Rocket League profile yet! Use `{prefix}setrlprofile` to get started.")
         else:
@@ -5753,7 +5759,7 @@ async def rl_stats(ctx, member: Optional[discord.Member] = None):
     # Check for errors
     if stats_data is None or 'error' in stats_data:
         error_msg = stats_data.get('error', 'Unknown error') if stats_data else 'API key not configured'
-        prefix = get_prefix(bot, ctx.message)
+        prefix = get_prefix_from_ctx(ctx)
         
         # Check if it's an API key issue
         if 'Invalid API key' in error_msg or 'Invalid authentication' in error_msg or 'API key not configured' in error_msg:
@@ -8268,7 +8274,7 @@ async def loan_command(ctx, amount: int = 1000):
         inline=False
     )
     
-    embed.set_footer(text=f"Use {get_prefix(bot, ctx.message)}repay to repay your loan")
+    embed.set_footer(text=f"Use {get_prefix_from_ctx(ctx)}repay to repay your loan")
     
     await ctx.send(embed=embed)
 
@@ -8484,7 +8490,7 @@ async def tournament_command(ctx, action: Optional[str] = None):
             inline=False
         )
     
-    embed.set_footer(text=f"Use {get_prefix(bot, ctx.message)}tournament join to enter!")
+    embed.set_footer(text=f"Use {get_prefix_from_ctx(ctx)}tournament join to enter!")
     
     await ctx.send(embed=embed)
 
@@ -10517,7 +10523,8 @@ async def prefix_coinflip(ctx, action: Optional[str] = None, bet_input: Optional
         return
     
     # Challenge another player - check if action is a mention
-    if action and ctx.message.mentions and bet_input is not None:
+    # Note: ctx.message is None for slash commands, so we check if it exists
+    if action and ctx.message and ctx.message.mentions and bet_input is not None:
         # Check verification for battle mode
         if not await check_verification(ctx):
             return
@@ -10616,7 +10623,7 @@ async def prefix_blackjack(ctx, action: Optional[str] = None, bet: Optional[str]
     user_id = ctx.author.id
     
     if not action:
-        prefix = get_prefix(bot, ctx.message)
+        prefix = get_prefix_from_ctx(ctx)
         await ctx.send(f"❌ Usage: `{prefix}blackjack <bet>` for solo or `{prefix}blackjack start <bet>` for multiplayer")
         return
     
@@ -10812,7 +10819,7 @@ async def prefix_blackjack(ctx, action: Optional[str] = None, bet: Optional[str]
         await ctx.send(embed=embed)
     
     else:
-        prefix = get_prefix(bot, ctx.message)
+        prefix = get_prefix_from_ctx(ctx)
         await ctx.send(f"❌ Unknown action! Usage: `{prefix}blackjack <start/join/play/leave/status> [bet]`")
 
 async def finish_blackjack_game(ctx, game):
@@ -10910,7 +10917,7 @@ async def prefix_roulette(ctx, bet_input: Optional[str] = None, *, bet_type: Opt
         return
     
     if bet_input is None or bet_type is None:
-        prefix = get_prefix(bot, ctx.message)
+        prefix = get_prefix_from_ctx(ctx)
         await ctx.send(f"❌ Usage: `{prefix}roulette <bet> <type>`\nExamples: `{prefix}roulette 50 red` or `{prefix}roulette all black`")
         return
     
@@ -11079,7 +11086,7 @@ async def prefix_hilo(ctx, bet_input: Optional[str] = None):
         return
     
     if bet_input is None:
-        prefix = get_prefix(bot, ctx.message)
+        prefix = get_prefix_from_ctx(ctx)
         await ctx.send(f"❌ Usage: `{prefix}hilo <bet>`\nExamples: `{prefix}hilo 50` or `{prefix}hilo all`")
         return
     
@@ -11343,7 +11350,7 @@ async def prefix_poker(ctx, bet_input: Optional[str] = None):
         return
     
     if bet_input is None:
-        prefix = get_prefix(bot, ctx.message)
+        prefix = get_prefix_from_ctx(ctx)
         await ctx.send(
             f"❌ Usage: `{prefix}poker <bet>`\n"
             f"Example: `{prefix}poker 100` or `{prefix}poker all`\n\n"
@@ -11418,7 +11425,7 @@ async def multiplayer_poker(ctx, action: Optional[str] = None, amount_input: Opt
     user_id = ctx.author.id
     
     if not action:
-        prefix = get_prefix(bot, ctx.message)
+        prefix = get_prefix_from_ctx(ctx)
         await ctx.send(f"❌ Usage: `{prefix}pokermp <start/join/play/leave/status>`")
         return
     
@@ -11670,7 +11677,7 @@ async def multiplayer_roulette(ctx, action: Optional[str] = None, bet_amount_inp
     user_id = ctx.author.id
     
     if not action:
-        prefix = get_prefix(bot, ctx.message)
+        prefix = get_prefix_from_ctx(ctx)
         await ctx.send(f"❌ Usage: `{prefix}roulettemp <open/bet/spin/status>`")
         return
     
@@ -11879,17 +11886,24 @@ async def setprefix_error(ctx, error):
     if isinstance(error, commands.MissingPermissions):
         await ctx.send("❌ You need Administrator permissions to change the prefix!")
     elif isinstance(error, commands.MissingRequiredArgument):
-        prefix = get_prefix(bot, ctx.message)
+        prefix = get_prefix_from_ctx(ctx)
         await ctx.send(f"❌ Usage: `{prefix}setprefix <new_prefix>`")
 
-@bot.hybrid_command(name='bumpreminder')
+@bot.hybrid_command(name='bumpreminder', description="Setup DISBOARD bump reminders")
 @commands.has_permissions(administrator=True)
-async def setup_bump_reminder(ctx, ping_type: Optional[str] = None):
+@app_commands.describe(
+    ping_type="Type of mention: 'user' or 'role'",
+    target_user="User to ping for bump reminders",
+    target_role="Role to ping for bump reminders"
+)
+async def setup_bump_reminder(ctx, ping_type: Optional[str] = None, target_user: Optional[discord.Member] = None, target_role: Optional[discord.Role] = None):
     """Setup DISBOARD bump reminders (Admin only)
     
     Usage:
     ~bumpreminder user @User - Ping a specific user
     ~bumpreminder role @Role - Ping a role
+    /bumpreminder user target_user:@User - Slash command version
+    /bumpreminder role target_role:@Role - Slash command version
     """
     if not ctx.guild:
         await ctx.send("❌ This command can only be used in a server!")
@@ -11904,19 +11918,31 @@ async def setup_bump_reminder(ctx, ping_type: Optional[str] = None):
         await ctx.send("❌ Ping type must be 'user' or 'role'!")
         return
     
-    # Extract ID from mention
+    # Extract ID from mention - works for both prefix and slash commands
     if ping_type == "user":
-        if not ctx.message.mentions:
+        # For slash commands, use the target_user parameter
+        if target_user:
+            ping_target = target_user.id
+            target_name = target_user.mention
+        # For prefix commands, use ctx.message.mentions
+        elif ctx.message and ctx.message.mentions:
+            ping_target = ctx.message.mentions[0].id
+            target_name = ctx.message.mentions[0].mention
+        else:
             await ctx.send("❌ Please mention a user! Example: `~bumpreminder user @User`")
             return
-        ping_target = ctx.message.mentions[0].id
-        target_name = ctx.message.mentions[0].mention
     else:  # role
-        if not ctx.message.role_mentions:
+        # For slash commands, use the target_role parameter
+        if target_role:
+            ping_target = target_role.id
+            target_name = target_role.mention
+        # For prefix commands, use ctx.message.role_mentions
+        elif ctx.message and ctx.message.role_mentions:
+            ping_target = ctx.message.role_mentions[0].id
+            target_name = ctx.message.role_mentions[0].mention
+        else:
             await ctx.send("❌ Please mention a role! Example: `~bumpreminder role @Role`")
             return
-        ping_target = ctx.message.role_mentions[0].id
-        target_name = ctx.message.role_mentions[0].mention
     
     # Save configuration
     guild_id = str(ctx.guild.id)
@@ -12080,7 +12106,7 @@ async def addchips_error(ctx, error):
     if isinstance(error, commands.NotOwner):
         await ctx.send("❌ Only the bot owner can add chips!")
     elif isinstance(error, commands.MissingRequiredArgument):
-        prefix = get_prefix(bot, ctx.message)
+        prefix = get_prefix_from_ctx(ctx)
         await ctx.send(f"❌ Usage: `{prefix}addchips @user <amount>`\nExample: `{prefix}addchips @John 500`")
     elif isinstance(error, commands.BadArgument):
         await ctx.send("❌ Invalid arguments! Make sure to mention a user and provide a valid number.")
@@ -12140,7 +12166,7 @@ async def resetbalance_error(ctx, error):
     if isinstance(error, commands.NotOwner):
         await ctx.send("❌ Only the bot owner can reset balances!")
     elif isinstance(error, commands.MissingRequiredArgument):
-        prefix = get_prefix(bot, ctx.message)
+        prefix = get_prefix_from_ctx(ctx)
         await ctx.send(f"❌ Usage: `{prefix}resetbalance @user [amount]`\nExample: `{prefix}resetbalance @John 5000`")
     elif isinstance(error, commands.BadArgument):
         await ctx.send("❌ Invalid arguments! Make sure to mention a user and provide a valid number.")
@@ -12838,7 +12864,7 @@ async def reset_claim_error(ctx, error):
     if isinstance(error, commands.MissingPermissions):
         await ctx.send("❌ You need Administrator permissions to reset claim timers!")
     elif isinstance(error, commands.MissingRequiredArgument):
-        prefix = get_prefix(bot, ctx.message)
+        prefix = get_prefix_from_ctx(ctx)
         await ctx.send(
             f"❌ Usage:\n"
             f"`{prefix}resetclaim @user <type>`\n"
@@ -12854,7 +12880,7 @@ async def bump_reminder_error(ctx, error):
     if isinstance(error, commands.MissingPermissions):
         await ctx.send("❌ You need Administrator permissions to configure bump reminders!")
     elif isinstance(error, commands.MissingRequiredArgument):
-        prefix = get_prefix(bot, ctx.message)
+        prefix = get_prefix_from_ctx(ctx)
         await ctx.send(
             f"❌ Usage:\n"
             f"`{prefix}bumpreminder user @User` - Ping a specific user\n"
@@ -13377,13 +13403,19 @@ async def send_error_to_channel(error_title: str, error_details: str, context: O
     except Exception as e:
         print(f"Failed to send error to channel: {e}")
 
-@bot.hybrid_command(name='streamnotify')
+@bot.hybrid_command(name='streamnotify', description="Setup stream notifications")
 @commands.has_permissions(manage_guild=True)
-async def stream_setup_command(ctx, action: Optional[str] = None):
+@app_commands.describe(
+    action="Action: 'setup'",
+    target_channel="Channel for stream notifications",
+    target_role="Role to ping for stream notifications"
+)
+async def stream_setup_command(ctx, action: Optional[str] = None, target_channel: Optional[discord.TextChannel] = None, target_role: Optional[discord.Role] = None):
     """Setup stream notifications for your server
     
     Usage:
     ~streamnotify setup <#channel> @role - Configure notification channel and role
+    /streamnotify setup target_channel:#channel target_role:@role
     """
     
     guild_id = str(ctx.guild.id)
@@ -13391,16 +13423,15 @@ async def stream_setup_command(ctx, action: Optional[str] = None):
     if not action or action.lower() != 'setup':
         return await ctx.send("❌ Please use: `~streamnotify setup <#channel> @role`")
     
-    # Parse channel and role mentions
-    channel = None
-    role = None
+    # Parse channel and role mentions - works for both prefix and slash commands
+    channel = target_channel
+    role = target_role
     
-    # Try to find channel in message
-    if ctx.message.channel_mentions:
+    # For prefix commands, try to find channel/role in message
+    if not channel and ctx.message and ctx.message.channel_mentions:
         channel = ctx.message.channel_mentions[0]
     
-    # Try to find role in message
-    if ctx.message.role_mentions:
+    if not role and ctx.message and ctx.message.role_mentions:
         role = ctx.message.role_mentions[0]
     
     if not channel or not role:

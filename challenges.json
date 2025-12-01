@@ -15,10 +15,10 @@
     "total_winnings": 4984990,
     "current_streak": 1,
     "claims_made": [
-      "weekly",
-      "monthly",
+      "yearly",
       "daily",
-      "yearly"
+      "weekly",
+      "monthly"
     ]
   },
   "525815097847840798": {
@@ -38,10 +38,10 @@
     "total_winnings": 92631320,
     "current_streak": 2,
     "claims_made": [
-      "weekly",
-      "monthly",
+      "yearly",
       "daily",
-      "yearly"
+      "weekly",
+      "monthly"
     ]
   },
   "343055455263916045": {
@@ -65,10 +65,10 @@
     "total_winnings": 350,
     "current_streak": 0,
     "claims_made": [
-      "weekly",
-      "monthly",
+      "yearly",
       "daily",
-      "yearly"
+      "weekly",
+      "monthly"
     ],
     "poker_plays": 43,
     "poker_wins": 7
@@ -89,10 +89,10 @@
     "total_winnings": 10103000,
     "current_streak": 0,
     "claims_made": [
-      "weekly",
-      "monthly",
+      "yearly",
       "daily",
-      "yearly"
+      "weekly",
+      "monthly"
     ]
   },
   "1237598739041091652": {
@@ -113,10 +113,10 @@
     "total_winnings": 100,
     "current_streak": 0,
     "claims_made": [
-      "weekly",
-      "monthly",
+      "yearly",
       "daily",
-      "yearly"
+      "weekly",
+      "monthly"
     ]
   },
   "934168336579825774": {
@@ -140,10 +140,10 @@
     "total_winnings": NaN,
     "current_streak": 0,
     "claims_made": [
-      "weekly",
-      "monthly",
+      "yearly",
       "daily",
-      "yearly"
+      "weekly",
+      "monthly"
     ],
     "poker_plays": 7,
     "poker_wins": 1
@@ -161,10 +161,10 @@
     "total_winnings": 0,
     "current_streak": 0,
     "claims_made": [
-      "weekly",
-      "monthly",
+      "yearly",
       "daily",
-      "yearly"
+      "weekly",
+      "monthly"
     ]
   },
   "697495071737511997": {
@@ -180,10 +180,10 @@
     "total_winnings": 0,
     "current_streak": 0,
     "claims_made": [
-      "weekly",
-      "monthly",
+      "yearly",
       "daily",
-      "yearly"
+      "weekly",
+      "monthly"
     ]
   },
   "504812129560428554": {
@@ -199,10 +199,10 @@
     "total_winnings": 120000,
     "current_streak": 2,
     "claims_made": [
-      "weekly",
-      "monthly",
+      "yearly",
       "daily",
-      "yearly"
+      "weekly",
+      "monthly"
     ]
   },
   "205383259368980480": {
@@ -213,9 +213,9 @@
     "total_winnings": 0,
     "current_streak": 0,
     "claims_made": [
-      "weekly",
+      "yearly",
       "daily",
-      "yearly"
+      "weekly"
     ]
   },
   "667815627422957599": {
@@ -231,8 +231,8 @@
     "total_winnings": 0,
     "current_streak": 0,
     "claims_made": [
-      "daily",
-      "yearly"
+      "yearly",
+      "daily"
     ]
   },
   "1204102438366220338": {
@@ -262,10 +262,10 @@
     "total_winnings": 0,
     "current_streak": 0,
     "claims_made": [
-      "weekly",
-      "monthly",
+      "yearly",
       "daily",
-      "yearly"
+      "weekly",
+      "monthly"
     ]
   },
   "662760802398371880": {
