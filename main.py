@@ -13,6 +13,8 @@ from urllib.parse import quote
 
 load_dotenv()
 
+# Bot Version: 2.0.0 - All 98 commands now support both prefix (~) and slash (/) formats
+
 # Store reminders in memory (persisted to file)
 REMINDERS_FILE = "reminders.json"
 PREFIXES_FILE = "prefixes.json"
