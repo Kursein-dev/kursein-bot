@@ -2907,23 +2907,38 @@ async def on_ready():
         except Exception as e:
             print(f"Error starting stream checker: {e}")
     
-    # Sync slash commands
-    try:
-        # Sync globally - this will update Discord's command list
-        synced = await bot.tree.sync()
-        print(f"Synced {len(synced)} slash command(s) globally")
-        
-        # Also sync to all guilds the bot is in for instant updates
-        for guild in bot.guilds:
-            try:
-                await bot.tree.sync(guild=guild)
-                print(f"Synced commands to {guild.name} (ID: {guild.id})")
-            except Exception as guild_error:
-                print(f"Failed to sync to {guild.name}: {guild_error}")
-                
-        print("Note: Old commands may take up to 1 hour to disappear globally.")
-    except Exception as e:
-        print(f"Error syncing commands: {e}")
+    # Sync slash commands - with retry logic for reliability
+    print("Starting slash command sync...")
+    max_retries = 3
+    
+    for attempt in range(max_retries):
+        try:
+            # Small delay to ensure connection is stable
+            await asyncio.sleep(2)
+            
+            # Sync globally - this will update Discord's command list
+            synced = await bot.tree.sync()
+            print(f"Synced {len(synced)} slash command(s) globally")
+            
+            # Also sync to all guilds the bot is in for instant updates
+            for guild in bot.guilds:
+                try:
+                    await bot.tree.sync(guild=guild)
+                    print(f"Synced commands to {guild.name} (ID: {guild.id})")
+                except Exception as guild_error:
+                    print(f"Failed to sync to {guild.name}: {guild_error}")
+                    
+            print("Note: Old commands may take up to 1 hour to disappear globally.")
+            print("Slash command sync completed successfully!")
+            break  # Success, exit retry loop
+            
+        except Exception as e:
+            print(f"Error syncing commands (attempt {attempt + 1}/{max_retries}): {e}")
+            if attempt < max_retries - 1:
+                print(f"Retrying in 5 seconds...")
+                await asyncio.sleep(5)
+            else:
+                print("Failed to sync commands after all retries. Commands may not be available.")
 
 @bot.event
 async def on_message(message):
