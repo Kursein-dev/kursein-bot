@@ -2935,7 +2935,7 @@ async def on_ready():
         except Exception as e:
             print(f"Error syncing commands (attempt {attempt + 1}/{max_retries}): {e}")
             if attempt < max_retries - 1:
-                print(f"Retrying in 5 seconds...")
+                print("Retrying in 5 seconds...")
                 await asyncio.sleep(5)
             else:
                 print("Failed to sync commands after all retries. Commands may not be available.")
