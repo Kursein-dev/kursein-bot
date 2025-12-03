@@ -6778,6 +6778,51 @@ class GuidePaginator(discord.ui.View):
             )
             page7.set_footer(text="🛡️ Admin-only commands")
             pages.append(page7)
+            
+            # Page 8: Owner-Only Commands
+            page8 = discord.Embed(
+                title="📚 Command Guide - Owner Commands",
+                color=0xe91e63
+            )
+            page8.add_field(
+                name="🔧 Bot Testing & Diagnostics",
+                value=(
+                    "`~testall` - List all registered commands (registry audit)\n"
+                    "`~testall run` - Test safe display-only commands\n"
+                    "`~testwelcome` - Test welcome message format\n"
+                    "`~ping` - Check bot latency"
+                ),
+                inline=False
+            )
+            page8.add_field(
+                name="📢 Announcements",
+                value=(
+                    "`~update \"Title\" Description` - Post update to log channel\n"
+                    "`~announce #channel Message` - Send announcement"
+                ),
+                inline=False
+            )
+            page8.add_field(
+                name="🗄️ Data Management",
+                value=(
+                    "`~reset @user <type>` - Reset user cooldowns\n"
+                    "`~reset alldaily` - Reset all daily claims\n"
+                    "`~resetbalance @user` - Reset user balance\n"
+                    "`~infinite @user` - Toggle infinite chips mode"
+                ),
+                inline=False
+            )
+            page8.add_field(
+                name="📊 Analytics & Monitoring",
+                value=(
+                    "`~record` - View house profit/loss stats\n"
+                    "`~secrets` - View all 40 secret codes\n"
+                    "`~chipslog [limit]` - View chip transactions"
+                ),
+                inline=False
+            )
+            page8.set_footer(text="👑 Owner-only commands")
+            pages.append(page8)
         
         return pages
     
