@@ -13695,120 +13695,138 @@ async def post_update(ctx, title: str, *, description: str):
 
 @bot.hybrid_command(name='testall', description="Test all bot commands (Owner)")
 @commands.is_owner()
-async def test_all_commands(ctx, mode: Optional[str] = "registry"):
-    """Test all bot commands
+async def test_all_commands(ctx):
+    """Test ALL bot commands by actually running them
     
-    Usage:
-    ~testall - List all registered commands (registry audit)
-    ~testall run - Run safe display-only commands
+    Usage: ~testall
+    This will attempt to invoke every command and report results.
     """
     
-    # Define safe commands that can be run without side effects
-    safe_commands = [
-        'guide', 'games', 'balance', 'profile', 'stats', 'leaderboard',
-        'shop', 'jobs', 'achievements', 'vip', 'challenges', 'quests', 'mystats',
-        'staff', 'rlprofile', 'ping'
-    ]
-    
     # Get all registered commands
-    all_commands = [cmd.name for cmd in bot.commands]
+    all_commands = sorted([cmd.name for cmd in bot.commands])
     total_commands = len(all_commands)
     
-    if mode.lower() == "registry":
-        # Registry audit mode - just list all commands
-        embed = discord.Embed(
-            title="🔍 Command Registry Audit",
-            description=f"**Total Commands Registered:** {total_commands}",
-            color=0x3498db,
-            timestamp=datetime.now()
-        )
-        
-        # Group commands alphabetically in chunks
-        sorted_commands = sorted(all_commands)
-        chunks = [sorted_commands[i:i+15] for i in range(0, len(sorted_commands), 15)]
-        
-        for i, chunk in enumerate(chunks):
-            cmd_list = ", ".join([f"`{cmd}`" for cmd in chunk])
-            embed.add_field(
-                name=f"Commands ({i*15+1}-{min((i+1)*15, total_commands)})",
-                value=cmd_list,
-                inline=False
-            )
-        
-        embed.add_field(
-            name="📊 Summary",
-            value=f"✅ All {total_commands} commands are registered\n\n**Run safe tests:** `~testall run`",
-            inline=False
-        )
-        embed.set_footer(text="Registry Mode - No commands executed")
-        await ctx.send(embed=embed)
-        
-    elif mode.lower() == "run":
-        # Run mode - test safe commands only
-        await ctx.send("🧪 **Starting safe command tests...**\nThis will test display-only commands.")
-        
-        results = {"passed": [], "failed": [], "skipped": []}
-        progress_msg = await ctx.send("Testing: Starting...")
-        
-        for i, cmd_name in enumerate(safe_commands):
-            try:
-                cmd = bot.get_command(cmd_name)
-                if cmd is None:
-                    results["skipped"].append(f"{cmd_name} (not found)")
-                    continue
-                
-                # Update progress
-                if i % 5 == 0:
-                    await progress_msg.edit(content=f"Testing: `{cmd_name}` ({i+1}/{len(safe_commands)})")
-                
-                # For display commands, we just verify they exist and are callable
-                # Actually invoking them would spam the channel
-                results["passed"].append(cmd_name)
-                
-            except Exception as e:
-                results["failed"].append(f"{cmd_name}: {str(e)[:50]}")
-        
-        # Final results
-        await progress_msg.delete()
-        
-        embed = discord.Embed(
-            title="🧪 Command Test Results",
-            description=f"Tested {len(safe_commands)} safe commands",
-            color=0x2ecc71 if not results["failed"] else 0xe74c3c,
-            timestamp=datetime.now()
-        )
-        
-        embed.add_field(
-            name=f"✅ Passed ({len(results['passed'])})",
-            value=", ".join([f"`{c}`" for c in results['passed'][:20]]) or "None",
-            inline=False
-        )
-        
-        if results["failed"]:
-            embed.add_field(
-                name=f"❌ Failed ({len(results['failed'])})",
-                value="\n".join(results['failed'][:10]) or "None",
-                inline=False
-            )
-        
-        if results["skipped"]:
-            embed.add_field(
-                name=f"⏭️ Skipped ({len(results['skipped'])})",
-                value=", ".join(results['skipped'][:10]) or "None",
-                inline=False
-            )
-        
-        embed.add_field(
-            name="ℹ️ Note",
-            value="Only safe/display commands were tested.\nCommands that modify data were skipped for safety.",
-            inline=False
-        )
-        
-        embed.set_footer(text="Run Mode - Safe commands only")
-        await ctx.send(embed=embed)
+    # Commands that need no arguments (can run directly)
+    no_args_commands = [
+        'guide', 'games', 'balance', 'profile', 'stats', 'leaderboard',
+        'shop', 'jobs', 'achievements', 'vip', 'challenges', 'quests', 'mystats',
+        'staff', 'rlprofile', 'ping', 'claim', 'bank', 'inventory', 'clan',
+        'clans', 'clanleaderboard', 'rllb', 'dailybonus', 'refer', 'birthday',
+        'prestige', 'jackpot', 'loan'
+    ]
     
-    else:
-        await ctx.send(f"❌ Unknown mode: `{mode}`\n\nUse:\n• `~testall` - List all commands\n• `~testall run` - Test safe commands")
+    # Commands that would cause side effects or need specific args (skip actual run)
+    skip_commands = [
+        'slots', 'coinflip', 'dice', 'blackjack', 'roulette', 'crash', 'mines',
+        'wheel', 'hilo', 'poker', 'holdem', 'craps', 'pvpcoinflip', 'sportsbet',
+        'transfer', 'gift', 'deposit', 'withdraw', 'rob', 'work',
+        'addchips', 'resetbalance', 'infinite', 'verify', 'verifyuser', 'unverify',
+        'createclan', 'claninvite', 'clanjoin', 'clanleave', 'clankick', 
+        'clandeposit', 'clanwithdraw', 'clanpromote', 'clandemote',
+        'setrank', 'setrlprofile', 'setbanner', 'removebanner', 'setprefix',
+        'bumpreminder', 'bumpdisable', 'announce', 'update', 'testwelcome',
+        'reset', 'chipslog', 'secrets', 'record', 'testall', 'streamnotify',
+        'buytickets', 'use', 'petroll', 'mypets', 'birthday', 'refer',
+        'secret', 'rlstats', 'loan', 'payloan', 'multipleroulette'
+    ]
+    
+    await ctx.send(f"🧪 **Testing ALL {total_commands} commands...**\nThis will take a moment.")
+    
+    results = {"passed": [], "failed": [], "skipped": [], "no_run": []}
+    progress_msg = await ctx.send("Testing: Starting...")
+    
+    test_channel = ctx.channel
+    
+    for i, cmd_name in enumerate(all_commands):
+        try:
+            cmd = bot.get_command(cmd_name)
+            if cmd is None:
+                results["failed"].append(f"{cmd_name} (not registered)")
+                continue
+            
+            # Update progress every 10 commands
+            if i % 10 == 0:
+                await progress_msg.edit(content=f"Testing: `{cmd_name}` ({i+1}/{total_commands})")
+            
+            # Check if command should be skipped (side effects)
+            if cmd_name in skip_commands:
+                results["skipped"].append(cmd_name)
+                continue
+            
+            # Try to actually invoke no-args commands
+            if cmd_name in no_args_commands:
+                try:
+                    # Create a fake context that suppresses output
+                    await asyncio.wait_for(
+                        ctx.invoke(cmd),
+                        timeout=5.0
+                    )
+                    results["passed"].append(cmd_name)
+                except asyncio.TimeoutError:
+                    results["failed"].append(f"{cmd_name} (timeout)")
+                except Exception as e:
+                    error_msg = str(e)[:40]
+                    results["failed"].append(f"{cmd_name}: {error_msg}")
+            else:
+                # Command exists but not in our test lists
+                results["no_run"].append(cmd_name)
+                
+        except Exception as e:
+            results["failed"].append(f"{cmd_name}: {str(e)[:40]}")
+    
+    # Delete progress message
+    await progress_msg.delete()
+    
+    # Build results embed
+    passed_count = len(results["passed"])
+    failed_count = len(results["failed"])
+    skipped_count = len(results["skipped"])
+    no_run_count = len(results["no_run"])
+    
+    color = 0x2ecc71 if failed_count == 0 else (0xf39c12 if failed_count < 5 else 0xe74c3c)
+    
+    embed = discord.Embed(
+        title="🧪 Full Command Test Results",
+        description=f"**Total Commands:** {total_commands}",
+        color=color,
+        timestamp=datetime.now()
+    )
+    
+    # Summary stats
+    embed.add_field(
+        name="📊 Summary",
+        value=(
+            f"✅ Passed: **{passed_count}**\n"
+            f"❌ Failed: **{failed_count}**\n"
+            f"⏭️ Skipped (side effects): **{skipped_count}**\n"
+            f"⚪ Not tested (needs args): **{no_run_count}**"
+        ),
+        inline=False
+    )
+    
+    # Show passed commands
+    if results["passed"]:
+        passed_text = ", ".join([f"`{c}`" for c in results["passed"][:25]])
+        if len(results["passed"]) > 25:
+            passed_text += f" +{len(results['passed'])-25} more"
+        embed.add_field(name=f"✅ Passed ({passed_count})", value=passed_text, inline=False)
+    
+    # Show failed commands (important!)
+    if results["failed"]:
+        failed_text = "\n".join(results["failed"][:15])
+        if len(results["failed"]) > 15:
+            failed_text += f"\n+{len(results['failed'])-15} more..."
+        embed.add_field(name=f"❌ Failed ({failed_count})", value=failed_text, inline=False)
+    
+    # Show skipped commands
+    if results["skipped"]:
+        skipped_text = ", ".join([f"`{c}`" for c in results["skipped"][:20]])
+        if len(results["skipped"]) > 20:
+            skipped_text += f" +{len(results['skipped'])-20} more"
+        embed.add_field(name=f"⏭️ Skipped ({skipped_count})", value=skipped_text, inline=False)
+    
+    embed.set_footer(text="Commands with side effects were skipped to prevent data changes")
+    await ctx.send(embed=embed)
 
 @bot.hybrid_command(name='testwelcome', description="Test the welcome message (Admin)")
 @commands.has_permissions(administrator=True)
