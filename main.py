@@ -13154,6 +13154,23 @@ async def stream_notify_command(ctx, action: Optional[str] = None, arg1: Optiona
         if ctx.message and ctx.message.role_mentions:
             role = ctx.message.role_mentions[0]
         
+        # For slash commands or if mentions not found, try parsing arg1 and arg2
+        if not channel and arg1:
+            # Try to extract channel ID from mention format <#123456789>
+            channel_match = arg1.strip('<#>') if arg1.startswith('<#') else arg1
+            try:
+                channel = ctx.guild.get_channel(int(channel_match))
+            except (ValueError, TypeError):
+                pass
+        
+        if not role and arg2:
+            # Try to extract role ID from mention format <@&123456789>
+            role_match = arg2.strip('<@&>') if arg2.startswith('<@&') else arg2
+            try:
+                role = ctx.guild.get_role(int(role_match))
+            except (ValueError, TypeError):
+                pass
+        
         if not channel or not role:
             return await ctx.send(f"❌ Please use: `{prefix}streamnotify setup #channel @role`")
         
