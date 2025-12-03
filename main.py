@@ -3516,7 +3516,8 @@ async def prefix_gameinfo(ctx):
     view = CommandsPaginator(ctx, pages)
     view.message = await ctx.send(embed=pages[0], view=view)
 
-@bot.hybrid_command(name='slots')
+@bot.hybrid_command(name='slots', description="Spin the slot machine and win big!")
+@app_commands.describe(bet_input="Bet amount (number, 'all', or 'half')")
 async def prefix_slots(ctx, bet_input: str = "10"):
     """Spin the slot machine! (prefix version)
     
@@ -4182,7 +4183,8 @@ class CrashGameView(discord.ui.View):
         """Called when the view times out"""
         active_games.discard(self.user_id)
 
-@bot.hybrid_command(name='crash')
+@bot.hybrid_command(name='crash', description="Cash out before the multiplier crashes!")
+@app_commands.describe(bet="Bet amount (number, 'all', or 'half')")
 async def crash_game(ctx, bet: str):
     """Play Crash - Cash out before the multiplier crashes!
     
@@ -4639,7 +4641,8 @@ class MinesGameView(discord.ui.View):
         """Called when the view times out"""
         active_games.discard(self.user_id)
 
-@bot.hybrid_command(name='mines')
+@bot.hybrid_command(name='mines', description="Reveal tiles and avoid the bombs!")
+@app_commands.describe(bet="Bet amount (number, 'all', or 'half')", mines="Number of mines (1-24)")
 async def mines_game(ctx, bet: str, mines: int = 3):
     """Play Mines - Reveal tiles and avoid bombs!
     
@@ -4707,7 +4710,8 @@ async def mines_game(ctx, bet: str, mines: int = 3):
     
     await ctx.send(embed=embed, view=view)
 
-@bot.hybrid_command(name='wheel')
+@bot.hybrid_command(name='wheel', description="Spin the prize wheel for multipliers!")
+@app_commands.describe(bet="Bet amount (number, 'all', or 'half')")
 async def wheel_game(ctx, bet: str):
     """Spin the Prize Wheel!
     
@@ -4869,7 +4873,8 @@ async def wheel_game(ctx, bet: str):
     # Remove from active games
     active_games.discard(user_id)
 
-@bot.hybrid_command(name='craps')
+@bot.hybrid_command(name='craps', description="Play interactive dice casino craps!")
+@app_commands.describe(bet="Bet amount (number, 'all', or 'half')")
 async def craps_game(ctx, bet: str):
     """Play Craps - Interactive dice casino game!
     
@@ -5167,7 +5172,7 @@ async def play_solo_blackjack(ctx, user_id, bet):
     
     await ctx.send(embed=result_embed)
 
-@bot.hybrid_command(name='verify')
+@bot.hybrid_command(name='verify', description="Verify yourself to play casino games")
 async def prefix_verify(ctx):
     """Verify yourself to play casino games (one-time)"""
     user_id = ctx.author.id
@@ -5229,7 +5234,8 @@ async def prefix_unverify(ctx, user: discord.User):
     )
     await ctx.send(embed=embed)
 
-@bot.hybrid_command(name='balance', aliases=['bal'])
+@bot.hybrid_command(name='balance', aliases=['bal'], description="Check your chips and tickets balance")
+@app_commands.describe(user="User to check balance for (optional)")
 async def prefix_balance(ctx, user: Optional[discord.User] = None):
     """Check chip balance for yourself or another user"""
     target_user = user if user is not None else ctx.author
@@ -5252,7 +5258,8 @@ async def prefix_balance(ctx, user: Optional[discord.User] = None):
     embed.set_footer(text="💡 Trade chips for tickets using ~buytickets")
     await ctx.send(embed=embed)
 
-@bot.hybrid_command(name='bank')
+@bot.hybrid_command(name='bank', description="Check bank balance (safe from robberies)")
+@app_commands.describe(user="User to check bank for (optional)")
 async def bank_command(ctx, user: Optional[discord.User] = None):
     """Check your bank balance (safe from robberies)
     
@@ -5440,7 +5447,8 @@ async def buytickets_command(ctx, amount: int = 1):
     embed.set_footer(text=f"Rate: {TICKET_COST:,} chips = 1 ticket")
     await ctx.send(embed=embed)
 
-@bot.hybrid_command(name='leaderboard', aliases=['lb', 'top'])
+@bot.hybrid_command(name='leaderboard', aliases=['lb', 'top'], description="Show top players by chip count")
+@app_commands.describe(limit="Number of players to show (1-25)")
 async def prefix_leaderboard(ctx, limit: int = 10):
     """Show the top players by chip count (server only - verified users)
     
@@ -6797,7 +6805,7 @@ class GuidePaginator(discord.ui.View):
             except discord.HTTPException:
                 pass
 
-@bot.hybrid_command(name='guide')
+@bot.hybrid_command(name='guide', description="Complete interactive guide of all bot commands")
 async def guide_command(ctx):
     """Complete interactive guide of all bot commands with pagination
     
@@ -7490,7 +7498,7 @@ async def inventory_command(ctx, user: Optional[discord.User] = None):
     
     await ctx.send(embed=embed)
 
-@bot.hybrid_command(name='rollpet', aliases=['petroll'])
+@bot.hybrid_command(name='rollpet', aliases=['petroll'], description="Roll for a random pet (costs 1 ticket)")
 async def rollpet_command(ctx):
     """Roll for a random pet using tickets
     
@@ -7554,7 +7562,8 @@ async def rollpet_command(ctx):
     
     await ctx.send(embed=embed)
 
-@bot.hybrid_command(name='pets', aliases=['collection', 'mypets'])
+@bot.hybrid_command(name='pets', aliases=['collection', 'mypets'], description="View your pet collection")
+@app_commands.describe(user="User to view pets for (optional)")
 async def pets_command(ctx, user: Optional[discord.User] = None):
     """View your pet collection
     
@@ -7735,7 +7744,8 @@ async def setidol_command(ctx, *, pet_name: str):
     
     await ctx.send(embed=embed)
 
-@bot.hybrid_command(name='profile', aliases=['stats', 'rank'])
+@bot.hybrid_command(name='profile', aliases=['stats', 'rank'], description="View player profile with XP, level, and VIP tier")
+@app_commands.describe(user="User to view profile for (optional)")
 async def profile_command(ctx, user: Optional[discord.User] = None):
     """View player profile with XP, level, VIP tier, and stats
     
@@ -8345,7 +8355,7 @@ async def repay_command(ctx):
     
     await ctx.send(embed=embed)
 
-@bot.hybrid_command(name='shop', aliases=['store'])
+@bot.hybrid_command(name='shop', aliases=['store'], description="Browse daily rotating shop with boosts and items")
 async def shop_command(ctx):
     """Browse and buy items, boosts, and perks with interactive buttons
     
@@ -9276,7 +9286,8 @@ async def set_trade_offer(user_id, channel, amount_str):
     await trade_view.update_embed()
     return True
 
-@bot.hybrid_command(name='rob')
+@bot.hybrid_command(name='rob', description="Attempt to rob another player (1% success rate)")
+@app_commands.describe(member="The player to rob")
 async def rob_player(ctx, member: discord.Member):
     """Attempt to rob another player's chips (1% success rate, 1 hour cooldown)
     
@@ -9473,7 +9484,7 @@ async def select_job_command(ctx, *, job_name: Optional[str] = None):
     embed.set_footer(text="Use ~work to start your shift! • 2 hour cooldown")
     await ctx.send(embed=embed)
 
-@bot.hybrid_command(name='job', aliases=['jobs'])
+@bot.hybrid_command(name='job', aliases=['jobs'], description="View available jobs and their pay rates")
 async def job_list(ctx):
     """View all available jobs with level requirements and pay rates
     
@@ -9539,7 +9550,7 @@ async def job_list(ctx):
     
     await ctx.send(embed=embed)
 
-@bot.hybrid_command(name='work')
+@bot.hybrid_command(name='work', description="Work your selected job for chips (2-hour cooldown)")
 async def work_job(ctx):
     """Work a job to earn chips! (2-hour cooldown)
     
@@ -9623,7 +9634,8 @@ async def work_job(ctx):
     
     await message.edit(embed=result_embed)
 
-@bot.hybrid_command(name='bounty')
+@bot.hybrid_command(name='bounty', description="Place a bounty on another player")
+@app_commands.describe(member="Player to place bounty on", amount="Bounty amount in chips")
 async def place_bounty(ctx, member: discord.Member, amount: int):
     """Place a bounty on another player's head!
     
@@ -9691,7 +9703,7 @@ async def place_bounty(ctx, member: discord.Member, amount: int):
     
     await ctx.send(embed=embed)
 
-@bot.hybrid_command(name='bounties')
+@bot.hybrid_command(name='bounties', description="View all active bounties")
 async def view_bounties(ctx):
     """View all active bounties
     
@@ -10144,7 +10156,8 @@ class MultiplayerRouletteGame:
     def get_player_count(self):
         return len(self.bets)
 
-@bot.hybrid_command(name='coinflip')
+@bot.hybrid_command(name='coinflip', description="Flip a coin solo or challenge another player")
+@app_commands.describe(action="@user to challenge or leave empty for solo", bet_input="Bet amount for challenges")
 async def prefix_coinflip(ctx, action: Optional[str] = None, bet_input: Optional[str] = None):
     """Flip a coin - challenge another player or flip solo!
     
@@ -10334,7 +10347,8 @@ async def prefix_coinflip(ctx, action: Optional[str] = None, bet_input: Optional
     # Check for challenge completion (solo mode)
     await check_challenge_completion(ctx, ctx.author.id)
 
-@bot.hybrid_command(name='blackjack')
+@bot.hybrid_command(name='blackjack', description="Play blackjack against the dealer!")
+@app_commands.describe(action="Bet amount or 'join' for multiplayer", bet="Bet amount for multiplayer games")
 async def prefix_blackjack(ctx, action: Optional[str] = None, bet: Optional[str] = None):
     """Play blackjack! 
     
@@ -10633,7 +10647,8 @@ async def finish_blackjack_game(ctx, game):
     # Clean up game
     del active_blackjack_games[ctx.channel.id]
 
-@bot.hybrid_command(name='roulette')
+@bot.hybrid_command(name='roulette', description="Play roulette - bet on colors, numbers, or ranges!")
+@app_commands.describe(bet_input="Bet amount (number, 'all', or 'half')", bet_type="Bet type (red/black/green/1-36/etc)")
 async def prefix_roulette(ctx, bet_input: Optional[str] = None, *, bet_type: Optional[str] = None):
     """Play roulette! (Solo or multiplayer - everyone can bet on the same spin)
     
@@ -10808,7 +10823,8 @@ async def prefix_roulette(ctx, bet_input: Optional[str] = None, *, bet_type: Opt
     # Check for challenge completion
     await check_challenge_completion(ctx, user_id)
 
-@bot.hybrid_command(name='hilo')
+@bot.hybrid_command(name='hilo', description="Guess if the next card is higher or lower!")
+@app_commands.describe(bet_input="Bet amount (number, 'all', or 'half')")
 async def prefix_hilo(ctx, bet_input: Optional[str] = None):
     """Play Hi-Lo! Guess if the next card is higher or lower (Interactive with buttons)
     
@@ -11063,7 +11079,8 @@ class PokerGameView(discord.ui.View):
         """Called when the view times out"""
         active_games.discard(self.user_id)
 
-@bot.hybrid_command(name='poker')
+@bot.hybrid_command(name='poker', description="Play 5-Card Draw Poker!")
+@app_commands.describe(bet_input="Bet amount (number, 'all', or 'half')")
 async def prefix_poker(ctx, bet_input: Optional[str] = None):
     """Play Interactive 5-Card Draw Poker!
     
@@ -12441,8 +12458,9 @@ async def chipslog_error(ctx, error):
     elif isinstance(error, commands.BadArgument):
         await ctx.send("❌ Invalid number! Usage: `~chipslog [lines]`")
 
-@bot.hybrid_command(name='reset')
+@bot.hybrid_command(name='reset', description="Reset claim timers for users (Admin)")
 @commands.has_permissions(administrator=True)
+@app_commands.describe(target="@user or 'alldaily' for bulk reset", claim_type="daily/weekly/monthly/yearly/all")
 async def reset_command(ctx, target: Optional[str] = None, claim_type: Optional[str] = None):
     """Unified reset command for claim timers (Admin only)
     
@@ -13263,7 +13281,7 @@ async def stream_notify_command(ctx, action: Optional[str] = None, arg1: Optiona
 
 # ============= NEW SYSTEMS: QUESTS, PRESTIGE, MYSTATS, BIRTHDAY, REFER =============
 
-@bot.hybrid_command(name='quests')
+@bot.hybrid_command(name='quests', description="View your 3 daily quests and progress")
 async def quests_command(ctx):
     """View daily quests and track progress"""
     user_id = str(ctx.author.id)
@@ -13316,7 +13334,7 @@ async def quests_command(ctx):
     embed.set_footer(text=f"Completed today: {quest_data.get('completed_today', 0)}/3")
     await ctx.send(embed=embed)
 
-@bot.hybrid_command(name='prestige')
+@bot.hybrid_command(name='prestige', description="Reset progress for permanent +5% multipliers")
 async def prestige_command(ctx):
     """Reset your progress for permanent multipliers"""
     user_id = str(ctx.author.id)
@@ -13355,7 +13373,7 @@ async def prestige_command(ctx):
     
     await ctx.send(embed=embed)
 
-@bot.hybrid_command(name='mystats')
+@bot.hybrid_command(name='mystats', description="View your personal game statistics")
 async def mystats_command(ctx):
     """View your personal game statistics"""
     user_id = str(ctx.author.id)
