@@ -13601,7 +13601,7 @@ I am **Kursein** — your casino host, game master, and keeper of the odds.
 **Getting Started:**
 `~verify` — Start your journey
 `~guide` — Full command guide
-`~help` — Quick command list
+`~games` — View all casino games
 
 The house is open. The odds are watching.
 *Let the games begin.*
