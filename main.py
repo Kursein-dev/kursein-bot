@@ -13514,6 +13514,43 @@ async def refer_command(ctx, action: Optional[str] = None, user: Optional[discor
         
         await ctx.send(embed=embed)
 
+# ============= WELCOME MESSAGE SYSTEM =============
+
+WELCOME_CHANNEL_ID = 1410712750568505507  # general chat channel
+
+@bot.event
+async def on_member_join(member: discord.Member):
+    """Send welcome message when a new member joins"""
+    channel = bot.get_channel(WELCOME_CHANNEL_ID)
+    
+    if channel is None:
+        print(f"Warning: Welcome channel {WELCOME_CHANNEL_ID} not found")
+        return
+    
+    server_count = member.guild.member_count
+    
+    welcome_message = f"""Welcome <@{member.id}> to Re:Kurse
+──────────────────────────────
+
+The room shifts as a new presence enters.  
+Chips settle. Cards pause mid-air.  
+Some call it luck — others call it hunger.
+
+<@{member.id}> has arrived.  
+Re:Kurse now stands at **{server_count}** members.
+
+╭─ The Path Before You
+│ • <#1413320553477046383> — rules  
+│ • <#1410712750568505507> — general chat  
+│ • <#1436066399205326969> — casino floor  
+╰──────────────────────────────
+
+In this place, the odds watch you back.  
+Play boldly. Bet wisely.  
+And remember: in Re:Kurse, even luck has a cost."""
+    
+    await channel.send(welcome_message)
+
 @bot.event
 async def on_command_error(ctx, error):
     """Handle command errors"""
