@@ -2943,6 +2943,8 @@ async def on_ready():
                 startup_embed.add_field(name="Commands Synced", value=f"{len(synced)} commands", inline=True)
                 startup_embed.add_field(name="Servers", value=f"{len(bot.guilds)} servers", inline=True)
                 startup_embed.add_field(name="Total Members", value=f"{sum(g.member_count for g in bot.guilds):,}", inline=True)
+                startup_embed.add_field(name="Owner", value=f"<@{OWNER_ID}>", inline=True)
+                startup_embed.add_field(name="Server Invite", value="[Join Re:Kurse](https://discord.gg/xQSHa2nXmn)", inline=True)
                 startup_embed.set_footer(text="Kursein Bot Updates")
                 await update_channel.send(embed=startup_embed)
             
