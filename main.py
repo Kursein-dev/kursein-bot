@@ -12954,8 +12954,9 @@ def save_streams_config():
     try:
         with open(STREAMS_CONFIG_FILE, "w") as f:
             json.dump(streams_config, f, indent=2)
+        print(f"[STREAMS] Saved config: {streams_config}")
     except Exception as e:
-        print(f"Error saving streams config: {e}")
+        print(f"[STREAMS] Error saving streams config: {e}")
 
 @tasks.loop(minutes=5)
 async def check_streams():
