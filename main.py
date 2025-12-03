@@ -2930,6 +2930,22 @@ async def on_ready():
                     
             print("Note: Old commands may take up to 1 hour to disappear globally.")
             print("Slash command sync completed successfully!")
+            
+            # Send startup notification to updates channel
+            update_channel = bot.get_channel(1435009184285589554)
+            if update_channel:
+                startup_embed = discord.Embed(
+                    title="🟢 Bot Online",
+                    description=f"Kursein has started successfully!",
+                    color=0x2ecc71,
+                    timestamp=datetime.now()
+                )
+                startup_embed.add_field(name="Commands Synced", value=f"{len(synced)} commands", inline=True)
+                startup_embed.add_field(name="Servers", value=f"{len(bot.guilds)} servers", inline=True)
+                startup_embed.add_field(name="Total Members", value=f"{sum(g.member_count for g in bot.guilds):,}", inline=True)
+                startup_embed.set_footer(text="Kursein Bot Updates")
+                await update_channel.send(embed=startup_embed)
+            
             break  # Success, exit retry loop
             
         except Exception as e:
@@ -13645,10 +13661,68 @@ The house is open. The odds are watching.
     
     await target_channel.send(intro_message)
     print(f"Sent intro message to {guild.name} (ID: {guild.id})")
+    
+    # Log to updates channel
+    update_channel = bot.get_channel(UPDATE_LOG_CHANNEL_ID)
+    if update_channel:
+        log_embed = discord.Embed(
+            title="🎉 Bot Joined New Server",
+            description=f"Kursein was added to **{guild.name}**!",
+            color=0x9b59b6,
+            timestamp=datetime.now()
+        )
+        log_embed.add_field(name="Server", value=guild.name, inline=True)
+        log_embed.add_field(name="Members", value=f"{guild.member_count:,}", inline=True)
+        log_embed.add_field(name="Total Servers", value=f"{len(bot.guilds)}", inline=True)
+        if guild.icon:
+            log_embed.set_thumbnail(url=guild.icon.url)
+        log_embed.set_footer(text="Kursein Bot Updates")
+        await update_channel.send(embed=log_embed)
+
+@bot.event
+async def on_guild_remove(guild: discord.Guild):
+    """Log when bot is removed from a server"""
+    update_channel = bot.get_channel(UPDATE_LOG_CHANNEL_ID)
+    if update_channel:
+        log_embed = discord.Embed(
+            title="📤 Bot Left Server",
+            description=f"Kursein was removed from **{guild.name}**",
+            color=0xe74c3c,
+            timestamp=datetime.now()
+        )
+        log_embed.add_field(name="Server", value=guild.name, inline=True)
+        log_embed.add_field(name="Remaining Servers", value=f"{len(bot.guilds)}", inline=True)
+        log_embed.set_footer(text="Kursein Bot Updates")
+        await update_channel.send(embed=log_embed)
+
+@bot.event
+async def on_member_remove(member: discord.Member):
+    """Log when a member leaves the server"""
+    # Only log for Re:Kurse server
+    if member.guild.id != 1410420544939098245:
+        return
+    
+    update_channel = bot.get_channel(UPDATE_LOG_CHANNEL_ID)
+    if update_channel:
+        log_embed = discord.Embed(
+            title="👋 Member Left",
+            description=f"**{member.name}** has left the server",
+            color=0xe74c3c,
+            timestamp=datetime.now()
+        )
+        log_embed.add_field(name="User", value=f"{member.name}#{member.discriminator}", inline=True)
+        log_embed.add_field(name="Member Count", value=f"{member.guild.member_count:,}", inline=True)
+        log_embed.set_thumbnail(url=member.display_avatar.url if member.display_avatar else None)
+        log_embed.set_footer(text="Kursein Bot Updates")
+        await update_channel.send(embed=log_embed)
 
 @bot.event
 async def on_member_join(member: discord.Member):
     """Send welcome message when a new member joins"""
+    # Only send welcome for Re:Kurse server
+    if member.guild.id != 1410420544939098245:
+        return
+    
     channel = bot.get_channel(WELCOME_CHANNEL_ID)
     
     if channel is None:
@@ -13656,6 +13730,21 @@ async def on_member_join(member: discord.Member):
         return
     
     server_count = member.guild.member_count
+    
+    # Log to updates channel
+    update_channel = bot.get_channel(UPDATE_LOG_CHANNEL_ID)
+    if update_channel:
+        log_embed = discord.Embed(
+            title="👋 New Member Joined",
+            description=f"**{member.name}** has joined the server!",
+            color=0x2ecc71,
+            timestamp=datetime.now()
+        )
+        log_embed.add_field(name="User", value=f"<@{member.id}>", inline=True)
+        log_embed.add_field(name="Member Count", value=f"{server_count:,}", inline=True)
+        log_embed.set_thumbnail(url=member.display_avatar.url if member.display_avatar else None)
+        log_embed.set_footer(text="Kursein Bot Updates")
+        await update_channel.send(embed=log_embed)
     
     welcome_message = f"""Welcome <@{member.id}> to Re:Kurse
 ──────────────────────────────
