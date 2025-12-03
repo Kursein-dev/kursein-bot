@@ -13518,6 +13518,42 @@ async def refer_command(ctx, action: Optional[str] = None, user: Optional[discor
 
 WELCOME_CHANNEL_ID = 1410712750568505507  # general chat channel
 
+@bot.hybrid_command(name='testwelcome', description="Test the welcome message (Admin)")
+@commands.has_permissions(administrator=True)
+async def test_welcome(ctx):
+    """Test the welcome message by sending it with your info"""
+    channel = bot.get_channel(WELCOME_CHANNEL_ID)
+    
+    if channel is None:
+        await ctx.send(f"❌ Welcome channel not found!")
+        return
+    
+    server_count = ctx.guild.member_count
+    member = ctx.author
+    
+    welcome_message = f"""Welcome <@{member.id}> to Re:Kurse
+──────────────────────────────
+
+The room shifts as a new presence enters.  
+Chips settle. Cards pause mid-air.  
+Some call it luck — others call it hunger.
+
+<@{member.id}> has arrived.  
+Re:Kurse now stands at **{server_count}** members.
+
+╭─ The Path Before You
+│ • <#1413320553477046383> — rules  
+│ • <#1410712750568505507> — general chat  
+│ • <#1436066399205326969> — casino floor  
+╰──────────────────────────────
+
+In this place, the odds watch you back.  
+Play boldly. Bet wisely.  
+And remember: in Re:Kurse, even luck has a cost."""
+    
+    await channel.send(welcome_message)
+    await ctx.send("✅ Test welcome message sent!")
+
 @bot.event
 async def on_member_join(member: discord.Member):
     """Send welcome message when a new member joins"""
