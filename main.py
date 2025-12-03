@@ -13517,6 +13517,41 @@ async def refer_command(ctx, action: Optional[str] = None, user: Optional[discor
 # ============= WELCOME MESSAGE SYSTEM =============
 
 WELCOME_CHANNEL_ID = 1410712750568505507  # general chat channel
+UPDATE_LOG_CHANNEL_ID = 1435009184285589554  # bot updates channel
+
+async def send_update_log(title: str, description: str, changes: list = None):
+    """Send an update notification to the update log channel"""
+    channel = bot.get_channel(UPDATE_LOG_CHANNEL_ID)
+    
+    if channel is None:
+        print(f"Warning: Update log channel {UPDATE_LOG_CHANNEL_ID} not found")
+        return
+    
+    embed = discord.Embed(
+        title=f"🔄 {title}",
+        description=description,
+        color=0x3498db,
+        timestamp=datetime.now()
+    )
+    
+    if changes:
+        changes_text = "\n".join([f"• {change}" for change in changes])
+        embed.add_field(name="Changes", value=changes_text, inline=False)
+    
+    embed.set_footer(text="Kursein Bot Updates")
+    
+    await channel.send(embed=embed)
+
+@bot.hybrid_command(name='update', description="Post a bot update announcement (Owner)")
+@commands.is_owner()
+async def post_update(ctx, title: str, *, description: str):
+    """Post an update to the update log channel
+    
+    Usage: ~update "Title" Description here
+    Example: ~update "New Feature" Added welcome messages for new members
+    """
+    await send_update_log(title, description)
+    await ctx.send("✅ Update posted to the updates channel!")
 
 @bot.hybrid_command(name='testwelcome', description="Test the welcome message (Admin)")
 @commands.has_permissions(administrator=True)
