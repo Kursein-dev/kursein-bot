@@ -2944,7 +2944,7 @@ async def on_ready():
                 startup_embed.add_field(name="Servers", value=f"{len(bot.guilds)} servers", inline=True)
                 startup_embed.add_field(name="Total Members", value=f"{sum(g.member_count for g in bot.guilds):,}", inline=True)
                 startup_embed.add_field(name="Owner", value=f"<@{OWNER_ID}>", inline=True)
-                startup_embed.add_field(name="Server Invite", value="[Join Re:Kurse](https://discord.gg/xQSHa2nXmn)", inline=True)
+                startup_embed.add_field(name="Server Invite", value="[Join Re:Kurse](https://discord.gg/Kursein)", inline=True)
                 
                 # List all servers with owners
                 server_list = "\n".join([f"• **{guild.name}** — {guild.member_count:,} members — <@{guild.owner_id}>" for guild in bot.guilds])
