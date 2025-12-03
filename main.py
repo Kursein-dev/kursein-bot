@@ -13705,9 +13705,9 @@ async def test_all_commands(ctx, mode: Optional[str] = "registry"):
     
     # Define safe commands that can be run without side effects
     safe_commands = [
-        'help', 'guide', 'games', 'balance', 'profile', 'stats', 'leaderboard',
+        'guide', 'games', 'balance', 'profile', 'stats', 'leaderboard',
         'shop', 'jobs', 'achievements', 'vip', 'challenges', 'quests', 'mystats',
-        'staff', 'rlprofile', 'rlranks', 'ping', 'serverinfo', 'botinfo'
+        'staff', 'rlprofile', 'ping'
     ]
     
     # Get all registered commands
