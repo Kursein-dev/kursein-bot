@@ -2945,6 +2945,11 @@ async def on_ready():
                 startup_embed.add_field(name="Total Members", value=f"{sum(g.member_count for g in bot.guilds):,}", inline=True)
                 startup_embed.add_field(name="Owner", value=f"<@{OWNER_ID}>", inline=True)
                 startup_embed.add_field(name="Server Invite", value="[Join Re:Kurse](https://discord.gg/xQSHa2nXmn)", inline=True)
+                
+                # List all servers
+                server_list = "\n".join([f"• **{guild.name}** ({guild.member_count:,} members)" for guild in bot.guilds])
+                startup_embed.add_field(name="Connected Servers", value=server_list or "None", inline=False)
+                
                 startup_embed.set_footer(text="Kursein Bot Updates")
                 await update_channel.send(embed=startup_embed)
             
