@@ -6603,14 +6603,12 @@ class GuidePaginator(discord.ui.View):
             inline=False
         )
         page4.add_field(
-            name="👥 Social & Trading",
+            name="👥 Social & Bounties",
             value=(
                 "`~leaderboard [limit]` - Top richest players\n"
-                "`~mt @user` - Multi-trade with players\n"
-                "`~rob @user` - Attempt to rob a player\n"
-                "`~bounty @user <amount>` - Place bounty\n"
-                "`~bounties` - View active bounties\n"
-                "`~claim @user` - Claim bounty on player"
+                "`~rob @user` - Attempt to rob a player (1% success)\n"
+                "`~bounty @user <amount>` - Place bounty on player\n"
+                "`~bounties` - View all active bounties"
             ),
             inline=False
         )
@@ -6714,7 +6712,8 @@ class GuidePaginator(discord.ui.View):
                     "`~resetbalance @user` - Reset balance\n"
                     "`~infinite @user` - Toggle infinite chips\n"
                     "`~chipslog [limit]` - View transactions\n"
-                    "`~resetclaim @user` - Reset cooldowns"
+                    "`~reset @user <type>` - Reset claim cooldowns\n"
+                    "`~reset alldaily` - Reset all daily claims (Owner)"
                 ),
                 inline=False
             )
@@ -6723,6 +6722,17 @@ class GuidePaginator(discord.ui.View):
                 value=(
                     "`~record` - House profit/loss statistics\n"
                     "`~secrets` - View all 40 secret codes"
+                ),
+                inline=False
+            )
+            page7.add_field(
+                name="📺 Stream Notifications",
+                value=(
+                    "`~streamnotify setup #ch @role` - Setup notifications\n"
+                    "`~streamnotify add twitch/youtube <user>` - Add streamer\n"
+                    "`~streamnotify remove twitch/youtube <user>` - Remove\n"
+                    "`~streamnotify list` - View monitored streamers\n"
+                    "`~streamnotify test` - Test notification"
                 ),
                 inline=False
             )
