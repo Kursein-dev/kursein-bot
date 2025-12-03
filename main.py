@@ -13555,6 +13555,63 @@ And remember: in Re:Kurse, even luck has a cost."""
     await ctx.send("✅ Test welcome message sent!")
 
 @bot.event
+async def on_guild_join(guild: discord.Guild):
+    """Send introduction message when the bot joins a new server"""
+    # Try to find a suitable channel to send the intro message
+    target_channel = None
+    
+    # Priority: system channel > general > first text channel bot can send to
+    if guild.system_channel and guild.system_channel.permissions_for(guild.me).send_messages:
+        target_channel = guild.system_channel
+    else:
+        for channel in guild.text_channels:
+            if channel.permissions_for(guild.me).send_messages:
+                if "general" in channel.name.lower():
+                    target_channel = channel
+                    break
+        
+        if not target_channel:
+            for channel in guild.text_channels:
+                if channel.permissions_for(guild.me).send_messages:
+                    target_channel = channel
+                    break
+    
+    if target_channel is None:
+        print(f"Warning: Could not find a channel to send intro in {guild.name}")
+        return
+    
+    intro_message = f"""──────────────────────────────
+**Kursein has entered the game.**
+──────────────────────────────
+
+The lights flicker. The cards shuffle themselves.  
+A new presence takes its seat at the table.
+
+I am **Kursein** — your casino host, game master, and keeper of the odds.
+
+╭─ What I Bring
+│ • 🎰 Casino Games — Slots, Blackjack, Poker, Roulette, Crash & more
+│ • 💰 Dual Economy — Chips & Tickets with daily claims
+│ • 📈 Progression — XP, Levels, VIP Tiers, Achievements
+│ • 🐾 Pet Collection — 20 unique pets across 6 rarities
+│ • 👔 Clans — Team up and build your empire
+│ • 🚗 Rocket League — Rank tracking & live stats
+╰──────────────────────────────
+
+**Getting Started:**
+`~verify` — Start your journey
+`~guide` — Full command guide
+`~help` — Quick command list
+
+The house is open. The odds are watching.
+*Let the games begin.*
+
+──────────────────────────────"""
+    
+    await target_channel.send(intro_message)
+    print(f"Sent intro message to {guild.name} (ID: {guild.id})")
+
+@bot.event
 async def on_member_join(member: discord.Member):
     """Send welcome message when a new member joins"""
     channel = bot.get_channel(WELCOME_CHANNEL_ID)
