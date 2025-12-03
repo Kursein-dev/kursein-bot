@@ -12958,6 +12958,24 @@ def save_streams_config():
     except Exception as e:
         print(f"[STREAMS] Error saving streams config: {e}")
 
+async def send_stream_update(guild_name: str, action: str, before: str, after: str):
+    """Send stream config update notification to updates channel"""
+    try:
+        update_channel = bot.get_channel(1435009184285589554)
+        if update_channel:
+            embed = discord.Embed(
+                title="📺 Stream Config Updated",
+                description=f"**Server:** {guild_name}\n**Action:** {action}",
+                color=0x9146FF,
+                timestamp=datetime.now()
+            )
+            embed.add_field(name="Before", value=before or "None", inline=True)
+            embed.add_field(name="After", value=after or "None", inline=True)
+            embed.set_footer(text="Stream Notifications")
+            await update_channel.send(embed=embed)
+    except Exception as e:
+        print(f"[STREAMS] Error sending update notification: {e}")
+
 @tasks.loop(minutes=5)
 async def check_streams():
     """Check if streamers are live on Twitch/YouTube"""
@@ -13175,6 +13193,13 @@ async def stream_notify_command(ctx, action: Optional[str] = None, arg1: Optiona
         if not channel or not role:
             return await ctx.send(f"❌ Please use: `{prefix}streamnotify setup #channel @role`")
         
+        # Capture before state
+        old_channel_id = streams_config.get(guild_id, {}).get('channel_id')
+        old_role_id = streams_config.get(guild_id, {}).get('role_id')
+        old_channel = ctx.guild.get_channel(old_channel_id) if old_channel_id else None
+        old_role = ctx.guild.get_role(old_role_id) if old_role_id else None
+        before_text = f"Channel: {old_channel.mention if old_channel else 'Not set'}\nRole: {old_role.mention if old_role else 'Not set'}"
+        
         if guild_id not in streams_config:
             streams_config[guild_id] = {}
         
@@ -13183,6 +13208,10 @@ async def stream_notify_command(ctx, action: Optional[str] = None, arg1: Optiona
         streams_config[guild_id]['streamers'] = streams_config[guild_id].get('streamers', [])
         
         save_streams_config()
+        
+        # Send update notification
+        after_text = f"Channel: {channel.mention}\nRole: {role.mention}"
+        await send_stream_update(ctx.guild.name, "Setup", before_text, after_text)
         
         embed = discord.Embed(
             title="✅ Stream Notifications Setup",
@@ -13213,6 +13242,9 @@ async def stream_notify_command(ctx, action: Optional[str] = None, arg1: Optiona
             if streamer['username'].lower() == username.lower() and streamer['platform'] == platform:
                 return await ctx.send(f"⚠️ **{username}** is already being monitored on {platform.capitalize()}")
         
+        # Get current streamer count for before state
+        before_count = len(streams_config[guild_id]['streamers'])
+        
         streams_config[guild_id]['streamers'].append({
             'username': username,
             'platform': platform,
@@ -13221,6 +13253,14 @@ async def stream_notify_command(ctx, action: Optional[str] = None, arg1: Optiona
         })
         
         save_streams_config()
+        
+        # Send update notification
+        await send_stream_update(
+            ctx.guild.name, 
+            "Add Streamer", 
+            f"{before_count} streamers", 
+            f"{before_count + 1} streamers\n+ **{username}** ({platform.capitalize()})"
+        )
         
         color = 0x9146FF if platform == 'twitch' else 0xFF0000
         embed = discord.Embed(
@@ -13254,6 +13294,14 @@ async def stream_notify_command(ctx, action: Optional[str] = None, arg1: Optiona
             return await ctx.send(f"❌ {platform.capitalize()} streamer `{username}` not found")
         
         save_streams_config()
+        
+        # Send update notification
+        await send_stream_update(
+            ctx.guild.name, 
+            "Remove Streamer", 
+            f"{original_count} streamers\n- **{username}** ({platform.capitalize()})", 
+            f"{len(streams_config[guild_id]['streamers'])} streamers"
+        )
         
         color = 0x9146FF if platform == 'twitch' else 0xFF0000
         embed = discord.Embed(
