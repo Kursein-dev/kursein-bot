@@ -8450,67 +8450,6 @@ async def use_item_command(ctx, item_id: str):
     else:
         await ctx.send("❌ This item cannot be activated. It may be a permanent perk!")
 
-@bot.hybrid_command(name='tournament', aliases=['tourney'])
-async def tournament_command(ctx, action: Optional[str] = None):
-    """View or join active tournament
-    
-    Usage: ~tournament [join]
-    """
-    if not active_tournament:
-        await ctx.send("❌ No active tournament right now! Check back later.")
-        return
-    
-    # Check if tournament ended
-    if datetime.fromisoformat(active_tournament["end_time"]) < datetime.now():
-        await ctx.send("❌ The tournament has ended!")
-        return
-    
-    if action == "join":
-        success, message = join_tournament(ctx.author.id, ctx.author.name)
-        if success:
-            await ctx.send(f"✅ {message}")
-        else:
-            await ctx.send(f"❌ {message}")
-        return
-    
-    # Show tournament info
-    end_time = datetime.fromisoformat(active_tournament["end_time"])
-    time_remaining = end_time - datetime.now()
-    hours_remaining = int(time_remaining.total_seconds() // 3600)
-    
-    embed = discord.Embed(
-        title=f"🎪 {active_tournament['name']}",
-        description=f"**Prize Pool:** {active_tournament['prize_pool']:,} chips\n**Entry Fee:** {active_tournament['entry_fee']:,} chips\n**Time Remaining:** {hours_remaining} hours",
-        color=0xFF6B00
-    )
-    
-    # Show leaderboard
-    participants = active_tournament.get("participants", {})
-    if participants:
-        sorted_participants = sorted(participants.items(), key=lambda x: x[1]["earnings"], reverse=True)
-        
-        leaderboard = []
-        medals = ["🥇", "🥈", "🥉"]
-        for i, (user_id, data) in enumerate(sorted_participants[:10], 1):
-            try:
-                user = await bot.fetch_user(int(user_id))
-                name = user.name
-            except Exception:
-                name = f"User {user_id}"
-            
-            medal = medals[i-1] if i <= 3 else f"`#{i}`"
-            leaderboard.append(f"{medal} {name} - {data['earnings']:,} chips")
-        
-        embed.add_field(
-            name="🏆 Leaderboard",
-            value="\n".join(leaderboard) if leaderboard else "No participants yet",
-            inline=False
-        )
-    
-    embed.set_footer(text=f"Use {get_prefix_from_ctx(ctx)}tournament join to enter!")
-    
-    await ctx.send(embed=embed)
-
 @bot.hybrid_command(name='daily')
 async def prefix_daily(ctx):
     """Claim your daily chip reward (100 chips every 12 hours + VIP bonus)"""
@@ -8846,102 +8785,6 @@ async def prefix_yearly(ctx):
     
     # Check for challenge completions
     await check_challenge_completion(ctx, user_id)
-
-@bot.hybrid_command(name='monthlyrewards')
-async def monthly_rewards(ctx):
-    """Check your monthly reward progress and claim tier rewards
-    
-    Tiers:
-    🥉 Bronze: 30 daily claims = 5,000 chips
-    🥈 Silver: 50 daily claims = 15,000 chips
-    🥇 Gold: 60 daily claims = 50,000 chips
-    """
-    user_id = str(ctx.author.id)
-    current_month = get_current_month()
-    month_name = datetime.now().strftime("%B")
-    
-    # Initialize user if not exists
-    if user_id not in monthly_claims or monthly_claims[user_id].get('month') != current_month:
-        monthly_claims[user_id] = {
-            'month': current_month,
-            'count': 0,
-            'claimed_tiers': []
-        }
-        save_monthly_claims()
-    
-    user_data = monthly_claims[user_id]
-    claim_count = user_data['count']
-    claimed_tiers = user_data.get('claimed_tiers', [])
-    
-    # Define tier requirements
-    tiers = {
-        'bronze': {'claims': 30, 'reward': 5000, 'emoji': '🥉', 'name': 'Bronze'},
-        'silver': {'claims': 50, 'reward': 15000, 'emoji': '🥈', 'name': 'Silver'},
-        'gold': {'claims': 60, 'reward': 50000, 'emoji': '🥇', 'name': 'Gold'}
-    }
-    
-    # Build embed
-    embed = discord.Embed(
-        title="📅 Monthly Rewards",
-        description=f"👤 @{ctx.author.name}, you have claimed **{claim_count} times** in {month_name}.",
-        color=0x5865F2
-    )
-    
-    
-    # Build tier progress text
-    tier_text = ""
-    for tier_id in ['bronze', 'silver', 'gold']:
-        tier = tiers[tier_id]
-        
-        if tier_id in claimed_tiers:
-            # Already claimed
-            tier_text += f"{tier['emoji']} {tier['claims']} claims: **{tier['name']}** - ✅ Claimed\n"
-        elif claim_count >= tier['claims']:
-            # Can claim now
-            tier_text += f"{tier['emoji']} {tier['claims']} claims: **{tier['name']}** - 🎁 **Ready to claim!**\n"
-        else:
-            # Not yet unlocked
-            tier_text += f"{tier['emoji']} {tier['claims']} claims: **{tier['name']}**\n"
-    
-    # Add message if no claims yet
-    if claim_count == 0:
-        tier_text += "\n*You have not unlocked any rewards for this month.*\n*Please use `~daily` more to unlock rewards!*"
-    
-    # Update description with tier info
-    current_desc = embed.description or ""
-    embed.description = f"{current_desc}\n\n**{month_name} Rewards:**\n{tier_text}"
-    
-    # Show claimable rewards
-    claimable_rewards = []
-    for tier_id in ['bronze', 'silver', 'gold']:
-        tier = tiers[tier_id]
-        if claim_count >= tier['claims'] and tier_id not in claimed_tiers:
-            claimable_rewards.append((tier_id, tier))
-    
-    if claimable_rewards:
-        # Auto-claim all available tiers
-        total_reward = 0
-        claimed_names = []
-        
-        for tier_id, tier in claimable_rewards:
-            total_reward += tier['reward']
-            claimed_names.append(f"{tier['emoji']} {tier['name']}")
-            user_data['claimed_tiers'].append(tier_id)
-        
-        # Award chips
-        add_chips(ctx.author.id, total_reward, ctx.author.name, f"Monthly rewards: {', '.join(claimed_names)}")
-        save_monthly_claims()
-        
-        embed.add_field(
-            name="🎉 Rewards Claimed!",
-            value=f"You received **{total_reward:,} chips** for: {', '.join(claimed_names)}!\n\n<:Casino_Chip:1437456315025719368> New balance: **{format_chips(ctx.author.id)} chips**",
-            inline=False
-        )
-        embed.color = 0x00FF00
-    else:
-        embed.set_footer(text="Rewards can be claimed after reaching tier milestones!")
-    
-    await ctx.send(embed=embed)
 
 class TradeOfferModal(discord.ui.Modal, title="Set Your Trade Offer"):
     offer_amount = discord.ui.TextInput(
@@ -9376,36 +9219,6 @@ class TradeRequestView(discord.ui.View):
                     await self.message.edit(embed=timeout_embed, view=None)
             except Exception:
                 pass
-
-@bot.hybrid_command(name='mt')
-async def multi_trade(ctx, member: discord.Member):
-    """Send a trade request to another player
-    
-    Usage: ~mt @user
-    Example: ~mt @John
-    
-    After they accept, both players can set their offers!
-    """
-    if not await check_verification(ctx):
-        return
-    
-    if member.id == ctx.author.id:
-        await ctx.send("❌ You can't trade with yourself!")
-        return
-    
-    if member.bot:
-        await ctx.send("❌ You can't trade with bots!")
-        return
-    
-    view = TradeRequestView(ctx.author, member)
-    embed = view.create_request_embed()
-    
-    message = await ctx.send(
-        content=f"{ctx.author.mention} initiated a trade with {member.mention}!",
-        embed=embed,
-        view=view
-    )
-    view.message = message
 
 async def set_trade_offer(user_id, channel, amount_str):
     """Helper function to set a trade offer"""
@@ -9898,115 +9711,12 @@ async def view_bounties(ctx):
     
     embed = discord.Embed(
         title="🎯 Active Bounties",
-        description=f"These players have bounties on their heads!\n\n{bounty_list}\n\n⚔️ Use `~claim @user` to attempt to claim a bounty!",
+        description=f"These players have bounties on their heads!\n\n{bounty_list}",
         color=0xFF6347
     )
     embed.set_footer(text=f"{len(active_bounties)} active bounty(ies)")
     
     await ctx.send(embed=embed)
-
-@bot.hybrid_command(name='claim')
-async def claim_bounty(ctx, member: discord.Member):
-    """Attempt to claim a bounty on someone!
-    
-    Usage: ~claim @user
-    
-    Dynamic success rate - Higher bounties = much harder to claim!
-    10% (500 chips) → 0.01% (100k+ chips)
-    """
-    # Check verification
-    if not await check_verification(ctx):
-        return
-    
-    claimer_id = ctx.author.id
-    target_id = member.id
-    
-    # Can't claim on yourself
-    if target_id == claimer_id:
-        await ctx.send("❌ You can't claim a bounty on yourself!")
-        return
-    
-    # Can't claim on bots
-    if member.bot:
-        await ctx.send("❌ You can't claim bounties on bots!")
-        return
-    
-    # Check if infinite user
-    if is_infinite(claimer_id):
-        await ctx.send("❌ Users with infinite chips can't claim bounties!")
-        return
-    
-    # Check if bounty exists
-    target_id_str = str(target_id)
-    if target_id_str not in active_bounties:
-        await ctx.send(f"❌ {member.mention} doesn't have an active bounty!")
-        return
-    
-    bounty_data = active_bounties[target_id_str]
-    bounty_amount = bounty_data['amount']
-    placer_name = bounty_data['placer_name']
-    
-    # Can't claim your own bounty
-    if bounty_data['placer_id'] == claimer_id:
-        await ctx.send("❌ You can't claim a bounty you placed!")
-        return
-    
-    # Dynamic success rate based on bounty amount
-    # Higher bounties = much harder to claim!
-    # Formula: 10% at 500 chips, scales down to 0.01% at very high amounts
-    base_success_rate = 0.10 * (500 / bounty_amount)
-    success_rate = max(0.0001, min(0.10, base_success_rate))  # Between 0.01% and 10%
-    success_rate_percent = success_rate * 100
-    
-    # Show attempt animation
-    attempt_embed = discord.Embed(
-        title="⚔️ Bounty Claim Attempt!",
-        description=f"{ctx.author.mention} is attempting to claim the bounty on {member.mention}!\n\n<:Casino_Chip:1437456315025719368> **Bounty:** {bounty_amount:,} chips\n📊 **Success Rate:** {success_rate_percent:.2f}%\n\n*The hunt is on...*",
-        color=0xFF6347
-    )
-    message = await ctx.send(embed=attempt_embed)
-    
-    await asyncio.sleep(3)
-    
-    # Roll for success
-    success = random.random() < success_rate
-    
-    if success:
-        # SUCCESS: Claim the bounty!
-        add_chips(claimer_id, bounty_amount, ctx.author.name, f"Claimed bounty on {member.name}")
-        
-        # Remove the bounty
-        del active_bounties[target_id_str]
-        save_bounties()
-        
-        result_embed = discord.Embed(
-            title="🎯 BOUNTY CLAIMED! ⚔️",
-            description=f"**{ctx.author.mention} successfully claimed the bounty on {member.mention}!**\n\n<:Casino_Chip:1437456315025719368> **Reward:** {bounty_amount:,} chips\n📜 **Placed by:** {placer_name}\n\n🎉 What an epic hunt!\n\n💼 **New Balance:** {format_chips(claimer_id)} chips",
-            color=0x00FF00
-        )
-    else:
-        # FAILURE: Lose 20% of bounty to the target
-        penalty = int(bounty_amount * 0.20)
-        
-        # Make sure claimer has enough chips
-        claimer_chips = get_chips(claimer_id)
-        if claimer_chips < penalty:
-            penalty = claimer_chips  # Take all they have if not enough
-        
-        if penalty > 0:
-            remove_chips(claimer_id, penalty, ctx.author.name, f"Failed bounty claim on {member.name}")
-            add_chips(target_id, penalty, member.name, f"Defended against bounty claim by {ctx.author.name}")
-        
-        result_embed = discord.Embed(
-            title="❌ BOUNTY CLAIM FAILED!",
-            description=f"**{ctx.author.mention} failed to claim the bounty on {member.mention}!**\n\n💸 **Penalty:** {penalty:,} chips given to {member.mention}\n\n🛡️ {member.mention} defended successfully!\n\n📜 The bounty remains active!",
-            color=0xFF0000
-        )
-        result_embed.add_field(name=f"{ctx.author.name}'s Balance", value=f"{format_chips(claimer_id)} chips", inline=True)
-        result_embed.add_field(name=f"{member.name}'s Balance", value=f"{format_chips(target_id)} chips", inline=True)
-    
-    result_embed.set_footer(text=f"Success rate was {success_rate_percent:.2f}% | Higher bounties = harder to claim!")
-    await message.edit(embed=result_embed)
 
 class SportsBet:
     """Manages a sports betting event for Rocket League or other games"""
@@ -12261,84 +11971,6 @@ async def infinite_error(ctx, error):
     elif isinstance(error, commands.BadArgument):
         await ctx.send("❌ Invalid user! Make sure to mention a valid user.")
 
-@bot.hybrid_command(name='resetdailyclaims')
-@commands.is_owner()
-async def reset_daily_claims_all(ctx):
-    """Reset everyone's daily claim and notify them (Owner only)
-    
-    This will reset ALL daily claims and send DMs to all users.
-    """
-    # Confirm action first
-    confirm_msg = await ctx.send("⚠️ **Are you sure you want to reset EVERYONE's daily claim?**\n\nReact with ✅ to confirm or ❌ to cancel.")
-    await confirm_msg.add_reaction("✅")
-    await confirm_msg.add_reaction("❌")
-    
-    def check(reaction, user):
-        return user == ctx.author and str(reaction.emoji) in ["✅", "❌"] and reaction.message.id == confirm_msg.id
-    
-    try:
-        reaction, user = await bot.wait_for('reaction_add', timeout=30.0, check=check)
-        
-        if str(reaction.emoji) == "❌":
-            await ctx.send("❌ Daily claim reset cancelled.")
-            return
-        
-        # Reset all daily claims
-        reset_count = 0
-        notified_count = 0
-        
-        processing_msg = await ctx.send("🔄 Resetting daily claims and sending notifications...")
-        
-        for user_id in list(claims.keys()):
-            if 'daily' in claims[user_id]:
-                # Remove daily claim
-                del claims[user_id]['daily']
-                reset_count += 1
-                
-                # Try to send DM to user
-                try:
-                    user_obj = await bot.fetch_user(int(user_id))
-                    embed = discord.Embed(
-                        title="🎁 Daily Claim Available!",
-                        description=(
-                            "Your daily claim has been reset!\n\n"
-                            "Use `~daily` to claim your reward now!\n\n"
-                            "**Note:** VIP members get bonus chips on their daily claims!"
-                        ),
-                        color=0x00FF00
-                    )
-                    embed.set_footer(text="Special one-time reset • Casino Bot")
-                    await user_obj.send(embed=embed)
-                    notified_count += 1
-                except Exception:
-                    # User has DMs disabled or other error
-                    pass
-        
-        # Save the updated claims
-        save_claims()
-        
-        # Send completion report
-        embed = discord.Embed(
-            title="✅ Daily Claims Reset Complete!",
-            description=(
-                f"**Claims Reset:** {reset_count} users\n"
-                f"**DMs Sent:** {notified_count} users\n"
-                f"**DMs Failed:** {reset_count - notified_count} users (DMs disabled)"
-            ),
-            color=0x00FF00
-        )
-        embed.set_footer(text="All users with daily claims have been reset!")
-        
-        await processing_msg.edit(content=None, embed=embed)
-        
-    except asyncio.TimeoutError:
-        await ctx.send("❌ Confirmation timeout. Daily claim reset cancelled.")
-
-@reset_daily_claims_all.error
-async def reset_daily_claims_error(ctx, error):
-    """Handle reset daily claims command errors"""
-    if isinstance(error, commands.NotOwner):
-        await ctx.send("❌ Only the bot owner can reset everyone's daily claims!")
 
 # ========================================
 # SECRET CODES SYSTEM - 40 Total Codes
@@ -12799,97 +12431,102 @@ async def chipslog_error(ctx, error):
     elif isinstance(error, commands.BadArgument):
         await ctx.send("❌ Invalid number! Usage: `~chipslog [lines]`")
 
-@bot.hybrid_command(name='resetclaim')
+@bot.hybrid_command(name='reset')
 @commands.has_permissions(administrator=True)
-async def reset_claim_command(ctx, member: discord.Member, claim_type: str):
-    """Manually reset claim timers for a user (Admin only)
+async def reset_command(ctx, target: Optional[str] = None, claim_type: Optional[str] = None):
+    """Unified reset command for claim timers (Admin only)
     
-    Usage: ~resetclaim @user <type>
-    Types: daily, weekly, monthly, yearly, all
-    Example: ~resetclaim @John daily
+    Usage:
+    ~reset @user <type> - Reset a user's claim timer (daily/weekly/monthly/yearly/all)
+    ~reset alldaily - Reset EVERYONE's daily claim (Owner only)
     """
+    prefix = get_prefix_from_ctx(ctx)
+    
+    if not target:
+        embed = discord.Embed(
+            title="🔄 Reset Commands",
+            description="Reset claim timers for users",
+            color=0xFF9900
+        )
+        embed.add_field(name="Reset User", value=f"`{prefix}reset @user <type>`\nTypes: daily, weekly, monthly, yearly, all", inline=False)
+        embed.add_field(name="Reset All Daily", value=f"`{prefix}reset alldaily` - Reset everyone's daily (Owner only)", inline=False)
+        return await ctx.send(embed=embed)
+    
+    # Check if it's the "alldaily" bulk reset (Owner only)
+    if target.lower() == 'alldaily':
+        if not await bot.is_owner(ctx.author):
+            return await ctx.send("❌ Only the bot owner can reset everyone's daily claims!")
+        
+        reset_count = 0
+        for user_id in list(claims.keys()):
+            if 'daily' in claims[user_id]:
+                del claims[user_id]['daily']
+                reset_count += 1
+        
+        save_claims()
+        
+        embed = discord.Embed(
+            title="✅ All Daily Claims Reset",
+            description=f"Reset daily claims for **{reset_count}** users!",
+            color=0x00FF00
+        )
+        return await ctx.send(embed=embed)
+    
+    # Otherwise, it's a user-specific reset
+    # Try to get the member from the target string
+    member = None
+    if ctx.message and ctx.message.mentions:
+        member = ctx.message.mentions[0]
+    
+    if not member:
+        return await ctx.send(f"❌ Please mention a user: `{prefix}reset @user <type>`")
+    
+    if not claim_type:
+        return await ctx.send(f"❌ Please specify a type: `{prefix}reset @user <type>`\nTypes: daily, weekly, monthly, yearly, all")
+    
     claim_type = claim_type.lower()
     valid_types = ['daily', 'weekly', 'monthly', 'yearly', 'all']
     
     if claim_type not in valid_types:
-        await ctx.send(f"❌ Invalid claim type! Valid types: {', '.join(valid_types)}")
-        return
+        return await ctx.send(f"❌ Invalid type! Valid types: {', '.join(valid_types)}")
     
     user_id = str(member.id)
     
-    # Initialize user claims if not exists
     if user_id not in claims:
         claims[user_id] = {}
     
-    # Reset the specified claim(s)
-    reset_types = []
-    if claim_type == 'all':
-        reset_types = ['daily', 'weekly', 'monthly', 'yearly']
-    else:
-        reset_types = [claim_type]
+    reset_types = ['daily', 'weekly', 'monthly', 'yearly'] if claim_type == 'all' else [claim_type]
     
-    # Perform reset
     for claim in reset_types:
         if claim in claims[user_id]:
             del claims[user_id][claim]
     
     save_claims()
     
-    # Create confirmation embed
     embed = discord.Embed(
         title="🔄 Claim Timer Reset",
         description=f"Reset **{claim_type}** claim timer(s) for {member.mention}",
         color=0xFF9900
     )
-    
-    if claim_type == 'all':
-        embed.add_field(
-            name="Reset Types",
-            value="✅ Daily\n✅ Weekly\n✅ Monthly\n✅ Yearly",
-            inline=False
-        )
-    else:
-        embed.add_field(
-            name="Reset Type",
-            value=f"✅ {claim_type.capitalize()}",
-            inline=False
-        )
-    
     embed.set_footer(text=f"{member.name} can now claim their rewards again!")
     
     await ctx.send(embed=embed)
     
-    # Notify the user
     try:
         dm_embed = discord.Embed(
             title="🔄 Claim Timer Reset",
-            description=f"An administrator has reset your **{claim_type}** claim timer(s) in **{ctx.guild.name}**!",
+            description=f"An admin reset your **{claim_type}** claim timer(s) in **{ctx.guild.name}**!",
             color=0xFF9900
-        )
-        dm_embed.add_field(
-            name="What does this mean?",
-            value=f"You can now claim your {claim_type} reward(s) again!",
-            inline=False
         )
         await member.send(embed=dm_embed)
     except Exception:
         pass
 
-@reset_claim_command.error
-async def reset_claim_error(ctx, error):
-    """Handle resetclaim command errors"""
+@reset_command.error
+async def reset_error(ctx, error):
+    """Handle reset command errors"""
     if isinstance(error, commands.MissingPermissions):
         await ctx.send("❌ You need Administrator permissions to reset claim timers!")
-    elif isinstance(error, commands.MissingRequiredArgument):
-        prefix = get_prefix_from_ctx(ctx)
-        await ctx.send(
-            f"❌ Usage:\n"
-            f"`{prefix}resetclaim @user <type>`\n"
-            f"Valid types: daily, weekly, monthly, all\n"
-            f"Example: `{prefix}resetclaim @John daily`"
-        )
-    elif isinstance(error, commands.BadArgument):
-        await ctx.send("❌ Invalid arguments! Make sure to mention a user and specify a claim type.")
 
 @setup_bump_reminder.error
 async def bump_reminder_error(ctx, error):
@@ -13420,85 +13057,81 @@ async def send_error_to_channel(error_title: str, error_details: str, context: O
     except Exception as e:
         print(f"Failed to send error to channel: {e}")
 
-@bot.hybrid_command(name='streamnotify', description="Setup stream notifications")
+@bot.hybrid_command(name='streamnotify', description="Manage stream notifications")
 @commands.has_permissions(manage_guild=True)
 @app_commands.describe(
-    action="Action: 'setup'",
-    target_channel="Channel for stream notifications",
-    target_role="Role to ping for stream notifications"
+    action="Action: setup/add/remove/list/test",
+    arg1="For setup: #channel. For add/remove: platform (twitch/youtube)",
+    arg2="For setup: @role. For add/remove: username"
 )
-async def stream_setup_command(ctx, action: Optional[str] = None, target_channel: Optional[discord.TextChannel] = None, target_role: Optional[discord.Role] = None):
-    """Setup stream notifications for your server
+async def stream_notify_command(ctx, action: Optional[str] = None, arg1: Optional[str] = None, arg2: Optional[str] = None):
+    """Unified stream notification management
     
     Usage:
     ~streamnotify setup <#channel> @role - Configure notification channel and role
-    /streamnotify setup target_channel:#channel target_role:@role
+    ~streamnotify add <twitch/youtube> <username> - Add a streamer to monitor
+    ~streamnotify remove <twitch/youtube> <username> - Remove a streamer
+    ~streamnotify list - View all monitored streamers
+    ~streamnotify test - Send a test notification
     """
-    
-    guild_id = str(ctx.guild.id)
-    
-    if not action or action.lower() != 'setup':
-        return await ctx.send("❌ Please use: `~streamnotify setup <#channel> @role`")
-    
-    # Parse channel and role mentions - works for both prefix and slash commands
-    channel = target_channel
-    role = target_role
-    
-    # For prefix commands, try to find channel/role in message
-    if not channel and ctx.message and ctx.message.channel_mentions:
-        channel = ctx.message.channel_mentions[0]
-    
-    if not role and ctx.message and ctx.message.role_mentions:
-        role = ctx.message.role_mentions[0]
-    
-    if not channel or not role:
-        return await ctx.send("❌ Please use: `~streamnotify setup <#channel> @role`")
-    
-    if guild_id not in streams_config:
-        streams_config[guild_id] = {}
-    
-    streams_config[guild_id]['channel_id'] = channel.id
-    streams_config[guild_id]['role_id'] = role.id
-    streams_config[guild_id]['streamers'] = streams_config[guild_id].get('streamers', [])
-    
-    save_streams_config()
-    
-    embed = discord.Embed(
-        title="✅ Stream Notifications Setup",
-        description=f"Notifications will be sent to {channel.mention} with {role.mention} pinged",
-        color=0x00FF00
-    )
-    return await ctx.send(embed=embed)
-
-@bot.hybrid_command(name='twitch')
-@commands.has_permissions(manage_guild=True)
-async def twitch_command(ctx, action: Optional[str] = None, username: Optional[str] = None):
-    """Manage Twitch stream monitoring
-    
-    Usage:
-    ~twitch add <username> - Monitor a Twitch streamer
-    ~twitch remove <username> - Stop monitoring a Twitch streamer
-    ~twitch list - Show all monitored Twitch streamers
-    """
-    
+    prefix = get_prefix_from_ctx(ctx)
     guild_id = str(ctx.guild.id)
     
     if not action:
         embed = discord.Embed(
-            title="📺 Twitch Commands",
-            description="Manage Twitch stream monitoring",
+            title="📺 Stream Notifications",
+            description="Manage stream notifications for your server",
             color=0x9146FF
         )
-        embed.add_field(name="Add", value="`~twitch add <username>` - Monitor a streamer", inline=False)
-        embed.add_field(name="Remove", value="`~twitch remove <username>` - Stop monitoring", inline=False)
-        embed.add_field(name="List", value="`~twitch list` - View all monitored streamers", inline=False)
+        embed.add_field(name="Setup", value=f"`{prefix}streamnotify setup #channel @role`", inline=False)
+        embed.add_field(name="Add Streamer", value=f"`{prefix}streamnotify add twitch <username>`\n`{prefix}streamnotify add youtube <username>`", inline=False)
+        embed.add_field(name="Remove Streamer", value=f"`{prefix}streamnotify remove twitch <username>`\n`{prefix}streamnotify remove youtube <username>`", inline=False)
+        embed.add_field(name="List", value=f"`{prefix}streamnotify list` - View all monitored streamers", inline=False)
+        embed.add_field(name="Test", value=f"`{prefix}streamnotify test` - Send a test notification", inline=False)
         return await ctx.send(embed=embed)
     
     action = action.lower()
     
-    if action == 'add':
-        if not username:
-            return await ctx.send("❌ Please use: `~twitch add <username>`")
+    # SETUP: Configure channel and role
+    if action == 'setup':
+        channel = None
+        role = None
+        
+        # For prefix commands, try to find channel/role in message
+        if ctx.message and ctx.message.channel_mentions:
+            channel = ctx.message.channel_mentions[0]
+        if ctx.message and ctx.message.role_mentions:
+            role = ctx.message.role_mentions[0]
+        
+        if not channel or not role:
+            return await ctx.send(f"❌ Please use: `{prefix}streamnotify setup #channel @role`")
+        
+        if guild_id not in streams_config:
+            streams_config[guild_id] = {}
+        
+        streams_config[guild_id]['channel_id'] = channel.id
+        streams_config[guild_id]['role_id'] = role.id
+        streams_config[guild_id]['streamers'] = streams_config[guild_id].get('streamers', [])
+        
+        save_streams_config()
+        
+        embed = discord.Embed(
+            title="✅ Stream Notifications Setup",
+            description=f"Notifications will be sent to {channel.mention} with {role.mention} pinged",
+            color=0x00FF00
+        )
+        return await ctx.send(embed=embed)
+    
+    # ADD: Add a streamer
+    elif action == 'add':
+        if not arg1 or not arg2:
+            return await ctx.send(f"❌ Please use: `{prefix}streamnotify add <twitch/youtube> <username>`")
+        
+        platform = arg1.lower()
+        username = arg2
+        
+        if platform not in ['twitch', 'youtube']:
+            return await ctx.send("❌ Platform must be `twitch` or `youtube`")
         
         if guild_id not in streams_config:
             streams_config[guild_id] = {'streamers': []}
@@ -13508,211 +13141,115 @@ async def twitch_command(ctx, action: Optional[str] = None, username: Optional[s
         
         # Check if already added
         for streamer in streams_config[guild_id]['streamers']:
-            if streamer['username'].lower() == username.lower() and streamer['platform'] == 'twitch':
-                return await ctx.send(f"⚠️ **{username}** is already being monitored on Twitch")
+            if streamer['username'].lower() == username.lower() and streamer['platform'] == platform:
+                return await ctx.send(f"⚠️ **{username}** is already being monitored on {platform.capitalize()}")
         
         streams_config[guild_id]['streamers'].append({
             'username': username,
-            'platform': 'twitch',
+            'platform': platform,
             'live': False,
             'last_check': datetime.now(timezone.utc).isoformat()
         })
         
         save_streams_config()
         
+        color = 0x9146FF if platform == 'twitch' else 0xFF0000
         embed = discord.Embed(
-            title="✅ Twitch Streamer Added",
-            description=f"Now monitoring **{username}** on Twitch",
-            color=0x9146FF
+            title=f"✅ {platform.capitalize()} Streamer Added",
+            description=f"Now monitoring **{username}** on {platform.capitalize()}",
+            color=color
         )
         return await ctx.send(embed=embed)
     
+    # REMOVE: Remove a streamer
     elif action == 'remove':
-        if not username:
-            return await ctx.send("❌ Please use: `~twitch remove <username>`")
+        if not arg1 or not arg2:
+            return await ctx.send(f"❌ Please use: `{prefix}streamnotify remove <twitch/youtube> <username>`")
+        
+        platform = arg1.lower()
+        username = arg2
+        
+        if platform not in ['twitch', 'youtube']:
+            return await ctx.send("❌ Platform must be `twitch` or `youtube`")
         
         if guild_id not in streams_config or not streams_config[guild_id].get('streamers'):
-            return await ctx.send("❌ No Twitch streamers to remove")
+            return await ctx.send("❌ No streamers to remove")
         
         original_count = len(streams_config[guild_id]['streamers'])
         streams_config[guild_id]['streamers'] = [
             s for s in streams_config[guild_id]['streamers']
-            if not (s['username'].lower() == username.lower() and s['platform'] == 'twitch')
+            if not (s['username'].lower() == username.lower() and s['platform'] == platform)
         ]
         
         if len(streams_config[guild_id]['streamers']) == original_count:
-            return await ctx.send(f"❌ Twitch streamer `{username}` not found")
+            return await ctx.send(f"❌ {platform.capitalize()} streamer `{username}` not found")
         
         save_streams_config()
         
+        color = 0x9146FF if platform == 'twitch' else 0xFF0000
         embed = discord.Embed(
-            title="✅ Twitch Streamer Removed",
-            description=f"Stopped monitoring **{username}** on Twitch",
-            color=0x9146FF
+            title=f"✅ {platform.capitalize()} Streamer Removed",
+            description=f"Stopped monitoring **{username}** on {platform.capitalize()}",
+            color=color
         )
         return await ctx.send(embed=embed)
     
+    # LIST: Show all monitored streamers
     elif action == 'list':
         if guild_id not in streams_config or not streams_config[guild_id].get('streamers'):
             return await ctx.send("❌ No streamers being monitored")
+        
+        embed = discord.Embed(
+            title="📺 Monitored Streamers",
+            color=0x9146FF
+        )
         
         twitch_streamers = [s for s in streams_config[guild_id]['streamers'] if s['platform'] == 'twitch']
-        
-        if not twitch_streamers:
-            return await ctx.send("❌ No Twitch streamers being monitored in this server")
-        
-        embed = discord.Embed(
-            title="📺 Monitored Twitch Streamers",
-            color=0x9146FF,
-            description="Click links to verify stream status and correct username"
-        )
-        
-        for streamer in twitch_streamers:
-            status = "🟢 Live" if streamer.get('live') else "⚫ Offline"
-            twitch_link = f"https://twitch.tv/{streamer['username']}"
-            embed.add_field(
-                name=f"{streamer['username']}",
-                value=f"Status: {status}\n[View on Twitch]({twitch_link})",
-                inline=False
-            )
-        
-        return await ctx.send(embed=embed)
-    
-    else:
-        return await ctx.send("❌ Unknown action. Use `~twitch` for help")
-
-@bot.hybrid_command(name='youtube')
-@commands.has_permissions(manage_guild=True)
-async def youtube_command(ctx, action: Optional[str] = None, username: Optional[str] = None):
-    """Manage YouTube stream monitoring
-    
-    Usage:
-    ~youtube add <username> - Monitor a YouTube creator
-    ~youtube remove <username> - Stop monitoring a YouTube creator
-    ~youtube list - Show all monitored YouTube creators
-    """
-    
-    guild_id = str(ctx.guild.id)
-    
-    if not action:
-        embed = discord.Embed(
-            title="▶️ YouTube Commands",
-            description="Manage YouTube stream monitoring",
-            color=0xFF0000
-        )
-        embed.add_field(name="Add", value="`~youtube add <username>` - Monitor a creator", inline=False)
-        embed.add_field(name="Remove", value="`~youtube remove <username>` - Stop monitoring", inline=False)
-        embed.add_field(name="List", value="`~youtube list` - View all monitored creators", inline=False)
-        return await ctx.send(embed=embed)
-    
-    action = action.lower()
-    
-    if action == 'add':
-        if not username:
-            return await ctx.send("❌ Please use: `~youtube add <username>`")
-        
-        if guild_id not in streams_config:
-            streams_config[guild_id] = {'streamers': []}
-        
-        if 'streamers' not in streams_config[guild_id]:
-            streams_config[guild_id]['streamers'] = []
-        
-        # Check if already added
-        for streamer in streams_config[guild_id]['streamers']:
-            if streamer['username'].lower() == username.lower() and streamer['platform'] == 'youtube':
-                return await ctx.send(f"⚠️ **{username}** is already being monitored on YouTube")
-        
-        streams_config[guild_id]['streamers'].append({
-            'username': username,
-            'platform': 'youtube',
-            'live': False,
-            'last_check': datetime.now(timezone.utc).isoformat()
-        })
-        
-        save_streams_config()
-        
-        embed = discord.Embed(
-            title="✅ YouTube Creator Added",
-            description=f"Now monitoring **{username}** on YouTube",
-            color=0xFF0000
-        )
-        return await ctx.send(embed=embed)
-    
-    elif action == 'remove':
-        if not username:
-            return await ctx.send("❌ Please use: `~youtube remove <username>`")
-        
-        if guild_id not in streams_config or not streams_config[guild_id].get('streamers'):
-            return await ctx.send("❌ No YouTube creators to remove")
-        
-        original_count = len(streams_config[guild_id]['streamers'])
-        streams_config[guild_id]['streamers'] = [
-            s for s in streams_config[guild_id]['streamers']
-            if not (s['username'].lower() == username.lower() and s['platform'] == 'youtube')
-        ]
-        
-        if len(streams_config[guild_id]['streamers']) == original_count:
-            return await ctx.send(f"❌ YouTube creator `{username}` not found")
-        
-        save_streams_config()
-        
-        embed = discord.Embed(
-            title="✅ YouTube Creator Removed",
-            description=f"Stopped monitoring **{username}** on YouTube",
-            color=0xFF0000
-        )
-        return await ctx.send(embed=embed)
-    
-    elif action == 'list':
-        if guild_id not in streams_config or not streams_config[guild_id].get('streamers'):
-            return await ctx.send("❌ No streamers being monitored")
-        
         youtube_streamers = [s for s in streams_config[guild_id]['streamers'] if s['platform'] == 'youtube']
         
-        if not youtube_streamers:
-            return await ctx.send("❌ No YouTube creators being monitored in this server")
+        if twitch_streamers:
+            twitch_list = ""
+            for s in twitch_streamers:
+                status = "🟢" if s.get('live') else "⚫"
+                twitch_list += f"{status} [{s['username']}](https://twitch.tv/{s['username']})\n"
+            embed.add_field(name="📺 Twitch", value=twitch_list, inline=False)
         
-        embed = discord.Embed(
-            title="▶️ Monitored YouTube Creators",
-            color=0xFF0000
-        )
+        if youtube_streamers:
+            youtube_list = ""
+            for s in youtube_streamers:
+                status = "🟢" if s.get('live') else "⚫"
+                youtube_list += f"{status} {s['username']}\n"
+            embed.add_field(name="▶️ YouTube", value=youtube_list, inline=False)
         
-        for streamer in youtube_streamers:
-            status = "🟢 Live" if streamer.get('live') else "⚫ Offline"
-            embed.add_field(
-                name=f"{streamer['username']}",
-                value=f"Status: {status}",
-                inline=False
-            )
+        if not twitch_streamers and not youtube_streamers:
+            return await ctx.send("❌ No streamers being monitored")
         
         return await ctx.send(embed=embed)
     
-    else:
-        return await ctx.send("❌ Unknown action. Use `~youtube` for help")
-
-@bot.hybrid_command(name='testchannel')
-@commands.is_owner()
-async def test_channel_command(ctx):
-    """Send a test message to the error logging channel (Owner only)"""
-    try:
-        channel = bot.get_channel(ERROR_CHANNEL_ID)
-        if channel and isinstance(channel, discord.TextChannel):
-            embed = discord.Embed(
-                title="✅ Test Message",
-                description="This is a test message to confirm the error logging channel is working properly!\n\n🤖 Bot Status: **Online**\n📡 Connection: **Stable**\n🎰 Casino Systems: **Active**",
-                color=0x00FF00,
-                timestamp=datetime.now(timezone.utc)
-            )
-            embed.add_field(name="Channel ID", value=f"`{ERROR_CHANNEL_ID}`", inline=True)
-            embed.add_field(name="Triggered By", value=f"{ctx.author.mention}", inline=True)
-            embed.set_footer(text="Error logging system operational")
-            
+    # TEST: Send a test notification
+    elif action == 'test':
+        if guild_id not in streams_config or 'channel_id' not in streams_config[guild_id]:
+            return await ctx.send(f"❌ Stream notifications not set up! Use `{prefix}streamnotify setup #channel @role` first.")
+        
+        channel = bot.get_channel(streams_config[guild_id]['channel_id'])
+        if not channel:
+            return await ctx.send("❌ Could not find the notification channel. Please run setup again.")
+        
+        embed = discord.Embed(
+            title="✅ Test Notification",
+            description="Stream notifications are working correctly!",
+            color=0x00FF00
+        )
+        embed.set_footer(text="This is a test message")
+        
+        try:
             await channel.send(embed=embed)
-            await ctx.send(f"✅ Test message sent successfully to <#{ERROR_CHANNEL_ID}>!")
-        else:
-            await ctx.send(f"❌ Could not find or access channel ID: {ERROR_CHANNEL_ID}")
-    except Exception as e:
-        await ctx.send(f"❌ Error sending test message: {e}")
+            await ctx.send(f"✅ Test notification sent to {channel.mention}!")
+        except Exception as e:
+            await ctx.send(f"❌ Failed to send test notification: {e}")
+    
+    else:
+        return await ctx.send(f"❌ Unknown action. Use `{prefix}streamnotify` for help")
 
 # ============= NEW SYSTEMS: QUESTS, PRESTIGE, MYSTATS, BIRTHDAY, REFER =============
 
