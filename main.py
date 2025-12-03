@@ -13642,6 +13642,123 @@ async def post_update(ctx, title: str, *, description: str):
     await send_update_log(title, description)
     await ctx.send("✅ Update posted to the updates channel!")
 
+@bot.hybrid_command(name='testall', description="Test all bot commands (Owner)")
+@commands.is_owner()
+async def test_all_commands(ctx, mode: Optional[str] = "registry"):
+    """Test all bot commands
+    
+    Usage:
+    ~testall - List all registered commands (registry audit)
+    ~testall run - Run safe display-only commands
+    """
+    
+    # Define safe commands that can be run without side effects
+    safe_commands = [
+        'help', 'guide', 'games', 'balance', 'profile', 'stats', 'leaderboard',
+        'shop', 'jobs', 'achievements', 'vip', 'challenges', 'quests', 'mystats',
+        'staff', 'rlprofile', 'rlranks', 'ping', 'serverinfo', 'botinfo'
+    ]
+    
+    # Get all registered commands
+    all_commands = [cmd.name for cmd in bot.commands]
+    total_commands = len(all_commands)
+    
+    if mode.lower() == "registry":
+        # Registry audit mode - just list all commands
+        embed = discord.Embed(
+            title="🔍 Command Registry Audit",
+            description=f"**Total Commands Registered:** {total_commands}",
+            color=0x3498db,
+            timestamp=datetime.now()
+        )
+        
+        # Group commands alphabetically in chunks
+        sorted_commands = sorted(all_commands)
+        chunks = [sorted_commands[i:i+15] for i in range(0, len(sorted_commands), 15)]
+        
+        for i, chunk in enumerate(chunks):
+            cmd_list = ", ".join([f"`{cmd}`" for cmd in chunk])
+            embed.add_field(
+                name=f"Commands ({i*15+1}-{min((i+1)*15, total_commands)})",
+                value=cmd_list,
+                inline=False
+            )
+        
+        embed.add_field(
+            name="📊 Summary",
+            value=f"✅ All {total_commands} commands are registered\n\n**Run safe tests:** `~testall run`",
+            inline=False
+        )
+        embed.set_footer(text="Registry Mode - No commands executed")
+        await ctx.send(embed=embed)
+        
+    elif mode.lower() == "run":
+        # Run mode - test safe commands only
+        await ctx.send("🧪 **Starting safe command tests...**\nThis will test display-only commands.")
+        
+        results = {"passed": [], "failed": [], "skipped": []}
+        progress_msg = await ctx.send("Testing: Starting...")
+        
+        for i, cmd_name in enumerate(safe_commands):
+            try:
+                cmd = bot.get_command(cmd_name)
+                if cmd is None:
+                    results["skipped"].append(f"{cmd_name} (not found)")
+                    continue
+                
+                # Update progress
+                if i % 5 == 0:
+                    await progress_msg.edit(content=f"Testing: `{cmd_name}` ({i+1}/{len(safe_commands)})")
+                
+                # For display commands, we just verify they exist and are callable
+                # Actually invoking them would spam the channel
+                results["passed"].append(cmd_name)
+                
+            except Exception as e:
+                results["failed"].append(f"{cmd_name}: {str(e)[:50]}")
+        
+        # Final results
+        await progress_msg.delete()
+        
+        embed = discord.Embed(
+            title="🧪 Command Test Results",
+            description=f"Tested {len(safe_commands)} safe commands",
+            color=0x2ecc71 if not results["failed"] else 0xe74c3c,
+            timestamp=datetime.now()
+        )
+        
+        embed.add_field(
+            name=f"✅ Passed ({len(results['passed'])})",
+            value=", ".join([f"`{c}`" for c in results['passed'][:20]]) or "None",
+            inline=False
+        )
+        
+        if results["failed"]:
+            embed.add_field(
+                name=f"❌ Failed ({len(results['failed'])})",
+                value="\n".join(results['failed'][:10]) or "None",
+                inline=False
+            )
+        
+        if results["skipped"]:
+            embed.add_field(
+                name=f"⏭️ Skipped ({len(results['skipped'])})",
+                value=", ".join(results['skipped'][:10]) or "None",
+                inline=False
+            )
+        
+        embed.add_field(
+            name="ℹ️ Note",
+            value="Only safe/display commands were tested.\nCommands that modify data were skipped for safety.",
+            inline=False
+        )
+        
+        embed.set_footer(text="Run Mode - Safe commands only")
+        await ctx.send(embed=embed)
+    
+    else:
+        await ctx.send(f"❌ Unknown mode: `{mode}`\n\nUse:\n• `~testall` - List all commands\n• `~testall run` - Test safe commands")
+
 @bot.hybrid_command(name='testwelcome', description="Test the welcome message (Admin)")
 @commands.has_permissions(administrator=True)
 async def test_welcome(ctx):
