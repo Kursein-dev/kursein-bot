@@ -13043,9 +13043,15 @@ async def check_streams():
                     try:
                         # Create fancy formatted notification
                         if platform == 'twitch':
-                            title = stream_data.get('title', 'No title')
-                            game = stream_data.get('game_name', 'Unknown game')
-                            viewers = stream_data.get('viewer_count', 0)
+                            # Handle case when stream_data is empty (page scraping fallback)
+                            if stream_data and isinstance(stream_data, dict):
+                                title = stream_data.get('title', 'No title')
+                                game = stream_data.get('game_name', 'Unknown game')
+                                viewers = stream_data.get('viewer_count', 0)
+                            else:
+                                title = 'No title available'
+                                game = 'Unknown'
+                                viewers = 0
                             
                             if viewers > 0:
                                 viewer_text = f"Viewers : **{viewers:,}**"
