@@ -2947,7 +2947,7 @@ async def on_ready():
                 startup_embed.add_field(name="Server Invite", value="[Join Re:Kurse](https://discord.gg/xQSHa2nXmn)", inline=True)
                 
                 # List all servers with owners
-                server_list = "\n".join([f"• **{guild.name}** — {guild.member_count:,} members (Owner: {guild.owner.name if guild.owner else 'Unknown'})" for guild in bot.guilds])
+                server_list = "\n".join([f"• **{guild.name}** — {guild.member_count:,} members — <@{guild.owner_id}>" for guild in bot.guilds])
                 startup_embed.add_field(name="Connected Servers", value=server_list or "None", inline=False)
                 
                 startup_embed.set_footer(text="Kursein Bot Updates")
