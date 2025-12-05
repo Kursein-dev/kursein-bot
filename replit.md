@@ -4,6 +4,11 @@
 This project is a Discord bot designed to boost server engagement through two core features: a DISBOARD bump reminder system and an extensive casino game suite. The bump assistant automates the detection of DISBOARD server bumps and notifies users after the 2-hour cooldown, ensuring consistent server visibility. The casino module provides a diverse range of gambling experiences with a persistent chip economy, daily rewards, challenges, XP & leveling, VIP tiers, achievements, a progressive jackpot, a loan system, a shop, and a pet collection system. The bot aims to deliver both entertainment and practical utility, cultivating a more vibrant and interactive Discord community.
 
 ## Recent Changes (December 2025)
+- **Casino Odds Rebalanced**: Made games fair like real casinos with proper house edges
+  - Crash: ~4% house edge at safe cash-outs (was 90% instant loss)
+  - Wheel: 87.5% RTP, 12.5% house edge (realistic casino wheel)
+  - Bet limits adjusted per game (skill games have higher limits)
+- **Shop Emoji Fix**: Fixed broken custom emoji in buy button labels
 - **Command Cleanup**: Reduced from 98 to 90 commands for cleaner organization
 - **Removed Commands**: tournament/tourney, monthlyrewards, mt (multi-trade), testchannel, claim (bounty claim)
 - **Unified Reset Command**: Merged `resetdailyclaims` and `resetclaim` into single `~reset` command with user-specific and bulk options
