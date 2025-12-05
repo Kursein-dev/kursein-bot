@@ -8543,6 +8543,7 @@ async def prefix_daily(ctx):
     """Claim your daily chip reward (100 chips every 12 hours + VIP bonus)"""
     user_id = str(ctx.author.id)
     now = datetime.now()
+    print(f"[DAILY] Command invoked by {ctx.author.name} ({user_id}) at {now.isoformat()}")
     
     # Initialize user claims if not exists
     if user_id not in claims:
