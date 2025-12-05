@@ -154,18 +154,19 @@ RL_RANKS = {
     22: {"name": "Supersonic Legend", "emoji": "<:SupersonicLegend:1438557403892416563>", "color": 0xFF1493}
 }
 
-# Casino game bet limits (min/max chips per bet)
+# Casino game bet limits (min/max chips per bet) - Balanced like real casinos
+# Lower limits for high-variance games, higher limits for skill-based games
 GAME_LIMITS = {
-    "slots": {"min": 10, "max": 100000},
-    "blackjack": {"min": 10, "max": 250000},
-    "roulette": {"min": 10, "max": 100000},
-    "crash": {"min": 10, "max": 500000},
-    "mines": {"min": 10, "max": 250000},
-    "wheel": {"min": 10, "max": 100000},
-    "craps": {"min": 10, "max": 100000},
-    "poker": {"min": 10, "max": 100000},
-    "hilo": {"min": 10, "max": 100000},
-    "coinflip": {"min": 10, "max": 100000},
+    "slots": {"min": 10, "max": 50000},       # Low skill, moderate variance
+    "blackjack": {"min": 25, "max": 500000},  # Skill-based, higher limits
+    "roulette": {"min": 10, "max": 100000},   # Classic table game
+    "crash": {"min": 10, "max": 100000},      # High variance, capped at 100k
+    "mines": {"min": 10, "max": 100000},      # Strategic, moderate limit
+    "wheel": {"min": 10, "max": 50000},       # Pure chance, lower limit
+    "craps": {"min": 25, "max": 100000},      # Table game
+    "poker": {"min": 50, "max": 250000},      # Skill-based, higher limits
+    "hilo": {"min": 10, "max": 75000},        # Simple game, moderate
+    "coinflip": {"min": 10, "max": 100000},   # 50/50 game
 }
 
 # VIP bonus cap (maximum bonus chips from VIP multipliers)
