@@ -1565,7 +1565,7 @@ def load_shop_items():
                     "effect": {"vip_tier": "gold", "duration": 86400}
                 },
                 "chip_multiplier": {
-                    "name": "<:Casino_Chip:1437456315025719368> Chip Multiplier 2x (1 hour)", 
+                    "name": "💰 Chip Multiplier 2x (1 hour)", 
                     "price": 2000, 
                     "type": "boost", 
                     "description": "Doubles all chip winnings from games for 1 hour. Big wins await!",
@@ -1611,14 +1611,14 @@ def get_all_shop_items():
             "effect": {"xp_multiplier": 3, "duration": 10800}
         },
         "chip_multiplier": {
-            "name": "<:Casino_Chip:1437456315025719368> Chip Multiplier 2x (1 hour)", 
+            "name": "💰 Chip Multiplier 2x (1 hour)", 
             "price": 200000, 
             "type": "boost", 
             "description": "Doubles all chip winnings from games for 1 hour. Big wins await!",
             "effect": {"chip_multiplier": 2, "duration": 3600}
         },
         "chip_multiplier_3x": {
-            "name": "<:Casino_Chip:1437456315025719368> Chip Multiplier 3x (30 min)", 
+            "name": "💰 Chip Multiplier 3x (30 min)", 
             "price": 350000, 
             "type": "boost", 
             "description": "Triple your chip winnings for 30 minutes!",
