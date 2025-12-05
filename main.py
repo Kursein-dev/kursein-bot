@@ -4262,23 +4262,30 @@ async def crash_game(ctx, bet: str):
         # Always give high crash point (10x-50x) for guaranteed massive win
         crash_point = round(random.uniform(10.00, 50.00), 2)
     else:
-        # Determine crash point - HEAVILY RIGGED (basically impossible to win)
-        # 90% chance: 1.00x - 1.20x (instant/near-instant crash - guaranteed loss)
-        # 7% chance: 1.20x - 1.50x (barely break even)
-        # 2% chance: 1.50x - 2.00x (rare small profit)
-        # 0.9% chance: 2.00x - 3.00x (nearly impossible)
-        # 0.1% chance: 3.00x - 5.00x (basically impossible, max 5x)
+        # Determine crash point - Fair casino odds (~5% house edge)
+        # Uses exponential distribution for realistic crash game feel
+        # 25% chance: 1.00x - 1.50x (early crash)
+        # 25% chance: 1.50x - 2.00x (moderate)
+        # 20% chance: 2.00x - 3.00x (good run)
+        # 15% chance: 3.00x - 5.00x (great run)
+        # 10% chance: 5.00x - 10.00x (amazing run)
+        # 4% chance: 10.00x - 25.00x (legendary)
+        # 1% chance: 25.00x - 100.00x (jackpot territory)
         rand = random.random()
-        if rand < 0.90:
-            crash_point = round(random.uniform(1.00, 1.20), 2)
-        elif rand < 0.97:
-            crash_point = round(random.uniform(1.20, 1.50), 2)
-        elif rand < 0.99:
+        if rand < 0.25:
+            crash_point = round(random.uniform(1.00, 1.50), 2)
+        elif rand < 0.50:
             crash_point = round(random.uniform(1.50, 2.00), 2)
-        elif rand < 0.999:
+        elif rand < 0.70:
             crash_point = round(random.uniform(2.00, 3.00), 2)
-        else:
+        elif rand < 0.85:
             crash_point = round(random.uniform(3.00, 5.00), 2)
+        elif rand < 0.95:
+            crash_point = round(random.uniform(5.00, 10.00), 2)
+        elif rand < 0.99:
+            crash_point = round(random.uniform(10.00, 25.00), 2)
+        else:
+            crash_point = round(random.uniform(25.00, 100.00), 2)
     
     # Create the interactive view
     view = CrashGameView(user_id, int(bet_amount), crash_point)
@@ -4786,16 +4793,17 @@ async def wheel_game(ctx, bet: str):
     # Track play for challenges
     update_challenge_progress(user_id, "plays", game="wheel")
     
-    # Wheel segments with weights
+    # Wheel segments with weights - Fair casino odds (~5% house edge)
+    # Reduced bust chance, better distribution for player experience
     wheel_segments = [
-        {"multiplier": 0, "emoji": "💀", "weight": 10},
-        {"multiplier": 0.5, "emoji": "😢", "weight": 15},
-        {"multiplier": 1, "emoji": "😐", "weight": 20},
-        {"multiplier": 1.5, "emoji": "🙂", "weight": 20},
-        {"multiplier": 2, "emoji": "😊", "weight": 15},
-        {"multiplier": 3, "emoji": "😄", "weight": 10},
-        {"multiplier": 5, "emoji": "🤩", "weight": 7},
-        {"multiplier": 10, "emoji": "🎉", "weight": 3},
+        {"multiplier": 0, "emoji": "💀", "weight": 5},      # 5% bust (was 10%)
+        {"multiplier": 0.5, "emoji": "😢", "weight": 8},    # 8% lose half (was 15%)
+        {"multiplier": 1, "emoji": "😐", "weight": 22},     # 22% break even (was 20%)
+        {"multiplier": 1.5, "emoji": "🙂", "weight": 25},   # 25% small win (was 20%)
+        {"multiplier": 2, "emoji": "😊", "weight": 20},     # 20% double (was 15%)
+        {"multiplier": 3, "emoji": "😄", "weight": 12},     # 12% triple (was 10%)
+        {"multiplier": 5, "emoji": "🤩", "weight": 5},      # 5% 5x (was 7%)
+        {"multiplier": 10, "emoji": "🎉", "weight": 3},     # 3% jackpot (same)
     ]
     
     # Show spinning animation
