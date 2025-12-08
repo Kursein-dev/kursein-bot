@@ -12744,7 +12744,7 @@ async def before_check_reminders():
     """Wait for bot to be ready before starting the loop"""
     await bot.wait_until_ready()
 
-@tasks.loop(minutes=5)
+@tasks.loop(minutes=1)
 async def check_claim_reminders():
     """Check for ready claims and send DM reminders"""
     now = datetime.now()
@@ -13031,20 +13031,28 @@ async def send_stream_update(guild_name: str, action: str, before: str, after: s
     except Exception as e:
         print(f"[STREAMS] Error sending update notification: {e}")
 
-@tasks.loop(minutes=5)
+@tasks.loop(minutes=2)
 async def check_streams():
     """Check if streamers are live on Twitch/YouTube"""
+    
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.5',
+    }
     
     for guild_id, config in streams_config.items():
         try:
             guild = bot.get_guild(int(guild_id))
             if not guild or not config.get('channel_id') or not config.get('role_id'):
+                print(f"[STREAMS] Skipping guild {guild_id}: missing channel_id or role_id")
                 continue
             
             channel = bot.get_channel(config['channel_id'])
             role = guild.get_role(config['role_id'])
             
             if not channel or not role:
+                print(f"[STREAMS] Skipping guild {guild_id}: channel or role not found")
                 continue
             
             for streamer in config.get('streamers', []):
@@ -13054,42 +13062,55 @@ async def check_streams():
                 if not username or platform not in ['twitch', 'youtube']:
                     continue
                 
-                # Check if currently live
                 is_live = False
                 stream_url = ""
                 stream_data = {}
                 
                 try:
                     if platform == 'twitch':
-                        # Use Twitch API to get live data
                         stream_data = await get_twitch_stream_data(username)
                         if stream_data:
                             is_live = stream_data.get('is_live', False)
                             stream_url = f"https://twitch.tv/{username}"
                             print(f"[STREAMS] {username} - API result: is_live={is_live}")
                         else:
-                            # Fallback to page scraping if API fails
                             print(f"[STREAMS] {username} - API returned None, falling back to page scraping")
                             async with aiohttp.ClientSession() as session:
-                                async with session.get(f'https://www.twitch.tv/{username}', timeout=aiohttp.ClientTimeout(total=5)) as resp:
+                                async with session.get(f'https://www.twitch.tv/{username}', headers=headers, timeout=aiohttp.ClientTimeout(total=10)) as resp:
                                     if resp.status == 200:
                                         text = await resp.text()
-                                        is_live = '"isLiveBroadcast":true' in text or '"type":"live"' in text
+                                        live_patterns = [
+                                            '"isLiveBroadcast":true',
+                                            '"type":"live"',
+                                            '"stream":{"id":',
+                                            '"isLive":true',
+                                            'isLiveBroadcast',
+                                            '"viewCount":'
+                                        ]
+                                        is_live = any(pattern in text for pattern in live_patterns)
                                         if is_live:
                                             stream_url = f"https://twitch.tv/{username}"
                                         print(f"[STREAMS] {username} - Page scraping result: is_live={is_live}")
+                                    else:
+                                        print(f"[STREAMS] {username} - Page request failed with status {resp.status}")
                     
                     elif platform == 'youtube':
-                        # YouTube uses page scraping (no API)
                         async with aiohttp.ClientSession() as session:
-                            async with session.get(f'https://www.youtube.com/@{username}', timeout=aiohttp.ClientTimeout(total=5)) as resp:
+                            async with session.get(f'https://www.youtube.com/@{username}/live', headers=headers, timeout=aiohttp.ClientTimeout(total=10)) as resp:
                                 if resp.status == 200:
                                     text = await resp.text()
-                                    is_live = '"isLiveContent":true' in text or '"isUpcoming":false' in text and 'live' in text.lower()
+                                    live_patterns = [
+                                        '"isLive":true',
+                                        '"isLiveContent":true',
+                                        '"liveBroadcastDetails"',
+                                        'watching now'
+                                    ]
+                                    is_live = any(pattern.lower() in text.lower() for pattern in live_patterns)
                                     if is_live:
                                         stream_url = f"https://youtube.com/@{username}/live"
+                                    print(f"[STREAMS] {username} (YouTube) - Page scraping result: is_live={is_live}")
                 except Exception as e:
-                    print(f"Error checking stream {username} on {platform}: {e}")
+                    print(f"[STREAMS] Error checking stream {username} on {platform}: {e}")
                     continue
                 
                 # If live status changed to true and wasn't live before, send notification
