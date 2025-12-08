@@ -952,39 +952,66 @@ def save_chips():
         print(f"Error saving chips: {e}")
 
 def load_secret_claims():
-    """Load secret claims from file"""
+    """Load secret claims from database (with JSON fallback)"""
     global secret_claims
-    try:
-        if os.path.exists(SECRET_CLAIMS_FILE):
+    if db.is_db_available():
+        secret_claims = db.load_data('secret_claims', {})
+        if not secret_claims and os.path.exists(SECRET_CLAIMS_FILE):
+            try:
+                with open(SECRET_CLAIMS_FILE, 'r') as f:
+                    secret_claims = json.load(f)
+                db.save_data('secret_claims', secret_claims)
+                print("[DB] Migrated secret_claims from JSON to database")
+            except Exception as e:
+                print(f"[DB] Error migrating secret_claims: {e}")
+    elif os.path.exists(SECRET_CLAIMS_FILE):
+        try:
             with open(SECRET_CLAIMS_FILE, 'r') as f:
                 secret_claims = json.load(f)
-    except Exception as e:
-        print(f"Error loading secret claims: {e}")
-        secret_claims = {}
+        except Exception as e:
+            print(f"Error loading secret claims: {e}")
+            secret_claims = {}
 
 def save_secret_claims():
-    """Save secret claims to file"""
+    """Save secret claims to database (with JSON backup)"""
     try:
+        if db.is_db_available():
+            db.save_data('secret_claims', secret_claims)
         with open(SECRET_CLAIMS_FILE, 'w') as f:
             json.dump(secret_claims, f, indent=2)
     except Exception as e:
         print(f"Error saving secret claims: {e}")
 
 def load_infinite_users():
-    """Load infinite users from file"""
+    """Load infinite users from database (with JSON fallback)"""
     global infinite_users
-    try:
-        if os.path.exists(INFINITE_USERS_FILE):
+    if db.is_db_available():
+        loaded = db.load_data('infinite_users', [])
+        if loaded:
+            infinite_users = set(int(uid) for uid in loaded)
+        elif os.path.exists(INFINITE_USERS_FILE):
+            try:
+                with open(INFINITE_USERS_FILE, 'r') as f:
+                    loaded = json.load(f)
+                    infinite_users = set(int(uid) for uid in loaded)
+                db.save_data('infinite_users', list(infinite_users))
+                print("[DB] Migrated infinite_users from JSON to database")
+            except Exception as e:
+                print(f"[DB] Error migrating infinite_users: {e}")
+    elif os.path.exists(INFINITE_USERS_FILE):
+        try:
             with open(INFINITE_USERS_FILE, 'r') as f:
                 loaded = json.load(f)
                 infinite_users = set(int(uid) for uid in loaded)
-    except Exception as e:
-        print(f"Error loading infinite users: {e}")
-        infinite_users = set()
+        except Exception as e:
+            print(f"Error loading infinite users: {e}")
+            infinite_users = set()
 
 def save_infinite_users():
-    """Save infinite users to file"""
+    """Save infinite users to database (with JSON backup)"""
     try:
+        if db.is_db_available():
+            db.save_data('infinite_users', list(infinite_users))
         with open(INFINITE_USERS_FILE, 'w') as f:
             json.dump(list(infinite_users), f, indent=2)
     except Exception as e:
@@ -1011,20 +1038,35 @@ def save_rob_rate():
         print(f"Error saving rob rate: {e}")
 
 def load_verified_users():
-    """Load verified users from file"""
+    """Load verified users from database (with JSON fallback)"""
     global verified_users
-    try:
-        if os.path.exists(VERIFIED_USERS_FILE):
+    if db.is_db_available():
+        loaded = db.load_data('verified_users', [])
+        if loaded:
+            verified_users = set(int(uid) for uid in loaded)
+        elif os.path.exists(VERIFIED_USERS_FILE):
+            try:
+                with open(VERIFIED_USERS_FILE, 'r') as f:
+                    loaded = json.load(f)
+                    verified_users = set(int(uid) for uid in loaded)
+                db.save_data('verified_users', list(verified_users))
+                print("[DB] Migrated verified_users from JSON to database")
+            except Exception as e:
+                print(f"[DB] Error migrating verified_users: {e}")
+    elif os.path.exists(VERIFIED_USERS_FILE):
+        try:
             with open(VERIFIED_USERS_FILE, 'r') as f:
                 loaded = json.load(f)
                 verified_users = set(int(uid) for uid in loaded)
-    except Exception as e:
-        print(f"Error loading verified users: {e}")
-        verified_users = set()
+        except Exception as e:
+            print(f"Error loading verified users: {e}")
+            verified_users = set()
 
 def save_verified_users():
-    """Save verified users to file"""
+    """Save verified users to database (with JSON backup)"""
     try:
+        if db.is_db_available():
+            db.save_data('verified_users', list(verified_users))
         with open(VERIFIED_USERS_FILE, 'w') as f:
             json.dump(list(verified_users), f, indent=2)
     except Exception as e:
@@ -1035,95 +1077,155 @@ def is_verified(user_id):
     return user_id in verified_users
 
 def load_jobs():
-    """Load job cooldowns from file"""
+    """Load job cooldowns from database (with JSON fallback)"""
     global job_cooldowns
-    try:
-        if os.path.exists(JOBS_FILE):
+    if db.is_db_available():
+        job_cooldowns = db.load_data('jobs', {})
+        if not job_cooldowns and os.path.exists(JOBS_FILE):
+            try:
+                with open(JOBS_FILE, 'r') as f:
+                    job_cooldowns = json.load(f)
+                db.save_data('jobs', job_cooldowns)
+                print("[DB] Migrated jobs from JSON to database")
+            except Exception as e:
+                print(f"[DB] Error migrating jobs: {e}")
+    elif os.path.exists(JOBS_FILE):
+        try:
             with open(JOBS_FILE, 'r') as f:
                 job_cooldowns = json.load(f)
-    except Exception as e:
-        print(f"Error loading jobs: {e}")
-        job_cooldowns = {}
+        except Exception as e:
+            print(f"Error loading jobs: {e}")
+            job_cooldowns = {}
 
 def save_jobs():
-    """Save job cooldowns to file"""
+    """Save job cooldowns to database (with JSON backup)"""
     try:
+        if db.is_db_available():
+            db.save_data('jobs', job_cooldowns)
         with open(JOBS_FILE, 'w') as f:
             json.dump(job_cooldowns, f, indent=2)
     except Exception as e:
         print(f"Error saving jobs: {e}")
 
 def load_bounties():
-    """Load bounties from file"""
+    """Load bounties from database (with JSON fallback)"""
     global active_bounties
-    try:
-        if os.path.exists(BOUNTIES_FILE):
+    if db.is_db_available():
+        active_bounties = db.load_data('bounties', {})
+        if not active_bounties and os.path.exists(BOUNTIES_FILE):
+            try:
+                with open(BOUNTIES_FILE, 'r') as f:
+                    active_bounties = json.load(f)
+                db.save_data('bounties', active_bounties)
+                print("[DB] Migrated bounties from JSON to database")
+            except Exception as e:
+                print(f"[DB] Error migrating bounties: {e}")
+    elif os.path.exists(BOUNTIES_FILE):
+        try:
             with open(BOUNTIES_FILE, 'r') as f:
                 active_bounties = json.load(f)
-    except Exception as e:
-        print(f"Error loading bounties: {e}")
-        active_bounties = {}
+        except Exception as e:
+            print(f"Error loading bounties: {e}")
+            active_bounties = {}
 
 def save_bounties():
-    """Save bounties to file"""
+    """Save bounties to database (with JSON backup)"""
     try:
+        if db.is_db_available():
+            db.save_data('bounties', active_bounties)
         with open(BOUNTIES_FILE, 'w') as f:
             json.dump(active_bounties, f, indent=2)
     except Exception as e:
         print(f"Error saving bounties: {e}")
 
 def load_guild_players():
-    """Load guild players from file"""
+    """Load guild players from database (with JSON fallback)"""
     global guild_players
-    try:
-        if os.path.exists(GUILD_PLAYERS_FILE):
+    if db.is_db_available():
+        guild_players = db.load_data('guild_players', {})
+        if not guild_players and os.path.exists(GUILD_PLAYERS_FILE):
+            try:
+                with open(GUILD_PLAYERS_FILE, 'r') as f:
+                    guild_players = json.load(f)
+                db.save_data('guild_players', guild_players)
+                print("[DB] Migrated guild_players from JSON to database")
+            except Exception as e:
+                print(f"[DB] Error migrating guild_players: {e}")
+    elif os.path.exists(GUILD_PLAYERS_FILE):
+        try:
             with open(GUILD_PLAYERS_FILE, 'r') as f:
                 guild_players = json.load(f)
-    except Exception as e:
-        print(f"Error loading guild players: {e}")
-        guild_players = {}
+        except Exception as e:
+            print(f"Error loading guild players: {e}")
+            guild_players = {}
 
 def save_guild_players():
-    """Save guild players to file"""
+    """Save guild players to database (with JSON backup)"""
     try:
+        if db.is_db_available():
+            db.save_data('guild_players', guild_players)
         with open(GUILD_PLAYERS_FILE, 'w') as f:
             json.dump(guild_players, f, indent=2)
     except Exception as e:
         print(f"Error saving guild players: {e}")
 
 def load_pets():
-    """Load user pets from file"""
+    """Load user pets from database (with JSON fallback)"""
     global user_pets
-    try:
-        if os.path.exists(PETS_FILE):
+    if db.is_db_available():
+        user_pets = db.load_data('pets', {})
+        if not user_pets and os.path.exists(PETS_FILE):
+            try:
+                with open(PETS_FILE, 'r') as f:
+                    user_pets = json.load(f)
+                db.save_data('pets', user_pets)
+                print("[DB] Migrated pets from JSON to database")
+            except Exception as e:
+                print(f"[DB] Error migrating pets: {e}")
+    elif os.path.exists(PETS_FILE):
+        try:
             with open(PETS_FILE, 'r') as f:
                 user_pets = json.load(f)
-    except Exception as e:
-        print(f"Error loading pets: {e}")
-        user_pets = {}
+        except Exception as e:
+            print(f"Error loading pets: {e}")
+            user_pets = {}
 
 def save_pets():
-    """Save user pets to file"""
+    """Save user pets to database (with JSON backup)"""
     try:
+        if db.is_db_available():
+            db.save_data('pets', user_pets)
         with open(PETS_FILE, 'w') as f:
             json.dump(user_pets, f, indent=2)
     except Exception as e:
         print(f"Error saving pets: {e}")
 
 def load_tickets():
-    """Load user tickets from file"""
+    """Load user tickets from database (with JSON fallback)"""
     global user_tickets
-    try:
-        if os.path.exists(TICKETS_FILE):
+    if db.is_db_available():
+        user_tickets = db.load_data('tickets', {})
+        if not user_tickets and os.path.exists(TICKETS_FILE):
+            try:
+                with open(TICKETS_FILE, 'r') as f:
+                    user_tickets = json.load(f)
+                db.save_data('tickets', user_tickets)
+                print("[DB] Migrated tickets from JSON to database")
+            except Exception as e:
+                print(f"[DB] Error migrating tickets: {e}")
+    elif os.path.exists(TICKETS_FILE):
+        try:
             with open(TICKETS_FILE, 'r') as f:
                 user_tickets = json.load(f)
-    except Exception as e:
-        print(f"Error loading tickets: {e}")
-        user_tickets = {}
+        except Exception as e:
+            print(f"Error loading tickets: {e}")
+            user_tickets = {}
 
 def save_tickets():
-    """Save user tickets to file"""
+    """Save user tickets to database (with JSON backup)"""
     try:
+        if db.is_db_available():
+            db.save_data('tickets', user_tickets)
         with open(TICKETS_FILE, 'w') as f:
             json.dump(user_tickets, f, indent=2)
     except Exception as e:
@@ -1134,38 +1236,62 @@ def get_tickets(user_id):
     return user_tickets.get(str(user_id), 0)
 
 def load_profile_banners():
-    """Load profile banners from file"""
+    """Load profile banners from database (with JSON fallback)"""
     global profile_banners
-    try:
-        if os.path.exists(PROFILE_BANNERS_FILE):
+    if db.is_db_available():
+        profile_banners = db.load_data('profile_banners', {})
+        if not profile_banners and os.path.exists(PROFILE_BANNERS_FILE):
+            try:
+                with open(PROFILE_BANNERS_FILE, 'r') as f:
+                    profile_banners = json.load(f)
+                db.save_data('profile_banners', profile_banners)
+                print("[DB] Migrated profile_banners from JSON to database")
+            except Exception as e:
+                print(f"[DB] Error migrating profile_banners: {e}")
+    elif os.path.exists(PROFILE_BANNERS_FILE):
+        try:
             with open(PROFILE_BANNERS_FILE, 'r') as f:
                 profile_banners = json.load(f)
-    except Exception as e:
-        print(f"Error loading profile banners: {e}")
-        profile_banners = {}
+        except Exception as e:
+            print(f"Error loading profile banners: {e}")
+            profile_banners = {}
 
 def save_profile_banners():
-    """Save profile banners to file"""
+    """Save profile banners to database (with JSON backup)"""
     try:
+        if db.is_db_available():
+            db.save_data('profile_banners', profile_banners)
         with open(PROFILE_BANNERS_FILE, 'w') as f:
             json.dump(profile_banners, f, indent=2)
     except Exception as e:
         print(f"Error saving profile banners: {e}")
 
 def load_daily_transfers():
-    """Load daily transfer tracking from file"""
+    """Load daily transfer tracking from database (with JSON fallback)"""
     global daily_transfers
-    try:
-        if os.path.exists(DAILY_TRANSFERS_FILE):
+    if db.is_db_available():
+        daily_transfers = db.load_data('daily_transfers', {})
+        if not daily_transfers and os.path.exists(DAILY_TRANSFERS_FILE):
+            try:
+                with open(DAILY_TRANSFERS_FILE, 'r') as f:
+                    daily_transfers = json.load(f)
+                db.save_data('daily_transfers', daily_transfers)
+                print("[DB] Migrated daily_transfers from JSON to database")
+            except Exception as e:
+                print(f"[DB] Error migrating daily_transfers: {e}")
+    elif os.path.exists(DAILY_TRANSFERS_FILE):
+        try:
             with open(DAILY_TRANSFERS_FILE, 'r') as f:
                 daily_transfers = json.load(f)
-    except Exception as e:
-        print(f"Error loading daily transfers: {e}")
-        daily_transfers = {}
+        except Exception as e:
+            print(f"Error loading daily transfers: {e}")
+            daily_transfers = {}
 
 def save_daily_transfers():
-    """Save daily transfer tracking to file"""
+    """Save daily transfer tracking to database (with JSON backup)"""
     try:
+        if db.is_db_available():
+            db.save_data('daily_transfers', daily_transfers)
         with open(DAILY_TRANSFERS_FILE, 'w') as f:
             json.dump(daily_transfers, f, indent=2)
     except Exception as e:
@@ -1233,19 +1359,31 @@ def record_daily_transfer(user_id, amount):
     save_daily_transfers()
 
 def load_banks():
-    """Load user bank balances from file"""
+    """Load user bank balances from database (with JSON fallback)"""
     global user_banks
-    try:
-        if os.path.exists(BANKS_FILE):
+    if db.is_db_available():
+        user_banks = db.load_data('banks', {})
+        if not user_banks and os.path.exists(BANKS_FILE):
+            try:
+                with open(BANKS_FILE, 'r') as f:
+                    user_banks = json.load(f)
+                db.save_data('banks', user_banks)
+                print("[DB] Migrated banks from JSON to database")
+            except Exception as e:
+                print(f"[DB] Error migrating banks: {e}")
+    elif os.path.exists(BANKS_FILE):
+        try:
             with open(BANKS_FILE, 'r') as f:
                 user_banks = json.load(f)
-    except Exception as e:
-        print(f"Error loading banks: {e}")
-        user_banks = {}
+        except Exception as e:
+            print(f"Error loading banks: {e}")
+            user_banks = {}
 
 def save_banks():
-    """Save user bank balances to file"""
+    """Save user bank balances to database (with JSON backup)"""
     try:
+        if db.is_db_available():
+            db.save_data('banks', user_banks)
         with open(BANKS_FILE, 'w') as f:
             json.dump(user_banks, f, indent=2)
     except Exception as e:
@@ -1274,61 +1412,101 @@ def withdraw_from_bank(user_id, amount):
     save_banks()
 
 def load_clans():
-    """Load clan data from file"""
+    """Load clan data from database (with JSON fallback)"""
     global clans
-    try:
-        if os.path.exists(CLANS_FILE):
+    if db.is_db_available():
+        clans = db.load_data('clans', {})
+        if not clans and os.path.exists(CLANS_FILE):
+            try:
+                with open(CLANS_FILE, 'r') as f:
+                    clans = json.load(f)
+                db.save_data('clans', clans)
+                print("[DB] Migrated clans from JSON to database")
+            except Exception as e:
+                print(f"[DB] Error migrating clans: {e}")
+    elif os.path.exists(CLANS_FILE):
+        try:
             with open(CLANS_FILE, 'r') as f:
                 clans = json.load(f)
-    except Exception as e:
-        print(f"Error loading clans: {e}")
-        clans = {}
+        except Exception as e:
+            print(f"Error loading clans: {e}")
+            clans = {}
 
 def save_clans():
-    """Save clan data to file"""
+    """Save clan data to database (with JSON backup)"""
     try:
+        if db.is_db_available():
+            db.save_data('clans', clans)
         with open(CLANS_FILE, 'w') as f:
             json.dump(clans, f, indent=2)
     except Exception as e:
         print(f"Error saving clans: {e}")
 
 def load_rl_ranks():
-    """Load Rocket League ranks from file"""
+    """Load Rocket League ranks from database (with JSON fallback)"""
     global rl_ranks
-    try:
-        if os.path.exists(RL_RANKS_FILE):
+    if db.is_db_available():
+        loaded_ranks = db.load_data('rl_ranks', {})
+        if loaded_ranks:
+            rl_ranks = {int(k): v for k, v in loaded_ranks.items()}
+        elif os.path.exists(RL_RANKS_FILE):
+            try:
+                with open(RL_RANKS_FILE, 'r') as f:
+                    loaded_ranks = json.load(f)
+                    rl_ranks = {int(k): v for k, v in loaded_ranks.items()}
+                db.save_data('rl_ranks', rl_ranks)
+                print("[DB] Migrated rl_ranks from JSON to database")
+            except Exception as e:
+                print(f"[DB] Error migrating rl_ranks: {e}")
+    elif os.path.exists(RL_RANKS_FILE):
+        try:
             with open(RL_RANKS_FILE, 'r') as f:
                 loaded_ranks = json.load(f)
-                # Convert string keys back to integers
                 rl_ranks = {int(k): v for k, v in loaded_ranks.items()}
-    except Exception as e:
-        print(f"Error loading RL ranks: {e}")
-        rl_ranks = {}
+        except Exception as e:
+            print(f"Error loading RL ranks: {e}")
+            rl_ranks = {}
 
 def save_rl_ranks():
-    """Save Rocket League ranks to file"""
+    """Save Rocket League ranks to database (with JSON backup)"""
     try:
+        if db.is_db_available():
+            db.save_data('rl_ranks', rl_ranks)
         with open(RL_RANKS_FILE, 'w') as f:
             json.dump(rl_ranks, f, indent=2)
     except Exception as e:
         print(f"Error saving RL ranks: {e}")
 
 def load_rl_profiles():
-    """Load Rocket League profiles from file"""
+    """Load Rocket League profiles from database (with JSON fallback)"""
     global rl_profiles
-    try:
-        if os.path.exists(RL_PROFILES_FILE):
+    if db.is_db_available():
+        loaded_profiles = db.load_data('rl_profiles', {})
+        if loaded_profiles:
+            rl_profiles = {int(k): v for k, v in loaded_profiles.items()}
+        elif os.path.exists(RL_PROFILES_FILE):
+            try:
+                with open(RL_PROFILES_FILE, 'r') as f:
+                    loaded_profiles = json.load(f)
+                    rl_profiles = {int(k): v for k, v in loaded_profiles.items()}
+                db.save_data('rl_profiles', rl_profiles)
+                print("[DB] Migrated rl_profiles from JSON to database")
+            except Exception as e:
+                print(f"[DB] Error migrating rl_profiles: {e}")
+    elif os.path.exists(RL_PROFILES_FILE):
+        try:
             with open(RL_PROFILES_FILE, 'r') as f:
                 loaded_profiles = json.load(f)
-                # Convert string keys back to integers
                 rl_profiles = {int(k): v for k, v in loaded_profiles.items()}
-    except Exception as e:
-        print(f"Error loading RL profiles: {e}")
-        rl_profiles = {}
+        except Exception as e:
+            print(f"Error loading RL profiles: {e}")
+            rl_profiles = {}
 
 def save_rl_profiles():
-    """Save Rocket League profiles to file"""
+    """Save Rocket League profiles to database (with JSON backup)"""
     try:
+        if db.is_db_available():
+            db.save_data('rl_profiles', rl_profiles)
         with open(RL_PROFILES_FILE, 'w') as f:
             json.dump(rl_profiles, f, indent=2)
     except Exception as e:
@@ -1462,19 +1640,31 @@ async def check_verification(ctx):
     return True
 
 def load_monthly_claims():
-    """Load monthly claims from file"""
+    """Load monthly claims from database (with JSON fallback)"""
     global monthly_claims
-    try:
-        if os.path.exists(MONTHLY_CLAIMS_FILE):
+    if db.is_db_available():
+        monthly_claims = db.load_data('monthly_claims', {})
+        if not monthly_claims and os.path.exists(MONTHLY_CLAIMS_FILE):
+            try:
+                with open(MONTHLY_CLAIMS_FILE, 'r') as f:
+                    monthly_claims = json.load(f)
+                db.save_data('monthly_claims', monthly_claims)
+                print("[DB] Migrated monthly_claims from JSON to database")
+            except Exception as e:
+                print(f"[DB] Error migrating monthly_claims: {e}")
+    elif os.path.exists(MONTHLY_CLAIMS_FILE):
+        try:
             with open(MONTHLY_CLAIMS_FILE, 'r') as f:
                 monthly_claims = json.load(f)
-    except Exception as e:
-        print(f"Error loading monthly claims: {e}")
-        monthly_claims = {}
+        except Exception as e:
+            print(f"Error loading monthly claims: {e}")
+            monthly_claims = {}
 
 def save_monthly_claims():
-    """Save monthly claims to file"""
+    """Save monthly claims to database (with JSON backup)"""
     try:
+        if db.is_db_available():
+            db.save_data('monthly_claims', monthly_claims)
         with open(MONTHLY_CLAIMS_FILE, 'w') as f:
             json.dump(monthly_claims, f, indent=2)
     except Exception as e:
@@ -1543,22 +1733,43 @@ def save_player_stats():
         print(f"Error saving player stats: {e}")
 
 def load_jackpot():
-    """Load progressive jackpot from file"""
+    """Load progressive jackpot from database (with JSON fallback)"""
     global jackpot_pool
-    try:
-        if os.path.exists(JACKPOT_FILE):
+    if db.is_db_available():
+        data = db.load_data('jackpot', {})
+        if data:
+            jackpot_pool = data.get('amount', 1000)
+        elif os.path.exists(JACKPOT_FILE):
+            try:
+                with open(JACKPOT_FILE, 'r') as f:
+                    data = json.load(f)
+                    jackpot_pool = data.get('amount', 1000)
+                db.save_data('jackpot', {'amount': jackpot_pool})
+                print("[DB] Migrated jackpot from JSON to database")
+            except Exception as e:
+                print(f"[DB] Error migrating jackpot: {e}")
+                jackpot_pool = 1000
+        else:
+            jackpot_pool = 1000
+    elif os.path.exists(JACKPOT_FILE):
+        try:
             with open(JACKPOT_FILE, 'r') as f:
                 data = json.load(f)
                 jackpot_pool = data.get('amount', 1000)
-    except Exception as e:
-        print(f"Error loading jackpot: {e}")
+        except Exception as e:
+            print(f"Error loading jackpot: {e}")
+            jackpot_pool = 1000
+    else:
         jackpot_pool = 1000
 
 def save_jackpot():
-    """Save progressive jackpot to file"""
+    """Save progressive jackpot to database (with JSON backup)"""
     try:
+        data = {'amount': jackpot_pool, 'last_won': datetime.now().isoformat()}
+        if db.is_db_available():
+            db.save_data('jackpot', data)
         with open(JACKPOT_FILE, 'w') as f:
-            json.dump({'amount': jackpot_pool, 'last_won': datetime.now().isoformat()}, f, indent=2)
+            json.dump(data, f, indent=2)
     except Exception as e:
         print(f"Error saving jackpot: {e}")
 
@@ -2136,19 +2347,31 @@ def rotate_shop_daily():
     print(f"[SHOP] Today's items: {', '.join(selected_keys)}")
 
 def load_loans():
-    """Load player loans from file"""
+    """Load player loans from database (with JSON fallback)"""
     global player_loans
-    try:
-        if os.path.exists(LOANS_FILE):
+    if db.is_db_available():
+        player_loans = db.load_data('loans', {})
+        if not player_loans and os.path.exists(LOANS_FILE):
+            try:
+                with open(LOANS_FILE, 'r') as f:
+                    player_loans = json.load(f)
+                db.save_data('loans', player_loans)
+                print("[DB] Migrated loans from JSON to database")
+            except Exception as e:
+                print(f"[DB] Error migrating loans: {e}")
+    elif os.path.exists(LOANS_FILE):
+        try:
             with open(LOANS_FILE, 'r') as f:
                 player_loans = json.load(f)
-    except Exception as e:
-        print(f"Error loading loans: {e}")
-        player_loans = {}
+        except Exception as e:
+            print(f"Error loading loans: {e}")
+            player_loans = {}
 
 def save_loans():
-    """Save player loans to file"""
+    """Save player loans to database (with JSON backup)"""
     try:
+        if db.is_db_available():
+            db.save_data('loans', player_loans)
         with open(LOANS_FILE, 'w') as f:
             json.dump(player_loans, f, indent=2)
     except Exception as e:
@@ -6964,9 +7187,23 @@ async def guide_command(ctx):
     view.message = message
 
 def load_staff_data():
-    """Load staff data from file"""
+    """Load staff data from database (with JSON fallback)"""
     global staff_data
-    if os.path.exists(STAFF_FILE):
+    if db.is_db_available():
+        staff_data = db.load_data('staff_data', {})
+        if not staff_data:
+            if os.path.exists(STAFF_FILE):
+                try:
+                    with open(STAFF_FILE, "r") as f:
+                        staff_data = json.load(f)
+                    db.save_data('staff_data', staff_data)
+                    print("[DB] Migrated staff_data from JSON to database")
+                except Exception as e:
+                    print(f"[DB] Error migrating staff_data: {e}")
+                    init_staff_data()
+            else:
+                init_staff_data()
+    elif os.path.exists(STAFF_FILE):
         try:
             with open(STAFF_FILE, "r") as f:
                 staff_data = json.load(f)
@@ -7032,27 +7269,41 @@ def init_staff_data():
     save_staff_data()
 
 def save_staff_data():
-    """Save staff data to file"""
+    """Save staff data to database (with JSON backup)"""
     try:
+        if db.is_db_available():
+            db.save_data('staff_data', staff_data)
         with open(STAFF_FILE, "w") as f:
             json.dump(staff_data, f, indent=2)
     except Exception as e:
         print(f"Error saving staff data: {e}")
 
 def load_login_streaks():
-    """Load login streaks from file"""
+    """Load login streaks from database (with JSON fallback)"""
     global login_streaks
-    try:
-        if os.path.exists(STREAKS_FILE):
+    if db.is_db_available():
+        login_streaks = db.load_data('login_streaks', {})
+        if not login_streaks and os.path.exists(STREAKS_FILE):
+            try:
+                with open(STREAKS_FILE, 'r') as f:
+                    login_streaks = json.load(f)
+                db.save_data('login_streaks', login_streaks)
+                print("[DB] Migrated login_streaks from JSON to database")
+            except Exception as e:
+                print(f"[DB] Error migrating login_streaks: {e}")
+    elif os.path.exists(STREAKS_FILE):
+        try:
             with open(STREAKS_FILE, 'r') as f:
                 login_streaks = json.load(f)
-    except Exception as e:
-        print(f"Error loading login streaks: {e}")
-        login_streaks = {}
+        except Exception as e:
+            print(f"Error loading login streaks: {e}")
+            login_streaks = {}
 
 def save_login_streaks():
-    """Save login streaks to file"""
+    """Save login streaks to database (with JSON backup)"""
     try:
+        if db.is_db_available():
+            db.save_data('login_streaks', login_streaks)
         with open(STREAKS_FILE, 'w') as f:
             json.dump(login_streaks, f, indent=2)
     except Exception as e:
