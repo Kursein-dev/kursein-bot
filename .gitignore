@@ -18,7 +18,7 @@ uv.lock
 # Replit
 .replit
 
-# User data files (created at runtime)
+# User data files (created at runtime, now database-backed)
 reminders.json
 prefixes.json
 bump_config.json
@@ -28,6 +28,33 @@ daily_quests.json
 prestige.json
 birthdays.json
 referrals.json
+
+# Database-backed runtime data (these are now stored in PostgreSQL)
+streams_config.json
+claims.json
+claim_reminders.json
+chips.json
+player_stats.json
+tickets.json
+pets.json
+loans.json
+jobs.json
+jackpot.json
+challenges.json
+secret_claims.json
+infinite_users.json
+rob_success_rate.json
+monthly_claims.json
+shop_items.json
+verified_users.json
+bounties.json
+guild_players.json
+profile_banners.json
+daily_transfers.json
+rl_ranks.json
+rl_profiles.json
+staff.json
+streaks.json
 
 # Temporary/Development files
 *.backup
