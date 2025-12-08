@@ -4,10 +4,11 @@
 This project is a Discord bot designed to boost server engagement through two core features: a DISBOARD bump reminder system and an extensive casino game suite. The bump assistant automates the detection of DISBOARD server bumps and notifies users after the 2-hour cooldown, ensuring consistent server visibility. The casino module provides a diverse range of gambling experiences with a persistent chip economy, daily rewards, challenges, XP & leveling, VIP tiers, achievements, a progressive jackpot, a loan system, a shop, and a pet collection system. The bot aims to deliver both entertainment and practical utility, cultivating a more vibrant and interactive Discord community.
 
 ## Recent Changes (December 2025)
-- **Database Migration**: Moved runtime data from JSON files to PostgreSQL database
+- **Complete Database Migration**: Moved ALL runtime data from JSON files to PostgreSQL database
   - Data persists across deployments (no more data loss when pushing to Render)
-  - Migrated: streams_config, claims, chips, player_stats, claim_reminders
-  - JSON files kept as backups but database is now primary storage
+  - Migrated ALL 20+ data types: streams_config, claims, chips, player_stats, claim_reminders, tickets, pets, jobs, loans, banks, clans, jackpot, bounties, rl_ranks, rl_profiles, verified_users, infinite_users, secret_claims, monthly_claims, daily_transfers, guild_players, profile_banners, staff_data, login_streaks
+  - JSON files kept as automatic backups but database is now primary storage
+  - Automatic migration on first startup - detects JSON files and imports to database
 - **Stream Notifications Fixed**: Improved detection and faster checks (2 min instead of 5 min)
 - **Daily Reminders Fixed**: Now checks every 1 minute instead of 5 minutes for faster notifications
 - **Casino Odds Rebalanced**: Made games fair like real casinos with proper house edges
@@ -31,7 +32,7 @@ This project is a Discord bot designed to boost server engagement through two co
 - User is considering removing casino features and seeking community input for new direction.
 
 ## System Architecture
-The bot is built using Python 3.11 and the discord.py 2.6.4 library, supporting both traditional prefix and native Discord slash commands (all commands use `@bot.hybrid_command`). All configurations and user data are stored persistently using JSON files. The bot includes background tasks for bump reminders, claim reminders, daily shop rotation (checks at 2pm PST using pytz timezone handling), and stream checking every 5 minutes.
+The bot is built using Python 3.11 and the discord.py 2.6.4 library, supporting both traditional prefix and native Discord slash commands (all commands use `@bot.hybrid_command`). All configurations and user data are stored persistently in PostgreSQL database (JSONB columns for flexible data storage), with JSON files as automatic backups. The bot includes background tasks for bump reminders, claim reminders, daily shop rotation (checks at 2pm PST using pytz timezone handling), and stream checking every 2 minutes.
 
 **UI/UX Decisions:**
 - Clear, organized, and categorized help interfaces with pagination.
@@ -40,7 +41,7 @@ The bot is built using Python 3.11 and the discord.py 2.6.4 library, supporting 
 
 **Technical Implementations & Feature Specifications:**
 - **90 Total Commands**: All supporting both prefix (~) and slash (/) formats
-- **Persistent Data Storage**: All user data stored in JSON files (bump_config.json, chips.json, player_stats.json, streams_config.json, etc.)
+- **Persistent Data Storage**: Primary storage in PostgreSQL database with JSONB columns; JSON files as automatic backups. Database module (`db.py`) handles all data operations.
 - **Error Logging**: All bot and command errors are logged to a specific Discord channel with full stack traces, context, and timestamps.
 - **DISBOARD Bump Assistant**: Detects `/bump` commands and manages 2-hour cooldown reminders.
 - **Dual Currency Economy**: Chips (primary) and Tickets (premium). Includes daily/weekly/monthly/yearly claims, a bank system, a clan/mafia system with shared vaults, and economy balancing with max bet limits and rebalanced payouts.
@@ -63,8 +64,11 @@ The bot is built using Python 3.11 and the discord.py 2.6.4 library, supporting 
 - **Interactive Staff Directory**: `~staff` command displays paginated staff member profiles with Name, Position, Description, and Fun Facts.
 
 ## Deployment
-- **Replit (Development)**: Uses `python main.py` workflow
-- **Render (Production)**: Requires `.python-version` file (3.11.10) - NOT `runtime.txt`
+- **Replit (Development)**: Uses `python main.py` workflow with built-in PostgreSQL
+- **Render (Production)**: 
+  - Requires `.python-version` file (3.11.10) - NOT `runtime.txt`
+  - Must provision PostgreSQL database and set DATABASE_URL environment variable
+  - Database migration is automatic on first startup
 - **Important**: Only run ONE bot instance at a time (Replit OR Render, not both)
 
 ## External Dependencies
