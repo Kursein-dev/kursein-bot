@@ -10,6 +10,7 @@ from typing import Optional, Union
 from dotenv import load_dotenv
 import aiohttp
 from urllib.parse import quote
+import db
 
 load_dotenv()
 
@@ -824,38 +825,62 @@ def save_bump_config():
         print(f"Error saving bump config: {e}")
 
 def load_claims():
-    """Load user claims from file"""
+    """Load user claims from database (with JSON fallback)"""
     global claims
-    try:
-        if os.path.exists(CLAIMS_FILE):
+    if db.is_db_available():
+        claims = db.load_data('claims', {})
+        if not claims and os.path.exists(CLAIMS_FILE):
+            try:
+                with open(CLAIMS_FILE, 'r') as f:
+                    claims = json.load(f)
+                db.save_data('claims', claims)
+                print("[DB] Migrated claims from JSON to database")
+            except Exception as e:
+                print(f"[DB] Error migrating claims: {e}")
+    elif os.path.exists(CLAIMS_FILE):
+        try:
             with open(CLAIMS_FILE, 'r') as f:
                 claims = json.load(f)
-    except Exception as e:
-        print(f"Error loading claims: {e}")
-        claims = {}
+        except Exception as e:
+            print(f"Error loading claims: {e}")
+            claims = {}
 
 def save_claims():
-    """Save user claims to file"""
+    """Save user claims to database (with JSON backup)"""
     try:
+        if db.is_db_available():
+            db.save_data('claims', claims)
         with open(CLAIMS_FILE, 'w') as f:
             json.dump(claims, f, indent=2)
     except Exception as e:
         print(f"Error saving claims: {e}")
 
 def load_claim_reminders():
-    """Load claim reminder tracking from file"""
+    """Load claim reminder tracking from database (with JSON fallback)"""
     global claim_reminders_sent
-    try:
-        if os.path.exists(CLAIM_REMINDERS_FILE):
+    if db.is_db_available():
+        claim_reminders_sent = db.load_data('claim_reminders', {})
+        if not claim_reminders_sent and os.path.exists(CLAIM_REMINDERS_FILE):
+            try:
+                with open(CLAIM_REMINDERS_FILE, 'r') as f:
+                    claim_reminders_sent = json.load(f)
+                db.save_data('claim_reminders', claim_reminders_sent)
+                print("[DB] Migrated claim_reminders from JSON to database")
+            except Exception as e:
+                print(f"[DB] Error migrating claim_reminders: {e}")
+    elif os.path.exists(CLAIM_REMINDERS_FILE):
+        try:
             with open(CLAIM_REMINDERS_FILE, 'r') as f:
                 claim_reminders_sent = json.load(f)
-    except Exception as e:
-        print(f"Error loading claim reminders: {e}")
-        claim_reminders_sent = {}
+        except Exception as e:
+            print(f"Error loading claim reminders: {e}")
+            claim_reminders_sent = {}
 
 def save_claim_reminders():
-    """Save claim reminder tracking to file"""
+    """Save claim reminder tracking to database (with JSON backup)"""
     try:
+        if db.is_db_available():
+            db.save_data('claim_reminders', claim_reminders_sent)
         with open(CLAIM_REMINDERS_FILE, 'w') as f:
             json.dump(claim_reminders_sent, f, indent=2)
     except Exception as e:
@@ -892,21 +917,35 @@ def save_challenges():
         print(f"Error saving challenges: {e}")
 
 def load_chips():
-    """Load player chips from file"""
+    """Load player chips from database (with JSON fallback)"""
     global player_chips
-    try:
-        if os.path.exists(CHIPS_FILE):
+    if db.is_db_available():
+        loaded_chips = db.load_data('chips', {})
+        if loaded_chips:
+            player_chips = {int(k): v for k, v in loaded_chips.items()}
+        elif os.path.exists(CHIPS_FILE):
+            try:
+                with open(CHIPS_FILE, 'r') as f:
+                    loaded_chips = json.load(f)
+                    player_chips = {int(k): v for k, v in loaded_chips.items()}
+                db.save_data('chips', player_chips)
+                print("[DB] Migrated chips from JSON to database")
+            except Exception as e:
+                print(f"[DB] Error migrating chips: {e}")
+    elif os.path.exists(CHIPS_FILE):
+        try:
             with open(CHIPS_FILE, 'r') as f:
                 loaded_chips = json.load(f)
-                # Convert string keys back to integers
                 player_chips = {int(k): v for k, v in loaded_chips.items()}
-    except Exception as e:
-        print(f"Error loading chips: {e}")
-        player_chips = {}
+        except Exception as e:
+            print(f"Error loading chips: {e}")
+            player_chips = {}
 
 def save_chips():
-    """Save player chips to file"""
+    """Save player chips to database (with JSON backup)"""
     try:
+        if db.is_db_available():
+            db.save_data('chips', player_chips)
         with open(CHIPS_FILE, 'w') as f:
             json.dump(player_chips, f, indent=2)
     except Exception as e:
@@ -1473,19 +1512,31 @@ def format_chips(user_id):
     return f"{get_chips(user_id):,}"
 
 def load_player_stats():
-    """Load player stats (XP, level, VIP, etc.) from file"""
+    """Load player stats (XP, level, VIP, etc.) from database (with JSON fallback)"""
     global player_stats
-    try:
-        if os.path.exists(PLAYER_STATS_FILE):
+    if db.is_db_available():
+        player_stats = db.load_data('player_stats', {})
+        if not player_stats and os.path.exists(PLAYER_STATS_FILE):
+            try:
+                with open(PLAYER_STATS_FILE, 'r') as f:
+                    player_stats = json.load(f)
+                db.save_data('player_stats', player_stats)
+                print("[DB] Migrated player_stats from JSON to database")
+            except Exception as e:
+                print(f"[DB] Error migrating player_stats: {e}")
+    elif os.path.exists(PLAYER_STATS_FILE):
+        try:
             with open(PLAYER_STATS_FILE, 'r') as f:
                 player_stats = json.load(f)
-    except Exception as e:
-        print(f"Error loading player stats: {e}")
-        player_stats = {}
+        except Exception as e:
+            print(f"Error loading player stats: {e}")
+            player_stats = {}
 
 def save_player_stats():
-    """Save player stats to file"""
+    """Save player stats to database (with JSON backup)"""
     try:
+        if db.is_db_available():
+            db.save_data('player_stats', player_stats)
         with open(PLAYER_STATS_FILE, 'w') as f:
             json.dump(player_stats, f, indent=2)
     except Exception as e:
@@ -2817,6 +2868,16 @@ async def on_ready():
     if bot.user:
         print(f'Logged in as {bot.user.name} (ID: {bot.user.id})')
     print('------')
+    
+    # Initialize database
+    if db.is_db_available():
+        try:
+            db.init_database()
+            print("[DB] Database connected and initialized")
+        except Exception as e:
+            print(f"[DB] Database initialization failed: {e}")
+    else:
+        print("[DB] Database not available, using JSON files only")
     
     # Load existing reminders, prefixes, bump config, claims, challenges, chips, and chip log
     load_reminders()
@@ -12994,22 +13055,36 @@ async def get_twitch_stream_data(username: str):
         return None
 
 def load_streams_config():
-    """Load streams configuration from file"""
+    """Load streams configuration from database (with JSON fallback)"""
     global streams_config
-    if os.path.exists(STREAMS_CONFIG_FILE):
+    if db.is_db_available():
+        streams_config = db.load_data('streams_config', {})
+        if not streams_config and os.path.exists(STREAMS_CONFIG_FILE):
+            try:
+                with open(STREAMS_CONFIG_FILE, "r") as f:
+                    streams_config = json.load(f)
+                db.save_data('streams_config', streams_config)
+                print("[STREAMS] Migrated streams_config from JSON to database")
+            except Exception as e:
+                print(f"[STREAMS] Error migrating from JSON: {e}")
+        print(f"[STREAMS] Loaded config from database: {len(streams_config)} guilds")
+    elif os.path.exists(STREAMS_CONFIG_FILE):
         try:
             with open(STREAMS_CONFIG_FILE, "r") as f:
                 streams_config = json.load(f)
+            print("[STREAMS] Loaded config from JSON file (database not available)")
         except Exception as e:
             print(f"Error loading streams config: {e}")
             streams_config = {}
 
 def save_streams_config():
-    """Save streams configuration to file"""
+    """Save streams configuration to database (with JSON backup)"""
     try:
+        if db.is_db_available():
+            db.save_data('streams_config', streams_config)
+            print(f"[STREAMS] Saved config to database")
         with open(STREAMS_CONFIG_FILE, "w") as f:
             json.dump(streams_config, f, indent=2)
-        print(f"[STREAMS] Saved config: {streams_config}")
     except Exception as e:
         print(f"[STREAMS] Error saving streams config: {e}")
 
