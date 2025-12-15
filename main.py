@@ -2,6 +2,7 @@ import discord
 from discord import app_commands
 from discord.ext import commands, tasks
 import os
+import re
 from datetime import datetime, timedelta, timezone
 import json
 import asyncio
@@ -13493,88 +13494,127 @@ async def send_stream_update(guild_name: str, action: str, before: str, after: s
 
 async def handle_karuta_message(message):
     """Handle messages from Karuta bot - detect drops and cooldowns"""
-    if not message.embeds:
+    # Check message content for drop pattern (e.g., "@User is dropping 3 cards!")
+    content = message.content.lower() if message.content else ""
+    
+    # Detect card drops - format: "@User is dropping X cards!"
+    if "is dropping" in content and "card" in content:
+        characters = extract_characters_from_embed(message)
+        if characters:
+            await process_drop(message.channel, characters, message)
         return
     
-    embed = message.embeds[0]
-    
-    # Check for card drops (Karuta drops have character names in the embed)
-    if embed.description and ("Card Dropped" in str(embed.title) or 
-                               len(message.components) > 0 or
-                               "spawned" in str(embed.description).lower()):
-        await scan_karuta_drop(message, embed)
-        return
-    
-    # Check for cooldown messages (from k!cd command)
-    if embed.description:
-        desc = embed.description.lower()
-        # Parse cooldown messages like "Drop in 30 minutes" or "Daily: 5h 30m"
-        await parse_karuta_cooldowns(message, embed)
+    # Check embeds for cooldown messages
+    if message.embeds:
+        embed = message.embeds[0]
+        if embed.description:
+            await parse_karuta_cooldowns(message, embed)
 
-async def scan_karuta_drop(message, embed):
-    """Scan a Karuta drop for wishlist matches and ping users"""
-    if not message.guild:
+def extract_characters_from_embed(message):
+    """Extract character names from Karuta's drop embed/components"""
+    characters = []
+    
+    # Method 1: Check button labels (Karuta uses buttons with character names)
+    if message.components:
+        for action_row in message.components:
+            for component in action_row.children:
+                if hasattr(component, 'label') and component.label:
+                    # Button labels might contain character names
+                    label = component.label.strip()
+                    if label and not label.isdigit():
+                        characters.append(label)
+    
+    # Method 2: Check embed fields
+    if message.embeds:
+        embed = message.embeds[0]
+        
+        # Check embed fields for character info
+        for field in embed.fields:
+            if field.name and field.name.strip():
+                characters.append(field.name.strip())
+        
+        # Check embed description for character names (often formatted)
+        if embed.description:
+            desc = embed.description
+            # Look for patterns like "**CharacterName**" or character listings
+            bold_matches = re.findall(r'\*\*([^*]+)\*\*', desc)
+            for match in bold_matches:
+                if match.strip() and len(match) < 50:
+                    characters.append(match.strip())
+        
+        # Check embed title
+        if embed.title and "·" in str(embed.title):
+            # Format like "Character · Series"
+            parts = str(embed.title).split("·")
+            if parts:
+                characters.append(parts[0].strip())
+    
+    # Remove duplicates while preserving order
+    seen = set()
+    unique_chars = []
+    for char in characters:
+        char_lower = char.lower()
+        if char_lower not in seen and len(char) > 1:
+            seen.add(char_lower)
+            unique_chars.append(char)
+    
+    return unique_chars[:4]  # Max 4 cards per drop
+
+async def process_drop(channel, characters, message):
+    """Process dropped characters and check against wishlists"""
+    if not message.guild or not characters:
         return
     
-    # Extract character names from embed
-    character_names = []
+    print(f"[KARUTA] Processing drop with {len(characters)} characters: {characters}")
     
-    # Karuta drops typically show character names in various formats
-    # Try to extract from embed fields, description, or title
-    text_to_scan = ""
-    if embed.description:
-        text_to_scan += embed.description + " "
-    if embed.title:
-        text_to_scan += str(embed.title) + " "
-    for field in embed.fields:
-        text_to_scan += f"{field.name} {field.value} "
-    
-    # Also check image footer or author if available
-    if embed.footer and embed.footer.text:
-        text_to_scan += embed.footer.text + " "
-    if embed.author and embed.author.name:
-        text_to_scan += embed.author.name + " "
-    
-    text_to_scan = text_to_scan.lower()
-    
-    # Find users whose wishlist characters are in this drop
     users_to_ping = []
-    guild_id = str(message.guild.id)
     
     for user_id, wishlist in karuta_wishlists.items():
         if not wishlist:
             continue
         
-        # Check user settings for this guild
         user_settings = karuta_settings.get(user_id, {})
         
-        for character in wishlist:
+        # Check each dropped character against wishlist
+        for character in characters:
             char_lower = character.lower()
-            if char_lower in text_to_scan:
-                users_to_ping.append({
-                    'user_id': int(user_id),
-                    'character': character,
-                    'ping_channel': user_settings.get('ping_channel_id')
-                })
-                break  # Only ping once per user per drop
+            for wish_char in wishlist:
+                wish_lower = wish_char.lower()
+                # Match if wishlist entry is contained in dropped character name or vice versa
+                if wish_lower in char_lower or char_lower in wish_lower:
+                    users_to_ping.append({
+                        'user_id': int(user_id),
+                        'character': character,
+                        'wished_as': wish_char,
+                        'ping_channel': user_settings.get('ping_channel_id')
+                    })
+                    break  # Only ping once per user per drop
+        
+        # Break after finding one match for this user
+        if any(p['user_id'] == int(user_id) for p in users_to_ping):
+            continue
     
     if not users_to_ping:
+        print(f"[KARUTA] No wishlist matches found")
         return
+    
+    print(f"[KARUTA] Found {len(users_to_ping)} users to ping")
     
     # Send pings
     for ping_info in users_to_ping:
         user_id = ping_info['user_id']
         character = ping_info['character']
+        wished_as = ping_info['wished_as']
         ping_channel_id = ping_info['ping_channel']
         
         try:
             # Determine where to ping
             if ping_channel_id:
-                channel = bot.get_channel(ping_channel_id)
+                ping_channel = bot.get_channel(ping_channel_id)
             else:
-                channel = message.channel
+                ping_channel = channel
             
-            if channel:
+            if ping_channel:
                 user = bot.get_user(user_id)
                 if user:
                     ping_embed = discord.Embed(
@@ -13582,11 +13622,14 @@ async def scan_karuta_drop(message, embed):
                         description=f"**{character}** just dropped!",
                         color=0xFF69B4
                     )
-                    ping_embed.add_field(name="Channel", value=message.channel.mention, inline=True)
+                    if wished_as.lower() != character.lower():
+                        ping_embed.add_field(name="Matched", value=f"Your wishlist: {wished_as}", inline=False)
+                    ping_embed.add_field(name="Channel", value=channel.mention, inline=True)
                     ping_embed.add_field(name="Server", value=message.guild.name, inline=True)
                     ping_embed.set_footer(text="React fast to grab it!")
                     
-                    await channel.send(f"{user.mention}", embed=ping_embed)
+                    await ping_channel.send(f"{user.mention}", embed=ping_embed)
+                    print(f"[KARUTA] Pinged {user.name} for {character}")
         except Exception as e:
             print(f"[KARUTA] Error pinging user {user_id}: {e}")
 
