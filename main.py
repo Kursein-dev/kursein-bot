@@ -7057,13 +7057,54 @@ class GuidePaginator(discord.ui.View):
         page6.set_footer(text="💫 New progression systems unlock more ways to earn and compete!")
         pages.append(page6)
         
-        # Page 7: Admin Commands (only if admin)
+        # Page 7: Karuta Integration
+        page7 = discord.Embed(
+            title="📚 Command Guide - Karuta Integration",
+            color=0xFF69B4
+        )
+        page7.add_field(
+            name="🎴 Wishlist Management",
+            value=(
+                "`~kwish add <character>` - Add character to wishlist\n"
+                "`~kwish remove <character>` - Remove from wishlist\n"
+                "`~kwish list` - View your wishlist (up to 50)\n"
+                "`~kwish clear` - Clear entire wishlist\n\n"
+                "💡 **Get pinged when your wished characters drop!**"
+            ),
+            inline=False
+        )
+        page7.add_field(
+            name="📍 Ping Settings",
+            value=(
+                "`~kwish channel #channel` - Route pings to specific channel\n"
+                "`~kwish reminders on` - Enable DM cooldown reminders\n"
+                "`~kwish reminders off` - Disable DM reminders\n\n"
+                "💡 **Default: pings in same channel as drop**"
+            ),
+            inline=False
+        )
+        page7.add_field(
+            name="⏰ Cooldown Tracking",
+            value=(
+                "`~kcd` - View your Karuta cooldowns\n\n"
+                "**Tracked Commands:**\n"
+                "• `k!drop` / `kd` - 30 min cooldown\n"
+                "• `k!daily` - 20 hour cooldown\n"
+                "• `k!vote` - 12 hour cooldown\n\n"
+                "💡 **DM reminders when cooldowns are ready!**"
+            ),
+            inline=False
+        )
+        page7.set_footer(text="🎴 Automatic drop scanning for 3-4 card drops!")
+        pages.append(page7)
+        
+        # Page 8: Admin Commands (only if admin)
         if self.is_admin:
-            page7 = discord.Embed(
+            page8 = discord.Embed(
                 title="📚 Command Guide - Administrator Commands",
                 color=0xe67e22
             )
-            page7.add_field(
+            page8.add_field(
                 name="👤 User Management",
                 value=(
                     "`~verifyuser @user` - Manually verify user\n"
@@ -7071,7 +7112,7 @@ class GuidePaginator(discord.ui.View):
                 ),
                 inline=False
             )
-            page7.add_field(
+            page8.add_field(
                 name="💎 Economy Management",
                 value=(
                     "`~addchips @user <amount>` - Give chips\n"
@@ -7083,7 +7124,7 @@ class GuidePaginator(discord.ui.View):
                 ),
                 inline=False
             )
-            page7.add_field(
+            page8.add_field(
                 name="📊 Casino Analytics",
                 value=(
                     "`~record` - House profit/loss statistics\n"
@@ -7091,7 +7132,7 @@ class GuidePaginator(discord.ui.View):
                 ),
                 inline=False
             )
-            page7.add_field(
+            page8.add_field(
                 name="📺 Stream Notifications",
                 value=(
                     "`~streamnotify setup #ch @role` - Setup notifications\n"
@@ -7102,7 +7143,7 @@ class GuidePaginator(discord.ui.View):
                 ),
                 inline=False
             )
-            page7.add_field(
+            page8.add_field(
                 name="⚙️ Bot Configuration",
                 value=(
                     "`~setprefix <prefix>` - Change bot prefix\n"
@@ -7111,15 +7152,15 @@ class GuidePaginator(discord.ui.View):
                 ),
                 inline=False
             )
-            page7.set_footer(text="🛡️ Admin-only commands")
-            pages.append(page7)
+            page8.set_footer(text="🛡️ Admin-only commands")
+            pages.append(page8)
             
-            # Page 8: Owner-Only Commands
-            page8 = discord.Embed(
+            # Page 9: Owner-Only Commands
+            page9 = discord.Embed(
                 title="📚 Command Guide - Owner Commands",
                 color=0xe91e63
             )
-            page8.add_field(
+            page9.add_field(
                 name="🔧 Bot Testing & Diagnostics",
                 value=(
                     "`~testall` - List all registered commands (registry audit)\n"
@@ -7129,7 +7170,7 @@ class GuidePaginator(discord.ui.View):
                 ),
                 inline=False
             )
-            page8.add_field(
+            page9.add_field(
                 name="📢 Announcements",
                 value=(
                     "`~update \"Title\" Description` - Post update to log channel\n"
@@ -7137,7 +7178,7 @@ class GuidePaginator(discord.ui.View):
                 ),
                 inline=False
             )
-            page8.add_field(
+            page9.add_field(
                 name="🗄️ Data Management",
                 value=(
                     "`~reset @user <type>` - Reset user cooldowns\n"
@@ -7147,7 +7188,7 @@ class GuidePaginator(discord.ui.View):
                 ),
                 inline=False
             )
-            page8.add_field(
+            page9.add_field(
                 name="📊 Analytics & Monitoring",
                 value=(
                     "`~record` - View house profit/loss stats\n"
@@ -7156,8 +7197,8 @@ class GuidePaginator(discord.ui.View):
                 ),
                 inline=False
             )
-            page8.set_footer(text="👑 Owner-only commands")
-            pages.append(page8)
+            page9.set_footer(text="👑 Owner-only commands")
+            pages.append(page9)
         
         return pages
     
