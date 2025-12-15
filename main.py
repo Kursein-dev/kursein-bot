@@ -50,6 +50,9 @@ RL_RANKS_FILE = "rl_ranks.json"
 RL_PROFILES_FILE = "rl_profiles.json"
 STREAMS_CONFIG_FILE = "streams_config.json"
 STAFF_FILE = "staff.json"
+KARUTA_WISHLISTS_FILE = "karuta_wishlists.json"
+KARUTA_COOLDOWNS_FILE = "karuta_cooldowns.json"
+KARUTA_SETTINGS_FILE = "karuta_settings.json"
 STREAKS_FILE = "streaks.json"
 GAME_HISTORY_FILE = "game_history.json"
 DAILY_QUESTS_FILE = "daily_quests.json"
@@ -59,6 +62,7 @@ REFERRALS_FILE = "referrals.json"
 DEFAULT_PREFIX = "~"
 
 DISBOARD_BOT_ID = 302050872383242240
+KARUTA_BOT_ID = 646937666251915264  # Karuta card game bot
 ERROR_CHANNEL_ID = 1435009092782522449  # Channel for error logging
 GOD_MODE_USER_ID = 525815097847840798  # User with 100% win rate on all games
 
@@ -106,6 +110,19 @@ clans = {}  # clan_id: {'name': str, 'leader_id': int, 'members': [user_ids], 'v
 rl_ranks = {}  # user_id: rank_value (0-22)
 rl_profiles = {}  # user_id: {'username': str, 'platform': str}
 streams_config = {}  # guild_id: {'role_id': int, 'channel_id': int, 'streamers': [{username: str, platform: str, live: bool, last_check: timestamp}]}
+
+# Karuta integration data
+karuta_wishlists = {}  # user_id: ['character name 1', 'character name 2', ...]
+karuta_cooldowns = {}  # user_id: {'drop': timestamp, 'daily': timestamp, 'vote': timestamp}
+karuta_settings = {}  # user_id: {'ping_channel_id': int, 'dm_reminders': bool}
+
+# Karuta cooldown durations (in seconds)
+KARUTA_COOLDOWNS = {
+    'drop': 30 * 60,      # 30 minutes
+    'daily': 20 * 60 * 60,  # 20 hours
+    'vote': 12 * 60 * 60,   # 12 hours
+    'grab': 10 * 60,        # 10 minutes (for grabbing cards)
+}
 
 # Game state storage
 active_blackjack_games = {}  # channel_id: BlackjackGame
@@ -3135,6 +3152,9 @@ async def on_ready():
     load_streams_config()
     load_staff_data()
     load_login_streaks()
+    load_karuta_wishlists()
+    load_karuta_cooldowns()
+    load_karuta_settings()
     load_game_history()
     load_daily_quests()
     load_prestige_data()
@@ -3191,6 +3211,14 @@ async def on_ready():
             print("Started stream checker task")
         except Exception as e:
             print(f"Error starting stream checker: {e}")
+    
+    # Start the Karuta cooldown checker if not already started
+    if not check_karuta_cooldowns.is_running():
+        try:
+            check_karuta_cooldowns.start()
+            print("Started Karuta cooldown checker task")
+        except Exception as e:
+            print(f"Error starting Karuta cooldown checker: {e}")
     
     # Sync slash commands - with retry logic for reliability
     print("Starting slash command sync...")
@@ -3250,9 +3278,22 @@ async def on_ready():
 
 @bot.event
 async def on_message(message):
-    """Listen for DISBOARD bump confirmations and trade offers"""
+    """Listen for DISBOARD bump confirmations, Karuta drops, and trade offers"""
     # Process commands first
     await bot.process_commands(message)
+    
+    # Handle Karuta bot messages (drops and cooldowns)
+    if message.author.id == KARUTA_BOT_ID:
+        await handle_karuta_message(message)
+        return
+    
+    # Track when users use Karuta commands for cooldown reminders
+    if not message.author.bot and message.content.lower().startswith(('k!drop', 'k!d ', 'kd')):
+        await track_karuta_cooldown(message.author.id, 'drop')
+    elif not message.author.bot and message.content.lower().startswith(('k!daily', 'k!da')):
+        await track_karuta_cooldown(message.author.id, 'daily')
+    elif not message.author.bot and message.content.lower().startswith(('k!vote',)):
+        await track_karuta_cooldown(message.author.id, 'vote')
     
     # Check for trade offers (if user is in an active trade)
     if not message.author.bot and message.author.id in active_trades:
@@ -13339,6 +13380,99 @@ def save_streams_config():
     except Exception as e:
         print(f"[STREAMS] Error saving streams config: {e}")
 
+def load_karuta_wishlists():
+    """Load Karuta wishlists from database (with JSON fallback)"""
+    global karuta_wishlists
+    if db.is_db_available():
+        karuta_wishlists = db.load_data('karuta_wishlists', {})
+        if not karuta_wishlists and os.path.exists(KARUTA_WISHLISTS_FILE):
+            try:
+                with open(KARUTA_WISHLISTS_FILE, 'r') as f:
+                    karuta_wishlists = json.load(f)
+                db.save_data('karuta_wishlists', karuta_wishlists)
+                print("[KARUTA] Migrated wishlists from JSON to database")
+            except Exception as e:
+                print(f"[KARUTA] Error migrating wishlists: {e}")
+    elif os.path.exists(KARUTA_WISHLISTS_FILE):
+        try:
+            with open(KARUTA_WISHLISTS_FILE, 'r') as f:
+                karuta_wishlists = json.load(f)
+        except Exception as e:
+            print(f"Error loading Karuta wishlists: {e}")
+            karuta_wishlists = {}
+
+def save_karuta_wishlists():
+    """Save Karuta wishlists to database (with JSON backup)"""
+    try:
+        if db.is_db_available():
+            db.save_data('karuta_wishlists', karuta_wishlists)
+        with open(KARUTA_WISHLISTS_FILE, 'w') as f:
+            json.dump(karuta_wishlists, f, indent=2)
+    except Exception as e:
+        print(f"Error saving Karuta wishlists: {e}")
+
+def load_karuta_cooldowns():
+    """Load Karuta cooldowns from database (with JSON fallback)"""
+    global karuta_cooldowns
+    if db.is_db_available():
+        karuta_cooldowns = db.load_data('karuta_cooldowns', {})
+        if not karuta_cooldowns and os.path.exists(KARUTA_COOLDOWNS_FILE):
+            try:
+                with open(KARUTA_COOLDOWNS_FILE, 'r') as f:
+                    karuta_cooldowns = json.load(f)
+                db.save_data('karuta_cooldowns', karuta_cooldowns)
+                print("[KARUTA] Migrated cooldowns from JSON to database")
+            except Exception as e:
+                print(f"[KARUTA] Error migrating cooldowns: {e}")
+    elif os.path.exists(KARUTA_COOLDOWNS_FILE):
+        try:
+            with open(KARUTA_COOLDOWNS_FILE, 'r') as f:
+                karuta_cooldowns = json.load(f)
+        except Exception as e:
+            print(f"Error loading Karuta cooldowns: {e}")
+            karuta_cooldowns = {}
+
+def save_karuta_cooldowns():
+    """Save Karuta cooldowns to database (with JSON backup)"""
+    try:
+        if db.is_db_available():
+            db.save_data('karuta_cooldowns', karuta_cooldowns)
+        with open(KARUTA_COOLDOWNS_FILE, 'w') as f:
+            json.dump(karuta_cooldowns, f, indent=2)
+    except Exception as e:
+        print(f"Error saving Karuta cooldowns: {e}")
+
+def load_karuta_settings():
+    """Load Karuta user settings from database (with JSON fallback)"""
+    global karuta_settings
+    if db.is_db_available():
+        karuta_settings = db.load_data('karuta_settings', {})
+        if not karuta_settings and os.path.exists(KARUTA_SETTINGS_FILE):
+            try:
+                with open(KARUTA_SETTINGS_FILE, 'r') as f:
+                    karuta_settings = json.load(f)
+                db.save_data('karuta_settings', karuta_settings)
+                print("[KARUTA] Migrated settings from JSON to database")
+            except Exception as e:
+                print(f"[KARUTA] Error migrating settings: {e}")
+    elif os.path.exists(KARUTA_SETTINGS_FILE):
+        try:
+            with open(KARUTA_SETTINGS_FILE, 'r') as f:
+                karuta_settings = json.load(f)
+        except Exception as e:
+            print(f"Error loading Karuta settings: {e}")
+            karuta_settings = {}
+
+def save_karuta_settings():
+    """Save Karuta user settings to database (with JSON backup)"""
+    try:
+        if db.is_db_available():
+            db.save_data('karuta_settings', karuta_settings)
+        with open(KARUTA_SETTINGS_FILE, 'w') as f:
+            json.dump(karuta_settings, f, indent=2)
+    except Exception as e:
+        print(f"Error saving Karuta settings: {e}")
+
 async def send_stream_update(guild_name: str, action: str, before: str, after: str):
     """Send stream config update notification to updates channel"""
     try:
@@ -13356,6 +13490,185 @@ async def send_stream_update(guild_name: str, action: str, before: str, after: s
             await update_channel.send(embed=embed)
     except Exception as e:
         print(f"[STREAMS] Error sending update notification: {e}")
+
+async def handle_karuta_message(message):
+    """Handle messages from Karuta bot - detect drops and cooldowns"""
+    if not message.embeds:
+        return
+    
+    embed = message.embeds[0]
+    
+    # Check for card drops (Karuta drops have character names in the embed)
+    if embed.description and ("Card Dropped" in str(embed.title) or 
+                               len(message.components) > 0 or
+                               "spawned" in str(embed.description).lower()):
+        await scan_karuta_drop(message, embed)
+        return
+    
+    # Check for cooldown messages (from k!cd command)
+    if embed.description:
+        desc = embed.description.lower()
+        # Parse cooldown messages like "Drop in 30 minutes" or "Daily: 5h 30m"
+        await parse_karuta_cooldowns(message, embed)
+
+async def scan_karuta_drop(message, embed):
+    """Scan a Karuta drop for wishlist matches and ping users"""
+    if not message.guild:
+        return
+    
+    # Extract character names from embed
+    character_names = []
+    
+    # Karuta drops typically show character names in various formats
+    # Try to extract from embed fields, description, or title
+    text_to_scan = ""
+    if embed.description:
+        text_to_scan += embed.description + " "
+    if embed.title:
+        text_to_scan += str(embed.title) + " "
+    for field in embed.fields:
+        text_to_scan += f"{field.name} {field.value} "
+    
+    # Also check image footer or author if available
+    if embed.footer and embed.footer.text:
+        text_to_scan += embed.footer.text + " "
+    if embed.author and embed.author.name:
+        text_to_scan += embed.author.name + " "
+    
+    text_to_scan = text_to_scan.lower()
+    
+    # Find users whose wishlist characters are in this drop
+    users_to_ping = []
+    guild_id = str(message.guild.id)
+    
+    for user_id, wishlist in karuta_wishlists.items():
+        if not wishlist:
+            continue
+        
+        # Check user settings for this guild
+        user_settings = karuta_settings.get(user_id, {})
+        
+        for character in wishlist:
+            char_lower = character.lower()
+            if char_lower in text_to_scan:
+                users_to_ping.append({
+                    'user_id': int(user_id),
+                    'character': character,
+                    'ping_channel': user_settings.get('ping_channel_id')
+                })
+                break  # Only ping once per user per drop
+    
+    if not users_to_ping:
+        return
+    
+    # Send pings
+    for ping_info in users_to_ping:
+        user_id = ping_info['user_id']
+        character = ping_info['character']
+        ping_channel_id = ping_info['ping_channel']
+        
+        try:
+            # Determine where to ping
+            if ping_channel_id:
+                channel = bot.get_channel(ping_channel_id)
+            else:
+                channel = message.channel
+            
+            if channel:
+                user = bot.get_user(user_id)
+                if user:
+                    ping_embed = discord.Embed(
+                        title="🎴 Wishlist Character Dropped!",
+                        description=f"**{character}** just dropped!",
+                        color=0xFF69B4
+                    )
+                    ping_embed.add_field(name="Channel", value=message.channel.mention, inline=True)
+                    ping_embed.add_field(name="Server", value=message.guild.name, inline=True)
+                    ping_embed.set_footer(text="React fast to grab it!")
+                    
+                    await channel.send(f"{user.mention}", embed=ping_embed)
+        except Exception as e:
+            print(f"[KARUTA] Error pinging user {user_id}: {e}")
+
+async def parse_karuta_cooldowns(message, embed):
+    """Parse Karuta cooldown messages and track them for users"""
+    # This would parse messages like "Drop: 30m" from k!cd responses
+    # The embed description contains cooldown info
+    pass  # Cooldowns are tracked when user runs commands, not from Karuta responses
+
+async def track_karuta_cooldown(user_id: int, cooldown_type: str):
+    """Track when a user uses a Karuta command for reminder purposes"""
+    user_id_str = str(user_id)
+    
+    if user_id_str not in karuta_cooldowns:
+        karuta_cooldowns[user_id_str] = {}
+    
+    # Check if user has DM reminders enabled
+    user_settings = karuta_settings.get(user_id_str, {})
+    if not user_settings.get('dm_reminders', True):  # Default to True
+        return
+    
+    # Set the cooldown end time
+    duration = KARUTA_COOLDOWNS.get(cooldown_type, 30 * 60)  # Default 30 min
+    remind_at = datetime.now() + timedelta(seconds=duration)
+    
+    karuta_cooldowns[user_id_str][cooldown_type] = {
+        'remind_at': remind_at.isoformat(),
+        'reminded': False
+    }
+    save_karuta_cooldowns()
+
+@tasks.loop(minutes=1)
+async def check_karuta_cooldowns():
+    """Background task to check Karuta cooldowns and send DM reminders"""
+    now = datetime.now()
+    users_to_update = []
+    
+    for user_id_str, cooldowns in karuta_cooldowns.items():
+        for cooldown_type, data in list(cooldowns.items()):
+            if data.get('reminded', False):
+                continue
+            
+            try:
+                remind_at = datetime.fromisoformat(data['remind_at'])
+                if now >= remind_at:
+                    # Time to remind!
+                    try:
+                        user = await bot.fetch_user(int(user_id_str))
+                        if user:
+                            cooldown_names = {
+                                'drop': 'Drop (k!drop)',
+                                'daily': 'Daily (k!daily)',
+                                'vote': 'Vote (k!vote)',
+                                'grab': 'Grab'
+                            }
+                            
+                            embed = discord.Embed(
+                                title="🎴 Karuta Cooldown Ready!",
+                                description=f"Your **{cooldown_names.get(cooldown_type, cooldown_type)}** cooldown is ready!",
+                                color=0x00FF00
+                            )
+                            embed.set_footer(text="Go grab some cards!")
+                            
+                            await user.send(embed=embed)
+                            print(f"[KARUTA] Sent {cooldown_type} reminder to {user.name}")
+                    except discord.Forbidden:
+                        print(f"[KARUTA] Cannot DM user {user_id_str}")
+                    except Exception as e:
+                        print(f"[KARUTA] Error sending reminder: {e}")
+                    
+                    # Mark as reminded
+                    data['reminded'] = True
+                    users_to_update.append(user_id_str)
+            except Exception as e:
+                print(f"[KARUTA] Error parsing cooldown: {e}")
+    
+    if users_to_update:
+        save_karuta_cooldowns()
+
+@check_karuta_cooldowns.before_loop
+async def before_karuta_check():
+    await bot.wait_until_ready()
 
 @tasks.loop(minutes=2)
 async def check_streams():
@@ -14437,6 +14750,246 @@ async def on_error(event, *args, **kwargs):
     
     print(f"Error in {event}:")
     print(error_msg)
+
+# ===== KARUTA INTEGRATION COMMANDS =====
+
+@bot.hybrid_command(name='kwish', aliases=['karutawish', 'kw'])
+@app_commands.describe(
+    action="add/remove/list/channel/reminders",
+    value="Character name or channel mention"
+)
+async def karuta_wishlist_command(ctx, action: str = "list", *, value: str = None):
+    """Manage your Karuta wishlist for drop notifications
+    
+    Actions:
+    - add <character> - Add a character to your wishlist
+    - remove <character> - Remove a character from your wishlist
+    - list - View your current wishlist
+    - channel <#channel> - Set where to receive pings (or 'here' for current channel)
+    - reminders on/off - Toggle DM reminders for cooldowns
+    """
+    user_id = str(ctx.author.id)
+    action = action.lower()
+    
+    if action == "list":
+        wishlist = karuta_wishlists.get(user_id, [])
+        settings = karuta_settings.get(user_id, {})
+        
+        embed = discord.Embed(
+            title="🎴 Your Karuta Wishlist",
+            color=0xFF69B4
+        )
+        
+        if wishlist:
+            char_list = "\n".join([f"• {char}" for char in wishlist])
+            embed.description = f"**Characters ({len(wishlist)}):**\n{char_list}"
+        else:
+            embed.description = "Your wishlist is empty!\nUse `~kwish add <character>` to add characters."
+        
+        # Show settings
+        ping_channel = settings.get('ping_channel_id')
+        dm_reminders = settings.get('dm_reminders', True)
+        
+        settings_text = f"**Ping Channel:** "
+        if ping_channel:
+            channel = bot.get_channel(ping_channel)
+            settings_text += channel.mention if channel else "Not found"
+        else:
+            settings_text += "Same as drop"
+        settings_text += f"\n**DM Reminders:** {'Enabled' if dm_reminders else 'Disabled'}"
+        
+        embed.add_field(name="Settings", value=settings_text, inline=False)
+        embed.set_footer(text="When a wishlist character drops, you'll be pinged!")
+        
+        await ctx.send(embed=embed)
+    
+    elif action == "add":
+        if not value:
+            await ctx.send("Please specify a character name! Example: `~kwish add Makima`")
+            return
+        
+        if user_id not in karuta_wishlists:
+            karuta_wishlists[user_id] = []
+        
+        # Check if already in wishlist
+        if value.lower() in [c.lower() for c in karuta_wishlists[user_id]]:
+            await ctx.send(f"**{value}** is already in your wishlist!")
+            return
+        
+        # Limit wishlist size
+        if len(karuta_wishlists[user_id]) >= 50:
+            await ctx.send("Your wishlist is full! (Max 50 characters)\nRemove some with `~kwish remove <character>`")
+            return
+        
+        karuta_wishlists[user_id].append(value)
+        save_karuta_wishlists()
+        
+        embed = discord.Embed(
+            title="✅ Character Added",
+            description=f"**{value}** has been added to your wishlist!",
+            color=0x00FF00
+        )
+        embed.set_footer(text=f"Wishlist: {len(karuta_wishlists[user_id])}/50 characters")
+        await ctx.send(embed=embed)
+    
+    elif action == "remove":
+        if not value:
+            await ctx.send("Please specify a character name! Example: `~kwish remove Makima`")
+            return
+        
+        if user_id not in karuta_wishlists or not karuta_wishlists[user_id]:
+            await ctx.send("Your wishlist is empty!")
+            return
+        
+        # Find and remove (case-insensitive)
+        removed = None
+        for char in karuta_wishlists[user_id]:
+            if char.lower() == value.lower():
+                removed = char
+                karuta_wishlists[user_id].remove(char)
+                break
+        
+        if removed:
+            save_karuta_wishlists()
+            embed = discord.Embed(
+                title="🗑️ Character Removed",
+                description=f"**{removed}** has been removed from your wishlist.",
+                color=0xFF6B6B
+            )
+            embed.set_footer(text=f"Wishlist: {len(karuta_wishlists[user_id])}/50 characters")
+            await ctx.send(embed=embed)
+        else:
+            await ctx.send(f"**{value}** is not in your wishlist!")
+    
+    elif action == "channel":
+        if user_id not in karuta_settings:
+            karuta_settings[user_id] = {}
+        
+        if not value or value.lower() == "here":
+            karuta_settings[user_id]['ping_channel_id'] = ctx.channel.id
+            save_karuta_settings()
+            await ctx.send(f"✅ Wishlist pings will now go to {ctx.channel.mention}")
+        elif value.lower() == "off" or value.lower() == "default":
+            karuta_settings[user_id]['ping_channel_id'] = None
+            save_karuta_settings()
+            await ctx.send("✅ Wishlist pings will now appear in the same channel as the drop.")
+        else:
+            # Try to parse channel mention
+            import re
+            match = re.match(r'<#(\d+)>', value)
+            if match:
+                channel_id = int(match.group(1))
+                channel = bot.get_channel(channel_id)
+                if channel:
+                    karuta_settings[user_id]['ping_channel_id'] = channel_id
+                    save_karuta_settings()
+                    await ctx.send(f"✅ Wishlist pings will now go to {channel.mention}")
+                else:
+                    await ctx.send("I couldn't find that channel!")
+            else:
+                await ctx.send("Please mention a channel! Example: `~kwish channel #karuta-pings`")
+    
+    elif action == "reminders":
+        if user_id not in karuta_settings:
+            karuta_settings[user_id] = {}
+        
+        if not value:
+            current = karuta_settings[user_id].get('dm_reminders', True)
+            await ctx.send(f"DM reminders are currently **{'enabled' if current else 'disabled'}**.\nUse `~kwish reminders on` or `~kwish reminders off` to change.")
+            return
+        
+        if value.lower() in ['on', 'true', 'yes', 'enable']:
+            karuta_settings[user_id]['dm_reminders'] = True
+            save_karuta_settings()
+            await ctx.send("✅ DM reminders for Karuta cooldowns are now **enabled**.")
+        elif value.lower() in ['off', 'false', 'no', 'disable']:
+            karuta_settings[user_id]['dm_reminders'] = False
+            save_karuta_settings()
+            await ctx.send("✅ DM reminders for Karuta cooldowns are now **disabled**.")
+        else:
+            await ctx.send("Use `~kwish reminders on` or `~kwish reminders off`")
+    
+    elif action == "clear":
+        if user_id in karuta_wishlists:
+            count = len(karuta_wishlists[user_id])
+            karuta_wishlists[user_id] = []
+            save_karuta_wishlists()
+            await ctx.send(f"🗑️ Cleared {count} characters from your wishlist.")
+        else:
+            await ctx.send("Your wishlist is already empty!")
+    
+    else:
+        embed = discord.Embed(
+            title="🎴 Karuta Wishlist Help",
+            description="Manage your Karuta character wishlist for drop notifications.",
+            color=0xFF69B4
+        )
+        embed.add_field(
+            name="Commands",
+            value="""
+`~kwish list` - View your wishlist
+`~kwish add <character>` - Add a character
+`~kwish remove <character>` - Remove a character
+`~kwish clear` - Clear entire wishlist
+`~kwish channel #channel` - Set ping channel
+`~kwish channel here` - Ping in current channel
+`~kwish channel off` - Ping where drop happens
+`~kwish reminders on/off` - Toggle DM cooldown reminders
+            """,
+            inline=False
+        )
+        embed.set_footer(text="Get pinged when your favorite characters drop!")
+        await ctx.send(embed=embed)
+
+@bot.hybrid_command(name='kcooldowns', aliases=['kcd'])
+async def karuta_cooldowns_command(ctx):
+    """View your tracked Karuta cooldowns"""
+    user_id = str(ctx.author.id)
+    cooldowns = karuta_cooldowns.get(user_id, {})
+    
+    embed = discord.Embed(
+        title="🎴 Your Karuta Cooldowns",
+        color=0xFF69B4
+    )
+    
+    if not cooldowns:
+        embed.description = "No cooldowns being tracked!\nUse Karuta commands like `k!drop` and I'll track them for you."
+    else:
+        now = datetime.now()
+        cooldown_text = []
+        
+        cooldown_names = {
+            'drop': '🎲 Drop',
+            'daily': '📅 Daily',
+            'vote': '🗳️ Vote',
+            'grab': '✋ Grab'
+        }
+        
+        for cd_type, data in cooldowns.items():
+            try:
+                remind_at = datetime.fromisoformat(data['remind_at'])
+                if now >= remind_at:
+                    cooldown_text.append(f"{cooldown_names.get(cd_type, cd_type)}: **Ready!** ✅")
+                else:
+                    remaining = remind_at - now
+                    mins = int(remaining.total_seconds() // 60)
+                    secs = int(remaining.total_seconds() % 60)
+                    if mins > 60:
+                        hours = mins // 60
+                        mins = mins % 60
+                        cooldown_text.append(f"{cooldown_names.get(cd_type, cd_type)}: {hours}h {mins}m")
+                    else:
+                        cooldown_text.append(f"{cooldown_names.get(cd_type, cd_type)}: {mins}m {secs}s")
+            except:
+                pass
+        
+        embed.description = "\n".join(cooldown_text) if cooldown_text else "No active cooldowns."
+    
+    settings = karuta_settings.get(user_id, {})
+    dm_status = "Enabled" if settings.get('dm_reminders', True) else "Disabled"
+    embed.set_footer(text=f"DM Reminders: {dm_status} | Use ~kwish reminders to toggle")
+    
+    await ctx.send(embed=embed)
 
 # Run the bot
 if __name__ == "__main__":
