@@ -40,7 +40,7 @@ The bot is built using Python 3.11 and the discord.py 2.6.4 library, supporting 
 - Color-coded embeds for clarity.
 
 **Technical Implementations & Feature Specifications:**
-- **90 Total Commands**: All supporting both prefix (~) and slash (/) formats
+- **95 Total Commands**: All supporting both prefix (~) and slash (/) formats
 - **Persistent Data Storage**: Primary storage in PostgreSQL database with JSONB columns; JSON files as automatic backups. Database module (`db.py`) handles all data operations.
 - **Error Logging**: All bot and command errors are logged to a specific Discord channel with full stack traces, context, and timestamps.
 - **DISBOARD Bump Assistant**: Detects `/bump` commands and manages 2-hour cooldown reminders.
@@ -62,6 +62,13 @@ The bot is built using Python 3.11 and the discord.py 2.6.4 library, supporting 
 - **Rocket League Integration**: Full RL rank system and Tracker.gg API integration for live player stats, leaderboards, and profile linking. Supports all major platforms.
 - **Stream Notification System**: Unified `~streamnotify` command with add/remove/list/test subcommands. Monitors Twitch and YouTube streams every 5 minutes, sending notifications with stream titles, game categories, viewer counts, and role pings when streamers go live.
 - **Interactive Staff Directory**: `~staff` command displays paginated staff member profiles with Name, Position, Description, and Fun Facts.
+- **Karuta Integration**: Full integration with the Karuta card game bot:
+    - `~kwish add/remove/list/clear` - Manage personal wishlist of characters (up to 50)
+    - `~kwish channel` - Route wishlist pings to a specific channel
+    - `~kwish reminders on/off` - Toggle DM reminders for cooldowns
+    - `~kcd` - View tracked Karuta cooldowns
+    - Automatic drop scanning: Detects Karuta drops and pings users when wishlist characters appear
+    - Cooldown tracking: Automatically tracks when users run k!drop, k!daily, k!vote and sends DM reminders when ready
 
 ## Deployment
 - **Replit (Development)**: Uses `python main.py` workflow with built-in PostgreSQL
@@ -76,3 +83,4 @@ The bot is built using Python 3.11 and the discord.py 2.6.4 library, supporting 
 - **DISBOARD**: Interaction for detecting `/bump` commands to manage reminders.
 - **Tracker.gg API**: Used for fetching real-time Rocket League player statistics.
 - **Twitch/YouTube**: Direct web requests are used to check stream status for live notifications (no API keys required for these platforms).
+- **Karuta Bot**: Monitors Karuta (ID: 646937666251915264) messages to detect card drops and scan for wishlist matches.
