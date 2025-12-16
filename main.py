@@ -13560,6 +13560,24 @@ def extract_characters_from_embed(message):
     
     cards = []
     
+    # DEBUG: Log all message data to understand Karuta's format
+    print(f"[KARUTA DEBUG] Message content: {message.content}")
+    print(f"[KARUTA DEBUG] Has embeds: {len(message.embeds)}")
+    print(f"[KARUTA DEBUG] Has components: {len(message.components) if message.components else 0}")
+    
+    if message.embeds:
+        embed = message.embeds[0]
+        print(f"[KARUTA DEBUG] Embed title: {embed.title}")
+        print(f"[KARUTA DEBUG] Embed description: {embed.description}")
+        print(f"[KARUTA DEBUG] Embed fields: {[(f.name, f.value) for f in embed.fields]}")
+        print(f"[KARUTA DEBUG] Embed footer: {embed.footer.text if embed.footer else None}")
+        print(f"[KARUTA DEBUG] Embed author: {embed.author.name if embed.author else None}")
+    
+    if message.components:
+        for i, action_row in enumerate(message.components):
+            for j, component in enumerate(action_row.children):
+                print(f"[KARUTA DEBUG] Component [{i}][{j}]: type={type(component).__name__}, label={getattr(component, 'label', None)}, custom_id={getattr(component, 'custom_id', None)}")
+    
     # Method 1: Check embed fields (Karuta often puts cards in fields)
     if message.embeds:
         embed = message.embeds[0]
@@ -13607,6 +13625,8 @@ def extract_characters_from_embed(message):
         if char_lower not in seen:
             seen.add(char_lower)
             unique_cards.append(card)
+    
+    print(f"[KARUTA DEBUG] Extracted cards: {unique_cards}")
     
     elapsed = time.time() - start_time
     return unique_cards[:4], elapsed  # Max 4 cards per drop
