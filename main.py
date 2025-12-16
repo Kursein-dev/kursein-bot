@@ -3,6 +3,7 @@ from discord import app_commands
 from discord.ext import commands, tasks
 import os
 import re
+import time
 from datetime import datetime, timedelta, timezone
 import json
 import asyncio
@@ -13552,63 +13553,111 @@ async def handle_karuta_message(message):
             await parse_karuta_cooldowns(message, embed)
 
 def extract_characters_from_embed(message):
-    """Extract character names from Karuta's drop embed/components"""
-    characters = []
+    """Extract character names and series from Karuta's drop embed/components
+    Returns list of dicts: [{'character': 'Name', 'series': 'Series Name'}, ...]
+    """
+    start_time = time.time()
     
-    # Method 1: Check button labels (Karuta uses buttons with character names)
-    if message.components:
-        for action_row in message.components:
-            for component in action_row.children:
-                if hasattr(component, 'label') and component.label:
-                    # Button labels might contain character names
-                    label = component.label.strip()
-                    if label and not label.isdigit():
-                        characters.append(label)
+    cards = []
     
-    # Method 2: Check embed fields
+    # Method 1: Check embed fields (Karuta often puts cards in fields)
     if message.embeds:
         embed = message.embeds[0]
         
         # Check embed fields for character info
         for field in embed.fields:
             if field.name and field.name.strip():
-                characters.append(field.name.strip())
+                char_name = field.name.strip()
+                series_name = field.value.strip() if field.value else "Unknown"
+                cards.append({'character': char_name, 'series': series_name})
         
-        # Check embed description for character names (often formatted)
+        # Check embed description for character names (often formatted as "Character · Series")
         if embed.description:
             desc = embed.description
-            # Look for patterns like "**CharacterName**" or character listings
-            bold_matches = re.findall(r'\*\*([^*]+)\*\*', desc)
-            for match in bold_matches:
-                if match.strip() and len(match) < 50:
-                    characters.append(match.strip())
-        
-        # Check embed title
-        if embed.title and "·" in str(embed.title):
-            # Format like "Character · Series"
-            parts = str(embed.title).split("·")
-            if parts:
-                characters.append(parts[0].strip())
+            # Look for patterns like "**CharacterName**" 
+            lines = desc.split('\n')
+            for line in lines:
+                if '·' in line:
+                    parts = line.split('·')
+                    if len(parts) >= 2:
+                        char = parts[0].replace('**', '').replace('*', '').strip()
+                        series = parts[1].replace('**', '').replace('*', '').strip()
+                        if char and len(char) > 1:
+                            cards.append({'character': char, 'series': series})
+                elif '**' in line:
+                    bold_matches = re.findall(r'\*\*([^*]+)\*\*', line)
+                    for match in bold_matches:
+                        if match.strip() and len(match) < 50:
+                            cards.append({'character': match.strip(), 'series': 'Unknown'})
+    
+    # Method 2: Check button labels as fallback
+    if not cards and message.components:
+        for action_row in message.components:
+            for component in action_row.children:
+                if hasattr(component, 'label') and component.label:
+                    label = component.label.strip()
+                    if label and not label.isdigit() and len(label) > 1:
+                        cards.append({'character': label, 'series': 'Unknown'})
     
     # Remove duplicates while preserving order
     seen = set()
-    unique_chars = []
-    for char in characters:
-        char_lower = char.lower()
-        if char_lower not in seen and len(char) > 1:
+    unique_cards = []
+    for card in cards:
+        char_lower = card['character'].lower()
+        if char_lower not in seen:
             seen.add(char_lower)
-            unique_chars.append(char)
+            unique_cards.append(card)
     
-    return unique_chars[:4]  # Max 4 cards per drop
+    elapsed = time.time() - start_time
+    return unique_cards[:4], elapsed  # Max 4 cards per drop
 
-async def process_drop(channel, characters, message):
+async def process_drop(channel, characters_data, message):
     """Process dropped characters and check against wishlists"""
-    if not message.guild or not characters:
+    if not message.guild:
         return
     
-    print(f"[KARUTA] Processing drop with {len(characters)} characters: {characters}")
+    cards, elapsed_time = characters_data
+    if not cards:
+        return
     
+    print(f"[KARUTA] Processing drop with {len(cards)} characters: {[c['character'] for c in cards]}")
+    
+    # Build the "Dropped Cards" analysis embed
+    number_emojis = ['1️⃣', '2️⃣', '3️⃣', '4️⃣']
+    
+    drop_lines = []
+    for i, card in enumerate(cards):
+        char_name = card['character']
+        series = card['series']
+        emoji = number_emojis[i] if i < len(number_emojis) else f"{i+1}."
+        # Format: Series · **Character**
+        if series and series != 'Unknown':
+            drop_lines.append(f"{emoji} {series} · **{char_name}**")
+        else:
+            drop_lines.append(f"{emoji} **{char_name}**")
+    
+    # Create the analysis embed
+    analysis_embed = discord.Embed(
+        title="🎴 Dropped Cards",
+        description=f"Kursein Drop Analysis ({elapsed_time:.2f}s)\n\n" + "\n".join(drop_lines),
+        color=0xFFA500,
+        timestamp=datetime.now()
+    )
+    
+    # Reply to the Karuta message
+    try:
+        await message.reply(embed=analysis_embed, mention_author=False)
+    except Exception as e:
+        print(f"[KARUTA] Error sending analysis: {e}")
+        # Fallback: send as normal message
+        try:
+            await channel.send(embed=analysis_embed)
+        except:
+            pass
+    
+    # Now check wishlists and ping users
     users_to_ping = []
+    character_names = [c['character'] for c in cards]
     
     for user_id, wishlist in karuta_wishlists.items():
         if not wishlist:
@@ -13617,21 +13666,23 @@ async def process_drop(channel, characters, message):
         user_settings = karuta_settings.get(user_id, {})
         
         # Check each dropped character against wishlist
-        for character in characters:
-            char_lower = character.lower()
+        for card in cards:
+            char_name = card['character']
+            char_lower = char_name.lower()
             for wish_char in wishlist:
                 wish_lower = wish_char.lower()
                 # Match if wishlist entry is contained in dropped character name or vice versa
                 if wish_lower in char_lower or char_lower in wish_lower:
                     users_to_ping.append({
                         'user_id': int(user_id),
-                        'character': character,
+                        'character': char_name,
+                        'series': card.get('series', 'Unknown'),
                         'wished_as': wish_char,
                         'ping_channel': user_settings.get('ping_channel_id')
                     })
-                    break  # Only ping once per user per drop
+                    break  # Only ping once per character per user
         
-        # Break after finding one match for this user
+        # Only one ping per user per drop
         if any(p['user_id'] == int(user_id) for p in users_to_ping):
             continue
     
@@ -13645,6 +13696,7 @@ async def process_drop(channel, characters, message):
     for ping_info in users_to_ping:
         user_id = ping_info['user_id']
         character = ping_info['character']
+        series = ping_info['series']
         wished_as = ping_info['wished_as']
         ping_channel_id = ping_info['ping_channel']
         
@@ -13663,6 +13715,8 @@ async def process_drop(channel, characters, message):
                         description=f"**{character}** just dropped!",
                         color=0xFF69B4
                     )
+                    if series and series != 'Unknown':
+                        ping_embed.add_field(name="Series", value=series, inline=False)
                     if wished_as.lower() != character.lower():
                         ping_embed.add_field(name="Matched", value=f"Your wishlist: {wished_as}", inline=False)
                     ping_embed.add_field(name="Channel", value=channel.mention, inline=True)
