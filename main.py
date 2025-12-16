@@ -13623,18 +13623,15 @@ async def process_drop(channel, characters_data, message):
     print(f"[KARUTA] Processing drop with {len(cards)} characters: {[c['character'] for c in cards]}")
     
     # Build the "Dropped Cards" analysis embed
-    number_emojis = ['1️⃣', '2️⃣', '3️⃣', '4️⃣']
-    
     drop_lines = []
-    for i, card in enumerate(cards):
+    for card in cards:
         char_name = card['character']
         series = card['series']
-        emoji = number_emojis[i] if i < len(number_emojis) else f"{i+1}."
         # Format: Series · **Character**
         if series and series != 'Unknown':
-            drop_lines.append(f"{emoji} {series} · **{char_name}**")
+            drop_lines.append(f"{series} · **{char_name}**")
         else:
-            drop_lines.append(f"{emoji} **{char_name}**")
+            drop_lines.append(f"**{char_name}**")
     
     # Create the analysis embed
     analysis_embed = discord.Embed(
