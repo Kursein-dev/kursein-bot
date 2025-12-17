@@ -13659,33 +13659,42 @@ async def process_drop(channel, characters_data, message):
     
     print(f"[KARUTA] Processing drop with {len(cards)} characters: {[c['character'] for c in cards]}")
     
-    # Build the "Dropped Cards" analysis embed
-    drop_lines = []
-    for card in cards:
-        char_name = card['character']
-        series = card['series']
-        # Format: Series · **Character**
-        if series and series != 'Unknown':
-            drop_lines.append(f"{series} · **{char_name}**")
-        else:
-            drop_lines.append(f"**{char_name}**")
+    # Count how many users have each character wishlisted
+    wishlist_counts = {}
+    for i, card in enumerate(cards):
+        char_name = card['character'].lower()
+        count = 0
+        for user_id, wishlist in karuta_wishlists.items():
+            for wish_char in wishlist:
+                if wish_char.lower() in char_name or char_name in wish_char.lower():
+                    count += 1
+                    break
+        wishlist_counts[i] = count
     
-    # Create the analysis embed
-    analysis_embed = discord.Embed(
-        title="🎴 Dropped Cards",
-        description=f"Kursein Drop Analysis ({elapsed_time:.2f}s)\n\n" + "\n".join(drop_lines),
-        color=0xFFA500,
-        timestamp=datetime.now()
-    )
+    # Build the drop analysis lines (format like Stupid LAZY Starflight)
+    drop_lines = []
+    for i, card in enumerate(cards):
+        char_name = card['character']
+        series = card.get('series', 'Unknown')
+        wl_count = wishlist_counts.get(i, 0)
+        heart = "♡" if wl_count == 0 else "❤️"
+        # Format: 1 ♡0 · **Character Name** · Series
+        if series and series != 'Unknown':
+            drop_lines.append(f"`{i+1}` {heart}{wl_count} · **{char_name}** · {series}")
+        else:
+            drop_lines.append(f"`{i+1}` {heart}{wl_count} · **{char_name}**")
+    
+    # Create simple text reply (no embed, like the screenshot)
+    reply_text = f"This drop was analyzed in {elapsed_time:.2f}s\n\n" + "\n".join(drop_lines)
     
     # Reply to the Karuta message
     try:
-        await message.reply(embed=analysis_embed, mention_author=False)
+        await message.reply(reply_text, mention_author=False)
     except Exception as e:
         print(f"[KARUTA] Error sending analysis: {e}")
         # Fallback: send as normal message
         try:
-            await channel.send(embed=analysis_embed)
+            await channel.send(reply_text)
         except:
             pass
     
