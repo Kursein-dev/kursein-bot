@@ -13605,7 +13605,7 @@ async def extract_characters_from_embed(message):
             for attempt in range(max_retries):
                 try:
                     response = client.models.generate_content(
-                        model="gemini-2.0-flash",
+                        model="gemini-1.5-flash",
                         contents=[
                             types.Part.from_bytes(data=image_bytes, mime_type=content_type),
                             prompt
@@ -13613,10 +13613,11 @@ async def extract_characters_from_embed(message):
                     )
                     return response.text if response.text else ""
                 except Exception as e:
-                    if "503" in str(e) or "overloaded" in str(e).lower():
+                    error_str = str(e)
+                    if "503" in error_str or "overloaded" in error_str.lower() or "429" in error_str or "RESOURCE_EXHAUSTED" in error_str:
                         if attempt < max_retries - 1:
                             import time as t
-                            t.sleep(1)  # Wait 1 second before retry
+                            t.sleep(8)  # Wait 8 seconds before retry (API suggests ~7s)
                             continue
                     raise
             return ""
