@@ -13599,16 +13599,27 @@ async def extract_characters_from_embed(message):
         
         prompt = "This is a Karuta card drop image showing anime/game character cards. For each card visible, extract the character name (shown at the top of the card) and series name (shown at the bottom of the card). Return ONLY a JSON array with objects containing 'character' and 'series' keys, ordered left to right. Example: [{\"character\": \"Naruto Uzumaki\", \"series\": \"Naruto\"}, {\"character\": \"Goku\", \"series\": \"Dragon Ball Z\"}]. Return ONLY the JSON array, no other text."
         
-        # Run in executor since genai client is synchronous
+        # Run in executor since genai client is synchronous, with retry logic
         def call_gemini():
-            response = client.models.generate_content(
-                model="gemini-2.5-flash",
-                contents=[
-                    types.Part.from_bytes(data=image_bytes, mime_type=content_type),
-                    prompt
-                ]
-            )
-            return response.text if response.text else ""
+            max_retries = 3
+            for attempt in range(max_retries):
+                try:
+                    response = client.models.generate_content(
+                        model="gemini-2.0-flash",
+                        contents=[
+                            types.Part.from_bytes(data=image_bytes, mime_type=content_type),
+                            prompt
+                        ]
+                    )
+                    return response.text if response.text else ""
+                except Exception as e:
+                    if "503" in str(e) or "overloaded" in str(e).lower():
+                        if attempt < max_retries - 1:
+                            import time as t
+                            t.sleep(1)  # Wait 1 second before retry
+                            continue
+                    raise
+            return ""
         
         result = await asyncio.get_event_loop().run_in_executor(None, call_gemini)
         result = result.strip()
