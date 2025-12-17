@@ -13,6 +13,7 @@ from dotenv import load_dotenv
 import aiohttp
 from urllib.parse import quote
 import db
+from openai import AsyncOpenAI
 
 load_dotenv()
 
@@ -13541,8 +13542,8 @@ async def handle_karuta_message(message):
     
     # Detect card drops - format: "@User is dropping X cards!"
     if "is dropping" in content and "card" in content:
-        characters = extract_characters_from_embed(message)
-        if characters:
+        characters = await extract_characters_from_embed(message)
+        if characters and characters[0]:  # characters is (cards_list, elapsed_time)
             await process_drop(message.channel, characters, message)
         return
     
@@ -13552,84 +13553,78 @@ async def handle_karuta_message(message):
         if embed.description:
             await parse_karuta_cooldowns(message, embed)
 
-def extract_characters_from_embed(message):
-    """Extract character names and series from Karuta's drop embed/components
+async def extract_characters_from_embed(message):
+    """Extract character names and series from Karuta's drop image using OpenAI Vision
     Returns list of dicts: [{'character': 'Name', 'series': 'Series Name'}, ...]
     """
     start_time = time.time()
-    
     cards = []
     
-    # DEBUG: Log all message data to understand Karuta's format
-    print(f"[KARUTA DEBUG] Message content: {message.content}")
-    print(f"[KARUTA DEBUG] Has embeds: {len(message.embeds)}")
-    print(f"[KARUTA DEBUG] Has components: {len(message.components) if message.components else 0}")
+    # Get image URL from message attachments
+    image_url = None
+    if message.attachments:
+        for attachment in message.attachments:
+            if attachment.content_type and attachment.content_type.startswith('image/'):
+                image_url = attachment.url
+                break
     
-    if message.embeds:
-        embed = message.embeds[0]
-        print(f"[KARUTA DEBUG] Embed title: {embed.title}")
-        print(f"[KARUTA DEBUG] Embed description: {embed.description}")
-        print(f"[KARUTA DEBUG] Embed fields: {[(f.name, f.value) for f in embed.fields]}")
-        print(f"[KARUTA DEBUG] Embed footer: {embed.footer.text if embed.footer else None}")
-        print(f"[KARUTA DEBUG] Embed author: {embed.author.name if embed.author else None}")
+    if not image_url:
+        print("[KARUTA] No image attachment found in drop message")
+        elapsed = time.time() - start_time
+        return cards, elapsed
     
-    if message.components:
-        for i, action_row in enumerate(message.components):
-            for j, component in enumerate(action_row.children):
-                print(f"[KARUTA DEBUG] Component [{i}][{j}]: type={type(component).__name__}, label={getattr(component, 'label', None)}, custom_id={getattr(component, 'custom_id', None)}")
+    print(f"[KARUTA] Found image: {image_url}")
     
-    # Method 1: Check embed fields (Karuta often puts cards in fields)
-    if message.embeds:
-        embed = message.embeds[0]
+    # Use OpenAI Vision to read the card names
+    try:
+        openai_key = os.getenv('OPENAI_API_KEY')
+        if not openai_key:
+            print("[KARUTA] No OpenAI API key configured")
+            elapsed = time.time() - start_time
+            return cards, elapsed
         
-        # Check embed fields for character info
-        for field in embed.fields:
-            if field.name and field.name.strip():
-                char_name = field.name.strip()
-                series_name = field.value.strip() if field.value else "Unknown"
-                cards.append({'character': char_name, 'series': series_name})
+        client = AsyncOpenAI(api_key=openai_key)
         
-        # Check embed description for character names (often formatted as "Character · Series")
-        if embed.description:
-            desc = embed.description
-            # Look for patterns like "**CharacterName**" 
-            lines = desc.split('\n')
-            for line in lines:
-                if '·' in line:
-                    parts = line.split('·')
-                    if len(parts) >= 2:
-                        char = parts[0].replace('**', '').replace('*', '').strip()
-                        series = parts[1].replace('**', '').replace('*', '').strip()
-                        if char and len(char) > 1:
-                            cards.append({'character': char, 'series': series})
-                elif '**' in line:
-                    bold_matches = re.findall(r'\*\*([^*]+)\*\*', line)
-                    for match in bold_matches:
-                        if match.strip() and len(match) < 50:
-                            cards.append({'character': match.strip(), 'series': 'Unknown'})
-    
-    # Method 2: Check button labels as fallback
-    if not cards and message.components:
-        for action_row in message.components:
-            for component in action_row.children:
-                if hasattr(component, 'label') and component.label:
-                    label = component.label.strip()
-                    if label and not label.isdigit() and len(label) > 1:
-                        cards.append({'character': label, 'series': 'Unknown'})
-    
-    # Remove duplicates while preserving order
-    seen = set()
-    unique_cards = []
-    for card in cards:
-        char_lower = card['character'].lower()
-        if char_lower not in seen:
-            seen.add(char_lower)
-            unique_cards.append(card)
-    
-    print(f"[KARUTA DEBUG] Extracted cards: {unique_cards}")
+        response = await client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "This is a Karuta card drop image showing anime/game character cards. For each card visible, extract the character name (shown at the top of the card) and series name (shown at the bottom of the card). Return ONLY a JSON array with objects containing 'character' and 'series' keys, ordered left to right. Example: [{\"character\": \"Naruto Uzumaki\", \"series\": \"Naruto\"}, {\"character\": \"Goku\", \"series\": \"Dragon Ball Z\"}]. Return ONLY the JSON array, no other text."
+                        },
+                        {
+                            "type": "image_url",
+                            "image_url": {"url": image_url}
+                        }
+                    ]
+                }
+            ],
+            max_tokens=500,
+            temperature=0.1
+        )
+        
+        result = response.choices[0].message.content.strip()
+        print(f"[KARUTA] OpenAI response: {result}")
+        
+        # Parse JSON response
+        # Clean up markdown code blocks if present
+        if result.startswith('```'):
+            result = re.sub(r'^```(?:json)?\n?', '', result)
+            result = re.sub(r'\n?```$', '', result)
+        
+        cards = json.loads(result)
+        print(f"[KARUTA] Parsed {len(cards)} cards: {cards}")
+        
+    except json.JSONDecodeError as e:
+        print(f"[KARUTA] Failed to parse JSON response: {e}")
+    except Exception as e:
+        print(f"[KARUTA] OpenAI Vision error: {e}")
     
     elapsed = time.time() - start_time
-    return unique_cards[:4], elapsed  # Max 4 cards per drop
+    return cards[:4], elapsed  # Max 4 cards per drop
 
 async def process_drop(channel, characters_data, message):
     """Process dropped characters and check against wishlists"""
