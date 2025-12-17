@@ -3253,7 +3253,7 @@ async def on_ready():
             if update_channel:
                 startup_embed = discord.Embed(
                     title="🟢 Bot Online",
-                    description=f"Kursein has started successfully!",
+                    description="Kursein has started successfully!",
                     color=0x2ecc71,
                     timestamp=datetime.now()
                 )
@@ -13419,7 +13419,7 @@ def save_streams_config():
     try:
         if db.is_db_available():
             db.save_data('streams_config', streams_config)
-            print(f"[STREAMS] Saved config to database")
+            print("[STREAMS] Saved config to database")
         with open(STREAMS_CONFIG_FILE, "w") as f:
             json.dump(streams_config, f, indent=2)
     except Exception as e:
@@ -13610,7 +13610,7 @@ async def extract_characters_from_embed(message):
             for attempt in range(max_retries):
                 try:
                     response = client.models.generate_content(
-                        model="gemini-2.0-flash",
+                        model="gemini-2.0-flash-001",
                         contents=[
                             types.Part.from_bytes(data=image_bytes, mime_type=content_type),
                             prompt
@@ -13730,7 +13730,7 @@ async def process_drop(channel, characters_data, message):
             continue
     
     if not users_to_ping:
-        print(f"[KARUTA] No wishlist matches found")
+        print("[KARUTA] No wishlist matches found")
         return
     
     print(f"[KARUTA] Found {len(users_to_ping)} users to ping")
@@ -14686,7 +14686,7 @@ async def test_welcome(ctx):
     channel = bot.get_channel(WELCOME_CHANNEL_ID)
     
     if channel is None:
-        await ctx.send(f"❌ Welcome channel not found!")
+        await ctx.send("❌ Welcome channel not found!")
         return
     
     server_count = ctx.guild.member_count
@@ -14741,7 +14741,7 @@ async def on_guild_join(guild: discord.Guild):
         print(f"Warning: Could not find a channel to send intro in {guild.name}")
         return
     
-    intro_message = f"""──────────────────────────────
+    intro_message = """──────────────────────────────
 **Kursein has entered the game.**
 ──────────────────────────────
 
@@ -14971,7 +14971,7 @@ async def karuta_wishlist_command(ctx, action: str = "list", *, value: str = Non
         ping_channel = settings.get('ping_channel_id')
         dm_reminders = settings.get('dm_reminders', True)
         
-        settings_text = f"**Ping Channel:** "
+        settings_text = "**Ping Channel:** "
         if ping_channel:
             channel = bot.get_channel(ping_channel)
             settings_text += channel.mention if channel else "Not found"
