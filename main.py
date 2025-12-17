@@ -7095,16 +7095,29 @@ class GuidePaginator(discord.ui.View):
         page7.add_field(
             name="⏰ Cooldown Tracking",
             value=(
-                "`~kcd` - View your Karuta cooldowns\n\n"
+                "`/kcd` or `~kcd` - View your Karuta cooldowns\n\n"
                 "**Tracked Commands:**\n"
-                "• `k!drop` / `kd` - 30 min cooldown\n"
-                "• `k!daily` - 20 hour cooldown\n"
-                "• `k!vote` - 12 hour cooldown\n\n"
+                "• `k!drop` / `kd` - 30 min\n"
+                "• `k!daily` - 24 hours\n"
+                "• `k!vote` - 12 hours\n"
+                "• `k!work` - 12 hours\n"
+                "• `k!visit` - 2 hours\n\n"
                 "💡 **DM reminders when cooldowns are ready!**"
             ),
             inline=False
         )
-        page7.set_footer(text="🎴 Automatic drop scanning for 3-4 card drops!")
+        page7.add_field(
+            name="🔍 Drop Analysis",
+            value=(
+                "When someone drops cards (`kd`), the bot will:\n"
+                "• Read character names from the card image\n"
+                "• Show wishlist counts for each card\n"
+                "• Ping users when wishlist matches appear\n\n"
+                "💡 **Format:** `1 ♡0 · **Character** · Series`"
+            ),
+            inline=False
+        )
+        page7.set_footer(text="🎴 All commands work as both /slash and ~prefix!")
         pages.append(page7)
         
         # Page 8: Admin Commands (only if admin)
