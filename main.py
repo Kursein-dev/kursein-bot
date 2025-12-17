@@ -122,10 +122,11 @@ karuta_settings = {}  # user_id: {'ping_channel_id': int, 'dm_reminders': bool}
 
 # Karuta cooldown durations (in seconds)
 KARUTA_COOLDOWNS = {
-    'drop': 30 * 60,      # 30 minutes
+    'drop': 30 * 60,        # 30 minutes
     'daily': 20 * 60 * 60,  # 20 hours
     'vote': 12 * 60 * 60,   # 12 hours
     'grab': 10 * 60,        # 10 minutes (for grabbing cards)
+    'work': 6 * 60 * 60,    # 6 hours (for working)
 }
 
 # Game state storage
@@ -3298,6 +3299,8 @@ async def on_message(message):
         await track_karuta_cooldown(message.author.id, 'daily')
     elif not message.author.bot and message.content.lower().startswith(('k!vote',)):
         await track_karuta_cooldown(message.author.id, 'vote')
+    elif not message.author.bot and message.content.lower().startswith(('k!work', 'k!w ')):
+        await track_karuta_cooldown(message.author.id, 'work')
     
     # Check for trade offers (if user is in an active trade)
     if not message.author.bot and message.author.id in active_trades:
@@ -13821,7 +13824,8 @@ async def check_karuta_cooldowns():
                                 'drop': 'Drop (k!drop)',
                                 'daily': 'Daily (k!daily)',
                                 'vote': 'Vote (k!vote)',
-                                'grab': 'Grab'
+                                'grab': 'Grab',
+                                'work': 'Work (k!work)'
                             }
                             
                             embed = discord.Embed(
@@ -15143,7 +15147,8 @@ async def karuta_cooldowns_command(ctx):
             'drop': '🎲 Drop',
             'daily': '📅 Daily',
             'vote': '🗳️ Vote',
-            'grab': '✋ Grab'
+            'grab': '✋ Grab',
+            'work': '💼 Work'
         }
         
         for cd_type, data in cooldowns.items():
