@@ -13,7 +13,8 @@ from dotenv import load_dotenv
 import aiohttp
 from urllib.parse import quote
 import db
-from openai import AsyncOpenAI
+from google import genai
+from google.genai import types
 
 load_dotenv()
 
@@ -13554,7 +13555,7 @@ async def handle_karuta_message(message):
             await parse_karuta_cooldowns(message, embed)
 
 async def extract_characters_from_embed(message):
-    """Extract character names and series from Karuta's drop image using OpenAI Vision
+    """Extract character names and series from Karuta's drop image using Gemini Vision
     Returns list of dicts: [{'character': 'Name', 'series': 'Series Name'}, ...]
     """
     start_time = time.time()
@@ -13575,39 +13576,43 @@ async def extract_characters_from_embed(message):
     
     print(f"[KARUTA] Found image: {image_url}")
     
-    # Use OpenAI Vision to read the card names
+    # Use Gemini Vision to read the card names
     try:
-        openai_key = os.getenv('OPENAI_API_KEY')
-        if not openai_key:
-            print("[KARUTA] No OpenAI API key configured")
+        gemini_key = os.getenv('GEMINI_API_KEY')
+        if not gemini_key:
+            print("[KARUTA] No Gemini API key configured")
             elapsed = time.time() - start_time
             return cards, elapsed
         
-        client = AsyncOpenAI(api_key=openai_key)
+        # Download image first
+        async with aiohttp.ClientSession() as session:
+            async with session.get(image_url) as resp:
+                if resp.status != 200:
+                    print(f"[KARUTA] Failed to download image: {resp.status}")
+                    elapsed = time.time() - start_time
+                    return cards, elapsed
+                image_bytes = await resp.read()
+                content_type = resp.headers.get('Content-Type', 'image/webp')
         
-        response = await client.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=[
-                {
-                    "role": "user",
-                    "content": [
-                        {
-                            "type": "text",
-                            "text": "This is a Karuta card drop image showing anime/game character cards. For each card visible, extract the character name (shown at the top of the card) and series name (shown at the bottom of the card). Return ONLY a JSON array with objects containing 'character' and 'series' keys, ordered left to right. Example: [{\"character\": \"Naruto Uzumaki\", \"series\": \"Naruto\"}, {\"character\": \"Goku\", \"series\": \"Dragon Ball Z\"}]. Return ONLY the JSON array, no other text."
-                        },
-                        {
-                            "type": "image_url",
-                            "image_url": {"url": image_url}
-                        }
-                    ]
-                }
-            ],
-            max_tokens=500,
-            temperature=0.1
-        )
+        # Initialize Gemini client
+        client = genai.Client(api_key=gemini_key)
         
-        result = response.choices[0].message.content.strip()
-        print(f"[KARUTA] OpenAI response: {result}")
+        prompt = "This is a Karuta card drop image showing anime/game character cards. For each card visible, extract the character name (shown at the top of the card) and series name (shown at the bottom of the card). Return ONLY a JSON array with objects containing 'character' and 'series' keys, ordered left to right. Example: [{\"character\": \"Naruto Uzumaki\", \"series\": \"Naruto\"}, {\"character\": \"Goku\", \"series\": \"Dragon Ball Z\"}]. Return ONLY the JSON array, no other text."
+        
+        # Run in executor since genai client is synchronous
+        def call_gemini():
+            response = client.models.generate_content(
+                model="gemini-2.5-flash",
+                contents=[
+                    types.Part.from_bytes(data=image_bytes, mime_type=content_type),
+                    prompt
+                ]
+            )
+            return response.text if response.text else ""
+        
+        result = await asyncio.get_event_loop().run_in_executor(None, call_gemini)
+        result = result.strip()
+        print(f"[KARUTA] Gemini response: {result}")
         
         # Parse JSON response
         # Clean up markdown code blocks if present
@@ -13621,7 +13626,7 @@ async def extract_characters_from_embed(message):
     except json.JSONDecodeError as e:
         print(f"[KARUTA] Failed to parse JSON response: {e}")
     except Exception as e:
-        print(f"[KARUTA] OpenAI Vision error: {e}")
+        print(f"[KARUTA] Gemini Vision error: {e}")
     
     elapsed = time.time() - start_time
     return cards[:4], elapsed  # Max 4 cards per drop
