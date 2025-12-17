@@ -13538,12 +13538,17 @@ async def send_stream_update(guild_name: str, action: str, before: str, after: s
 
 async def handle_karuta_message(message):
     """Handle messages from Karuta bot - detect drops and cooldowns"""
+    # Debug: Log all Karuta messages
+    print(f"[KARUTA] Received message from Karuta: {message.content[:100] if message.content else 'No content'}")
+    
     # Check message content for drop pattern (e.g., "@User is dropping 3 cards!")
     content = message.content.lower() if message.content else ""
     
     # Detect card drops - format: "@User is dropping X cards!"
     if "is dropping" in content and "card" in content:
+        print(f"[KARUTA] Detected drop! Attachments: {len(message.attachments)}")
         characters = await extract_characters_from_embed(message)
+        print(f"[KARUTA] Extraction result: {characters}")
         if characters and characters[0]:  # characters is (cards_list, elapsed_time)
             await process_drop(message.channel, characters, message)
         return
