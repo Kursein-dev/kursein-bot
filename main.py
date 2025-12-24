@@ -13714,7 +13714,7 @@ async def process_drop(channel, characters_data, message):
         # Fallback: send as normal message
         try:
             await channel.send(reply_text)
-        except:
+        except Exception:
             pass
     
     # Now check wishlists and ping users
@@ -15184,7 +15184,7 @@ async def karuta_cooldowns_command(ctx):
                         cooldown_text.append(f"{cooldown_names.get(cd_type, cd_type)}: {hours}h {mins}m")
                     else:
                         cooldown_text.append(f"{cooldown_names.get(cd_type, cd_type)}: {mins}m {secs}s")
-            except:
+            except Exception:
                 pass
         
         embed.description = "\n".join(cooldown_text) if cooldown_text else "No active cooldowns."
