@@ -1,26 +1,26 @@
 {
   "1410420544939098245": {
+    "role_id": 1439806970390511657,
     "streamers": [
       {
-        "username": "kursein",
-        "platform": "twitch",
         "live": false,
+        "platform": "twitch",
+        "username": "kursein",
         "last_check": "2025-11-24T19:47:50.125278+00:00"
       },
       {
-        "username": "hikari_",
-        "platform": "twitch",
         "live": false,
+        "platform": "twitch",
+        "username": "hikari_",
         "last_check": "2025-11-24T19:50:36.509686+00:00"
       },
       {
-        "username": "hikarai_",
-        "platform": "twitch",
         "live": false,
+        "platform": "twitch",
+        "username": "hikarai_",
         "last_check": "2025-12-03T19:35:57.549674+00:00"
       }
     ],
-    "channel_id": 1442613254546526298,
-    "role_id": 1439806970390511657
+    "channel_id": 1442613254546526298
   }
 }
