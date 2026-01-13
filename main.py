@@ -603,6 +603,13 @@ async def disable_bump(ctx):
 # COMMANDS - STREAM NOTIFICATIONS
 # =====================
 
+HARDCODED_STREAMERS = [
+    {'platform': 'twitch', 'username': 'kursein', 'live': False},
+    {'platform': 'twitch', 'username': 'hikarai_', 'live': False},
+    {'platform': 'twitch', 'username': 'warinspanish209', 'live': False},
+    {'platform': 'twitch', 'username': 'loafylmaoo', 'live': False},
+]
+
 @bot.hybrid_command(name='streamnotify')
 @commands.has_permissions(administrator=True)
 async def stream_notify(ctx, action: str, *, args: Optional[str] = None):
@@ -625,57 +632,10 @@ async def stream_notify(ctx, action: str, *, args: Optional[str] = None):
         streams_config[guild_id] = {
             'channel_id': int(channel_match.group(1)),
             'role_id': int(role_match.group(1)),
-            'streamers': []
+            'streamers': HARDCODED_STREAMERS.copy()
         }
         save_streams_config()
-        await ctx.send("✅ Stream notifications configured!")
-    
-    elif action.lower() == 'add':
-        if guild_id not in streams_config:
-            await ctx.send(f"❌ Run `{prefix}streamnotify setup` first")
-            return
-        
-        if not args:
-            await ctx.send(f"❌ Usage: `{prefix}streamnotify add twitch/youtube <username>`")
-            return
-        
-        parts = args.split()
-        if len(parts) < 2:
-            await ctx.send(f"❌ Usage: `{prefix}streamnotify add twitch/youtube <username>`")
-            return
-        
-        platform, username = parts[0].lower(), parts[1]
-        if platform not in ['twitch', 'youtube']:
-            await ctx.send("❌ Platform must be `twitch` or `youtube`")
-            return
-        
-        streams_config[guild_id]['streamers'].append({
-            'platform': platform,
-            'username': username,
-            'live': False
-        })
-        save_streams_config()
-        await ctx.send(f"✅ Added **{username}** ({platform})")
-    
-    elif action.lower() == 'remove':
-        if guild_id not in streams_config:
-            await ctx.send("❌ No stream config found")
-            return
-        
-        if not args:
-            await ctx.send(f"❌ Usage: `{prefix}streamnotify remove <username>`")
-            return
-        
-        username = args.strip().lower()
-        streamers = streams_config[guild_id].get('streamers', [])
-        original_len = len(streamers)
-        streamers[:] = [s for s in streamers if s['username'].lower() != username]
-        
-        if len(streamers) < original_len:
-            save_streams_config()
-            await ctx.send(f"✅ Removed **{args.strip()}**")
-        else:
-            await ctx.send("❌ Streamer not found")
+        await ctx.send("✅ Stream notifications configured with 4 streamers!")
     
     elif action.lower() == 'list':
         if guild_id not in streams_config:
@@ -706,7 +666,7 @@ async def stream_notify(ctx, action: str, *, args: Optional[str] = None):
         await ctx.send(embed=embed)
     
     else:
-        await ctx.send(f"❌ Actions: `setup`, `add`, `remove`, `list`")
+        await ctx.send(f"❌ Actions: `setup`, `list`")
 
 # =====================
 # COMMANDS - ROCKET LEAGUE
@@ -879,8 +839,6 @@ async def guide_command(ctx):
     
     embed.add_field(name="📺 Stream Notifications (Admin)", value=f"""
 `{prefix}streamnotify setup #channel @role` - Configure
-`{prefix}streamnotify add twitch/youtube <user>` - Add streamer
-`{prefix}streamnotify remove <user>` - Remove streamer
 `{prefix}streamnotify list` - View streamers
     """, inline=False)
     
