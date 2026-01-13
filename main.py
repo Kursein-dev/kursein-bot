@@ -402,12 +402,14 @@ async def on_member_join(member):
     is_new = days_old < 7
     is_semi_new = days_old < 30
     
+    member_count = member.guild.member_count or 0
+    
     embed = discord.Embed(
         title="📥 Member Joined",
+        description=f"▸ Glad to have you here, {member.mention}\n▸ You've joined as **#{member_count}**",
         color=0xFF0000 if is_new else (0xFFA500 if is_semi_new else 0x00FF00)
     )
     embed.set_thumbnail(url=member.display_avatar.url)
-    embed.add_field(name="User", value=f"{member.mention} ({member})", inline=False)
     embed.add_field(name="Account Created", value=f"{member.created_at.strftime('%b %d, %Y')}", inline=True)
     embed.add_field(name="Account Age", value=f"{days_old} days", inline=True)
     embed.set_footer(text=f"ID: {member.id}")
