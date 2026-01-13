@@ -635,6 +635,79 @@ async def reset_ranks(ctx):
     # Send ping and embed
     await ctx.send(" ".join(mentions), embed=embed)
 
+@bot.hybrid_command(name='adminsetprofile')
+@commands.has_permissions(administrator=True)
+async def admin_set_profile(ctx, user_input: str, rank_input: str, *, url: str):
+    """(Admin) Set a user's rank and tracker URL - Usage: ~adminsetprofile <@user or ID> <rank> <url>"""
+    # Parse user from mention or ID
+    user_id = re.sub(r'[<@!>]', '', user_input)
+    
+    try:
+        target = await bot.fetch_user(int(user_id))
+    except:
+        await ctx.send("❌ Invalid user mention or ID")
+        return
+    
+    # Parse the tracker URL
+    url_pattern = r'https?://rocketleague\.tracker\.(gg|network)/rocket-league/profile/([^/]+)/([^/\s]+)'
+    url_match = re.search(url_pattern, url)
+    
+    if url_match:
+        platform = url_match.group(2).lower()
+        username = url_match.group(3).split('/')[0]
+        tracker_url = f"https://rocketleague.tracker.gg/rocket-league/profile/{platform}/{quote(username)}"
+    else:
+        await ctx.send("❌ Invalid tracker URL. Use a rocketleague.tracker.gg URL")
+        return
+    
+    # Parse rank
+    rank_input_lower = rank_input.lower().strip()
+    division = None
+    div_match = re.search(r'\b(?:div(?:ision)?\.?\s*|d)([1-4])\b', rank_input_lower)
+    if div_match:
+        division = int(div_match.group(1))
+        rank_input_lower = re.sub(r'\b(?:div(?:ision)?\.?\s*|d)[1-4]\b', '', rank_input_lower).strip()
+    
+    matched_rank = None
+    for rank_id, rank_data in RL_RANKS.items():
+        if rank_data['name'].lower() == rank_input_lower:
+            matched_rank = rank_id
+            break
+    if matched_rank is None:
+        for rank_id, rank_data in RL_RANKS.items():
+            if rank_input_lower in rank_data['name'].lower():
+                matched_rank = rank_id
+                break
+    
+    if matched_rank is None:
+        rank_list = "\n".join([f"{data['emoji']} {data['name']}" for data in RL_RANKS.values()])
+        await ctx.send(f"❌ Invalid rank.\n\nAvailable ranks:\n{rank_list}")
+        return
+    
+    if matched_rank == 22:
+        division = None
+    elif division is None:
+        division = 1
+    
+    # Save profile and rank
+    rl_profiles[str(target.id)] = {'username': username, 'platform': platform, 'url': tracker_url}
+    save_rl_profiles()
+    
+    rl_ranks[str(target.id)] = {'rank': matched_rank, 'division': division}
+    save_rl_ranks()
+    
+    rank_data = RL_RANKS[matched_rank]
+    div_text = f" Div {division}" if division else ""
+    
+    embed = discord.Embed(
+        title="✅ Profile Set by Admin",
+        description=f"**User:** {target.mention}\n"
+                    f"**Rank:** {rank_data['emoji']} {rank_data['name']}{div_text}\n"
+                    f"**Tracker:** [Link]({tracker_url})",
+        color=0x00FF00
+    )
+    await ctx.send(embed=embed)
+
 @bot.hybrid_command(name='setrank', aliases=['rlrank'])
 async def set_rl_rank(ctx, *, rank_input: str):
     """Set your Rocket League rank with division (e.g. Diamond 1 Div 3)"""
@@ -910,6 +983,7 @@ async def guide_command(ctx):
 `{prefix}stats [@user]` - View RL stats
 `{prefix}profile [@user]` - View profile
 `{prefix}resetranks` - Reset all ranks (Admin)
+`{prefix}adminsetprofile <@user/ID> <rank> <url>` - Set user's rank & tracker (Admin)
     """, inline=False)
     
     embed.add_field(name="🔔 Bump Reminders", value=f"""
