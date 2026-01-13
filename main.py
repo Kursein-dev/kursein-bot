@@ -340,12 +340,6 @@ async def on_ready():
         await asyncio.sleep(2)
         synced = await bot.tree.sync()
         print(f"Synced {len(synced)} slash command(s) globally")
-        
-        for guild in bot.guilds:
-            try:
-                await bot.tree.sync(guild=guild)
-            except:
-                pass
     except Exception as e:
         print(f"Error syncing commands: {e}")
 
