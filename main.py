@@ -606,7 +606,7 @@ async def set_rl_profile(ctx, platform: str, *, username: str):
     
     await ctx.send(f"✅ Linked **{username}** on **{platform.upper()}**")
 
-@bot.hybrid_command(name='rlstats', aliases=['rlprofile'])
+@bot.hybrid_command(name='stats', aliases=['rlstats', 'rlprofile'])
 async def rl_stats(ctx, member: Optional[discord.Member] = None):
     """View Rocket League stats from Tracker.gg"""
     target = member or ctx.author
@@ -673,6 +673,9 @@ async def profile_command(ctx, member: Optional[discord.Member] = None):
     if target.joined_at:
         embed.add_field(name="📅 Joined", value=target.joined_at.strftime("%b %d, %Y"), inline=True)
     
+    user_bumps = sum(1 for r in reminders if r.get('completed', False))
+    embed.add_field(name="🔔 Server Bumps", value=str(user_bumps), inline=True)
+    
     await ctx.send(embed=embed)
 
 @bot.hybrid_command(name='guide')
@@ -690,7 +693,7 @@ async def guide_command(ctx):
 `{prefix}setrank <rank>` - Set your RL rank
 `{prefix}rllb` - Rank leaderboard
 `{prefix}setrlprofile <platform> <user>` - Link Tracker
-`{prefix}rlstats [@user]` - View RL stats
+`{prefix}stats [@user]` - View RL stats
 `{prefix}profile [@user]` - View profile
     """, inline=False)
     
