@@ -803,6 +803,31 @@ async def profile_command(ctx, member: Optional[discord.Member] = None):
     
     await ctx.send(embed=embed)
 
+@bot.hybrid_command(name='botinfo', aliases=['info', 'about'])
+async def bot_info(ctx):
+    """Show bot information and stats"""
+    # Calculate stats
+    server_count = len(bot.guilds)
+    member_count = sum(g.member_count or 0 for g in bot.guilds)
+    command_count = len(bot.commands)
+    
+    # Get owner
+    owner = await bot.fetch_user(OWNER_ID)
+    owner_text = owner.mention if owner else f"<@{OWNER_ID}>"
+    
+    embed = discord.Embed(color=0x5865F2)
+    embed.set_author(name="Bot Online", icon_url=bot.user.display_avatar.url if bot.user else None)
+    embed.description = "Kursein v3.2 - Rebuilt from the ground up!"
+    
+    embed.add_field(name="Commands", value=str(command_count), inline=True)
+    embed.add_field(name="Servers", value=str(server_count), inline=True)
+    embed.add_field(name="Members", value=f"{member_count:,}", inline=True)
+    embed.add_field(name="Owner", value=owner_text, inline=True)
+    
+    embed.set_footer(text="Tokyo Ghoul + Rocket League Theme")
+    
+    await ctx.send(embed=embed)
+
 @bot.hybrid_command(name='guide')
 async def guide_command(ctx):
     """Show all available commands"""
@@ -829,6 +854,10 @@ async def guide_command(ctx):
     
     embed.add_field(name="📺 Stream Notifications", value=f"""
 `{prefix}list` - View monitored streamers
+    """, inline=False)
+    
+    embed.add_field(name="ℹ️ Info", value=f"""
+`{prefix}botinfo` - Bot stats & info
     """, inline=False)
     
     await ctx.send(embed=embed)
