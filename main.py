@@ -33,6 +33,8 @@ ERROR_CHANNEL_ID = 1435009092782522449
 STREAM_CHANNEL_ID = 1442613254546526298
 BUMP_CHANNEL_ID = 1418819741471997982
 BUMP_ROLE_ID = 1436421726727700542
+LOG_CHANNEL_ID = 1418819741471997982  # Join/leave logs (update this)
+ADMIN_ROLE_ID = 1436421726727700542   # Ping for new accounts (update this)
 
 HARDCODED_STREAMERS = [
     {'platform': 'twitch', 'username': 'kursein', 'live': False},
@@ -384,6 +386,66 @@ async def on_command_error(ctx, error):
         await ctx.send(f"❌ Missing argument: `{error.param.name}`")
     else:
         await ctx.send("❌ An error occurred. Please try again.")
+
+@bot.event
+async def on_member_join(member):
+    """Log when a member joins and check for new accounts"""
+    channel = bot.get_channel(LOG_CHANNEL_ID)
+    if not channel:
+        return
+    
+    # Calculate account age
+    account_age = datetime.now(timezone.utc) - member.created_at.replace(tzinfo=timezone.utc)
+    days_old = account_age.days
+    
+    # Determine if account is new/suspicious
+    is_new = days_old < 7
+    is_semi_new = days_old < 30
+    
+    embed = discord.Embed(
+        title="📥 Member Joined",
+        color=0xFF0000 if is_new else (0xFFA500 if is_semi_new else 0x00FF00)
+    )
+    embed.set_thumbnail(url=member.display_avatar.url)
+    embed.add_field(name="User", value=f"{member.mention} ({member})", inline=False)
+    embed.add_field(name="Account Created", value=f"{member.created_at.strftime('%b %d, %Y')}", inline=True)
+    embed.add_field(name="Account Age", value=f"{days_old} days", inline=True)
+    embed.set_footer(text=f"ID: {member.id}")
+    
+    if is_new:
+        embed.add_field(name="⚠️ Warning", value="**NEW ACCOUNT** - Please verify!", inline=False)
+        await channel.send(f"<@&{ADMIN_ROLE_ID}>", embed=embed)
+    elif is_semi_new:
+        embed.add_field(name="⚠️ Notice", value="Semi-new account (< 30 days)", inline=False)
+        await channel.send(embed=embed)
+    else:
+        await channel.send(embed=embed)
+
+@bot.event
+async def on_member_remove(member):
+    """Log when a member leaves"""
+    channel = bot.get_channel(LOG_CHANNEL_ID)
+    if not channel:
+        return
+    
+    # Calculate how long they were in the server
+    if member.joined_at:
+        time_in_server = datetime.now(timezone.utc) - member.joined_at.replace(tzinfo=timezone.utc)
+        days_in = time_in_server.days
+        time_text = f"{days_in} days"
+    else:
+        time_text = "Unknown"
+    
+    embed = discord.Embed(
+        title="📤 Member Left",
+        color=0x808080
+    )
+    embed.set_thumbnail(url=member.display_avatar.url)
+    embed.add_field(name="User", value=f"{member} ({member.id})", inline=False)
+    embed.add_field(name="Time in Server", value=time_text, inline=True)
+    embed.set_footer(text=f"ID: {member.id}")
+    
+    await channel.send(embed=embed)
 
 # =====================
 # BACKGROUND TASKS
