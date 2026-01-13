@@ -763,10 +763,10 @@ async def set_rl_profile(ctx, *, profile_input: str):
         await ctx.send(f"❌ Invalid platform. Use: {', '.join(valid_platforms)}")
         return
     
-    rl_profiles[str(ctx.author.id)] = {'username': username, 'platform': platform}
+    tracker_url = f"https://rocketleague.tracker.gg/rocket-league/profile/{platform}/{quote(username)}"
+    rl_profiles[str(ctx.author.id)] = {'username': username, 'platform': platform, 'url': tracker_url}
     save_rl_profiles()
     
-    tracker_url = f"https://rocketleague.tracker.gg/rocket-league/profile/{platform}/{quote(username)}"
     await ctx.send(f"✅ Linked **{username}** on **{platform.upper()}**\n{tracker_url}")
 
 @bot.hybrid_command(name='stats', aliases=['rlstats', 'rlprofile'])
@@ -854,7 +854,7 @@ async def profile_command(ctx, member: Optional[discord.Member] = None):
         platform_display = platform_icons.get(profile['platform'], f"🎮 {profile['platform'].upper()}")
         embed.add_field(name="Platform", value=platform_display, inline=True)
         
-        tracker_url = f"https://rocketleague.tracker.gg/rocket-league/profile/{profile['platform']}/{quote(profile['username'])}"
+        tracker_url = profile.get('url') or f"https://rocketleague.tracker.gg/rocket-league/profile/{profile['platform']}/{quote(profile['username'])}"
         embed.add_field(name="🔗 Tracker", value=f"[{profile['username']}]({tracker_url})", inline=True)
     else:
         embed.add_field(name="Platform", value="Not linked", inline=True)
