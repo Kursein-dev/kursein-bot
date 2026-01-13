@@ -338,6 +338,16 @@ async def on_ready():
     print("Starting slash command sync...")
     try:
         await asyncio.sleep(2)
+        
+        # Clear any old guild-specific commands to prevent duplicates
+        for guild in bot.guilds:
+            try:
+                bot.tree.clear_commands(guild=guild)
+                await bot.tree.sync(guild=guild)
+            except:
+                pass
+        
+        # Sync global commands only
         synced = await bot.tree.sync()
         print(f"Synced {len(synced)} slash command(s) globally")
     except Exception as e:
