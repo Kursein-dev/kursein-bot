@@ -709,6 +709,7 @@ async def rl_stats(ctx, member: Optional[discord.Member] = None):
 async def profile_command(ctx, member: Optional[discord.Member] = None):
     """View a user's profile"""
     target = member or ctx.author
+    user_id = str(target.id)
     
     embed = discord.Embed(
         title=f"{target.display_name}'s Profile",
@@ -716,9 +717,27 @@ async def profile_command(ctx, member: Optional[discord.Member] = None):
     )
     embed.set_thumbnail(url=target.display_avatar.url)
     
-    rank_val = rl_ranks.get(str(target.id), 0)
+    rank_val = rl_ranks.get(user_id, 0)
     rank_data = RL_RANKS.get(rank_val, RL_RANKS[0])
     embed.add_field(name="🚀 RL Rank", value=f"{rank_data['emoji']} {rank_data['name']}", inline=True)
+    
+    # Platform info
+    profile = rl_profiles.get(user_id)
+    if profile:
+        platform_icons = {
+            'epic': '🎮 Epic Games',
+            'steam': '🎮 Steam',
+            'psn': '🎮 PlayStation',
+            'xbl': '🎮 Xbox',
+            'switch': '🎮 Nintendo Switch'
+        }
+        platform_display = platform_icons.get(profile['platform'], f"🎮 {profile['platform'].upper()}")
+        embed.add_field(name="Platform", value=platform_display, inline=True)
+        
+        tracker_url = f"https://rocketleague.tracker.gg/rocket-league/profile/{profile['platform']}/{quote(profile['username'])}"
+        embed.add_field(name="🔗 Tracker", value=f"[{profile['username']}]({tracker_url})", inline=True)
+    else:
+        embed.add_field(name="Platform", value="Not linked", inline=True)
     
     if target.joined_at:
         embed.add_field(name="📅 Joined", value=target.joined_at.strftime("%b %d, %Y"), inline=True)
