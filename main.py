@@ -689,7 +689,15 @@ async def stream_notify(ctx, action: str, *, args: Optional[str] = None):
             await ctx.send("No streamers added yet")
             return
         
-        lines = [f"{'🔴' if s.get('live') else '⚫'} **{s['username']}** ({s['platform']})" for s in streamers]
+        lines = []
+        for s in streamers:
+            status = '🔴' if s.get('live') else '⚫'
+            if s['platform'] == 'twitch':
+                url = f"https://twitch.tv/{s['username']}"
+            else:
+                url = f"https://youtube.com/@{s['username']}"
+            lines.append(f"{status} **[{s['username']}]({url})** ({s['platform']})")
+        
         embed = discord.Embed(
             title="📺 Monitored Streamers",
             description="\n".join(lines),
