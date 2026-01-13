@@ -573,18 +573,25 @@ async def reset_ranks(ctx):
 
 @bot.hybrid_command(name='setrank', aliases=['rlrank'])
 async def set_rl_rank(ctx, *, rank_input: str):
-    """Set your Rocket League rank (requires linked tracker for verification)"""
+    """Set your Rocket League rank with division (e.g. Diamond 1 Div 3)"""
     user_id = str(ctx.author.id)
     
     # Check if user has linked their tracker
     if user_id not in rl_profiles:
         prefix = get_prefix_from_ctx(ctx)
         await ctx.send(f"❌ Please link your Rocket League tracker first!\n"
-                       f"Use: `{prefix}setrlprofile <platform> <username>`\n"
-                       f"Example: `{prefix}setrlprofile epic YourName`")
+                       f"Use: `{prefix}setrlprofile <url>` or `{prefix}setrlprofile <platform> <username>`")
         return
     
     rank_input_lower = rank_input.lower().strip()
+    
+    # Parse division from input (div 1, div 2, div 3, div 4, d1, d2, d3, d4)
+    division = None
+    div_match = re.search(r'\b(?:div(?:ision)?\.?\s*|d)([1-4])\b', rank_input_lower)
+    if div_match:
+        division = int(div_match.group(1))
+        # Remove division from rank input for matching
+        rank_input_lower = re.sub(r'\b(?:div(?:ision)?\.?\s*|d)[1-4]\b', '', rank_input_lower).strip()
     
     matched_rank = None
     for rank_id, rank_data in RL_RANKS.items():
@@ -600,19 +607,27 @@ async def set_rl_rank(ctx, *, rank_input: str):
     
     if matched_rank is None:
         rank_list = "\n".join([f"{data['emoji']} {data['name']}" for data in RL_RANKS.values()])
-        await ctx.send(f"❌ Invalid rank. Available ranks:\n{rank_list}")
+        await ctx.send(f"❌ Invalid rank. Example: `~setrank Diamond 1 Div 3`\n\nAvailable ranks:\n{rank_list}")
         return
     
-    rl_ranks[user_id] = matched_rank
+    # SSL doesn't have divisions
+    if matched_rank == 22:
+        division = None
+    elif division is None:
+        division = 1  # Default to Div 1 if not specified
+    
+    # Store rank and division
+    rl_ranks[user_id] = {'rank': matched_rank, 'division': division}
     save_rl_ranks()
     
     rank_data = RL_RANKS[matched_rank]
     profile = rl_profiles[user_id]
     tracker_url = f"https://rocketleague.tracker.gg/rocket-league/profile/{profile['platform']}/{quote(profile['username'])}"
     
+    div_text = f" Div {division}" if division else ""
     embed = discord.Embed(
         title="🚀 Rank Submitted!",
-        description=f"{rank_data['emoji']} **{rank_data['name']}**\n\n"
+        description=f"{rank_data['emoji']} **{rank_data['name']}{div_text}**\n\n"
                     f"An admin will verify using your tracker:\n{tracker_url}",
         color=rank_data['color']
     )
@@ -625,14 +640,29 @@ async def rl_leaderboard(ctx):
         await ctx.send("No players have set their RL rank yet!")
         return
     
-    sorted_ranks = sorted(rl_ranks.items(), key=lambda x: x[1], reverse=True)[:10]
+    def get_rank_sort_value(item):
+        user_id, rank_info = item
+        if isinstance(rank_info, dict):
+            return (rank_info.get('rank', 0), rank_info.get('division', 0))
+        return (rank_info, 0)  # Legacy format
+    
+    sorted_ranks = sorted(rl_ranks.items(), key=get_rank_sort_value, reverse=True)[:10]
     
     lines = []
-    for i, (user_id, rank_val) in enumerate(sorted_ranks, 1):
+    for i, (user_id, rank_info) in enumerate(sorted_ranks, 1):
         user = bot.get_user(int(user_id))
         name = user.display_name if user else f"User {user_id}"
+        
+        if isinstance(rank_info, dict):
+            rank_val = rank_info.get('rank', 0)
+            division = rank_info.get('division')
+        else:
+            rank_val = rank_info  # Legacy format
+            division = None
+        
         rank_data = RL_RANKS.get(rank_val, RL_RANKS[0])
-        lines.append(f"`{i}.` {rank_data['emoji']} **{name}** - {rank_data['name']}")
+        div_text = f" Div {division}" if division else ""
+        lines.append(f"`{i}.` {rank_data['emoji']} **{name}** - {rank_data['name']}{div_text}")
     
     embed = discord.Embed(
         title="🏆 Rocket League Leaderboard",
@@ -642,11 +672,29 @@ async def rl_leaderboard(ctx):
     await ctx.send(embed=embed)
 
 @bot.hybrid_command(name='setrlprofile', aliases=['linkrl'])
-async def set_rl_profile(ctx, platform: str, *, username: str):
-    """Link your Rocket League Tracker profile"""
-    valid_platforms = ['epic', 'steam', 'psn', 'xbl']
-    platform = platform.lower()
+async def set_rl_profile(ctx, *, profile_input: str):
+    """Link your Rocket League Tracker profile (URL or platform + username)"""
+    profile_input = profile_input.strip()
     
+    # Check if it's a URL
+    url_pattern = r'https?://rocketleague\.tracker\.(gg|network)/rocket-league/profile/([^/]+)/([^/]+)'
+    url_match = re.match(url_pattern, profile_input)
+    
+    if url_match:
+        platform = url_match.group(2).lower()
+        username = url_match.group(3).split('/')[0]  # Remove /overview if present
+    else:
+        # Try platform + username format
+        parts = profile_input.split(maxsplit=1)
+        if len(parts) < 2:
+            await ctx.send("❌ **Usage:**\n"
+                          "`~setrlprofile <url>` - Paste your tracker URL\n"
+                          "`~setrlprofile <platform> <username>` - epic/steam/psn/xbl + username")
+            return
+        platform = parts[0].lower()
+        username = parts[1]
+    
+    valid_platforms = ['epic', 'steam', 'psn', 'xbl', 'switch']
     if platform not in valid_platforms:
         await ctx.send(f"❌ Invalid platform. Use: {', '.join(valid_platforms)}")
         return
@@ -654,7 +702,8 @@ async def set_rl_profile(ctx, platform: str, *, username: str):
     rl_profiles[str(ctx.author.id)] = {'username': username, 'platform': platform}
     save_rl_profiles()
     
-    await ctx.send(f"✅ Linked **{username}** on **{platform.upper()}**")
+    tracker_url = f"https://rocketleague.tracker.gg/rocket-league/profile/{platform}/{quote(username)}"
+    await ctx.send(f"✅ Linked **{username}** on **{platform.upper()}**\n{tracker_url}")
 
 @bot.hybrid_command(name='stats', aliases=['rlstats', 'rlprofile'])
 async def rl_stats(ctx, member: Optional[discord.Member] = None):
@@ -717,9 +766,16 @@ async def profile_command(ctx, member: Optional[discord.Member] = None):
     )
     embed.set_thumbnail(url=target.display_avatar.url)
     
-    rank_val = rl_ranks.get(user_id, 0)
+    rank_info = rl_ranks.get(user_id, {'rank': 0, 'division': None})
+    if isinstance(rank_info, dict):
+        rank_val = rank_info.get('rank', 0)
+        division = rank_info.get('division')
+    else:
+        rank_val = rank_info  # Legacy format
+        division = None
     rank_data = RL_RANKS.get(rank_val, RL_RANKS[0])
-    embed.add_field(name="🚀 RL Rank", value=f"{rank_data['emoji']} {rank_data['name']}", inline=True)
+    div_text = f" Div {division}" if division else ""
+    embed.add_field(name="🚀 RL Rank", value=f"{rank_data['emoji']} {rank_data['name']}{div_text}", inline=True)
     
     # Platform info
     profile = rl_profiles.get(user_id)
