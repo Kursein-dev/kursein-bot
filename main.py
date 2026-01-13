@@ -32,6 +32,7 @@ DISBOARD_BOT_ID = 302050872383242240
 ERROR_CHANNEL_ID = 1435009092782522449
 STREAM_CHANNEL_ID = 1442613254546526298
 BUMP_CHANNEL_ID = 1418819741471997982
+BUMP_ROLE_ID = 1436421726727700542
 
 HARDCODED_STREAMERS = [
     {'platform': 'twitch', 'username': 'kursein', 'live': False},
@@ -355,15 +356,12 @@ async def on_message(message):
     if message.author.id == DISBOARD_BOT_ID and message.embeds:
         embed = message.embeds[0]
         if embed.description and "Bump done" in embed.description:
-            guild_id = str(message.guild.id)
-            config = bump_config.get(guild_id, {})
             remind_at = datetime.now() + timedelta(hours=2)
             bump_reminder = {
                 "type": "bump",
                 "guild_id": message.guild.id,
                 "channel_id": BUMP_CHANNEL_ID,
-                "ping_target": config.get("ping_target"),
-                "ping_type": config.get("ping_type", "user"),
+                "role_id": BUMP_ROLE_ID,
                 "remind_at": remind_at.isoformat(),
                 "completed": False
             }
@@ -400,16 +398,9 @@ async def check_reminders():
             remind_at = datetime.fromisoformat(reminder['remind_at'])
             if now >= remind_at:
                 if reminder.get('type') == 'bump':
-                    channel = bot.get_channel(reminder['channel_id'])
+                    channel = bot.get_channel(BUMP_CHANNEL_ID)
                     if channel:
-                        ping_type = reminder.get('ping_type', 'user')
-                        ping_target = reminder['ping_target']
-                        
-                        if ping_type == 'role':
-                            mention = f"<@&{ping_target}>"
-                        else:
-                            mention = f"<@{ping_target}>"
-                        
+                        mention = f"<@&{BUMP_ROLE_ID}>"
                         embed = discord.Embed(
                             title="🔔 Time to Bump!",
                             description=f"{mention}\n\nThe 2-hour cooldown is over! Use `/bump` to bump the server on DISBOARD.",
@@ -496,52 +487,15 @@ async def before_check_streams():
 # COMMANDS - BUMP REMINDERS
 # =====================
 
-@bot.hybrid_command(name='bumpreminder')
-@commands.has_permissions(administrator=True)
-async def setup_bump_reminder(ctx, ping_type: str, target: Union[discord.Member, discord.Role]):
-    """Set who to ping for bump reminders"""
-    guild_id = str(ctx.guild.id)
-    
-    if ping_type.lower() == 'user' and isinstance(target, discord.Member):
-        bump_config[guild_id] = {
-            'ping_target': target.id,
-            'ping_type': 'user'
-        }
-    elif ping_type.lower() == 'role' and isinstance(target, discord.Role):
-        bump_config[guild_id] = {
-            'ping_target': target.id,
-            'ping_type': 'role'
-        }
-    else:
-        await ctx.send("❌ Usage: `~bumpreminder user @User` or `~bumpreminder role @Role`")
-        return
-    
-    save_bump_config()
-    await ctx.send(f"✅ Bump reminders set! Will ping {target.mention} in <#{BUMP_CHANNEL_ID}>")
-
 @bot.hybrid_command(name='bumpinfo')
 async def bump_info(ctx):
-    """View current bump reminder configuration"""
-    guild_id = str(ctx.guild.id)
-    config = bump_config.get(guild_id, {})
-    
+    """View bump reminder status"""
     channel = bot.get_channel(BUMP_CHANNEL_ID)
-    ping_type = config.get('ping_type', 'user')
-    ping_target = config.get('ping_target')
-    
-    if ping_target:
-        if ping_type == 'role':
-            target_mention = f"<@&{ping_target}>"
-        else:
-            target_mention = f"<@{ping_target}>"
-    else:
-        target_mention = "Not set - use `~bumpreminder`"
-    
-    pending_reminders = [r for r in reminders if r.get('guild_id') == ctx.guild.id and not r.get('completed')]
+    pending_reminders = [r for r in reminders if not r.get('completed')]
     
     embed = discord.Embed(title="🔔 Bump Reminder Info", color=0x00FF00)
     embed.add_field(name="Channel", value=channel.mention if channel else f"<#{BUMP_CHANNEL_ID}>", inline=True)
-    embed.add_field(name="Ping Target", value=target_mention, inline=True)
+    embed.add_field(name="Ping Role", value=f"<@&{BUMP_ROLE_ID}>", inline=True)
     embed.add_field(name="Pending Reminders", value=str(len(pending_reminders)), inline=True)
     
     if pending_reminders:
@@ -555,18 +509,6 @@ async def bump_info(ctx):
             pass
     
     await ctx.send(embed=embed)
-
-@bot.hybrid_command(name='bumpdisable')
-@commands.has_permissions(administrator=True)
-async def disable_bump(ctx):
-    """Disable bump reminders"""
-    guild_id = str(ctx.guild.id)
-    if guild_id in bump_config:
-        del bump_config[guild_id]
-        save_bump_config()
-        await ctx.send("✅ Bump reminders disabled")
-    else:
-        await ctx.send("❌ Bump reminders not enabled")
 
 # =====================
 # COMMANDS - STREAM NOTIFICATIONS
@@ -752,10 +694,8 @@ async def guide_command(ctx):
 `{prefix}profile [@user]` - View profile
     """, inline=False)
     
-    embed.add_field(name="🔔 Bump Reminders (Admin)", value=f"""
-`{prefix}bumpreminder user/role @target` - Setup reminders
-`{prefix}bumpinfo` - View current config
-`{prefix}bumpdisable` - Disable reminders
+    embed.add_field(name="🔔 Bump Reminders", value=f"""
+`{prefix}bumpinfo` - View bump reminder status
     """, inline=False)
     
     embed.add_field(name="📺 Stream Notifications", value=f"""
