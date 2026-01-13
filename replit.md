@@ -5,28 +5,27 @@ Kursein is a streamlined Discord bot with a Tokyo Ghoul and Rocket League theme.
 
 ## Recent Changes (January 2026)
 - **Complete Rebuild**: Removed all casino system (50+ commands) and Karuta features
-- **Ultra-Streamlined**: Reduced to 11 core commands only
+- **Ultra-Streamlined**: Reduced to core commands only
 - **Twitch API Update**: Now uses TWITCH_CLIENT_ID and TWITCH_CLIENT_SECRET for proper authentication
+- **Season 21 Update**: Added `~resetranks` command, setrank now requires linked tracker for admin verification
 
 ## Features
 
 ### Rocket League Integration
-- `~setrank <rank>` - Set your RL rank (Bronze I through Supersonic Legend)
+- `~setrlprofile <platform> <username>` - Link Tracker.gg profile (required before setting rank)
+- `~setrank <rank>` - Set your RL rank (requires tracker link, admin will verify)
 - `~rllb` - View server rank leaderboard
-- `~setrlprofile <platform> <username>` - Link Tracker.gg profile
-- `~rlstats [@user]` - Fetch live RL stats from Tracker.gg
+- `~stats [@user]` - Fetch live RL stats from Tracker.gg
+- `~resetranks` - (Admin) Reset all ranks for new season and ping users to update
 
 ### DISBOARD Bump Reminders
-- `~bumpreminder user @User` or `~bumpreminder role @Role` - Setup reminders
-- `~bumpinfo` - View current bump configuration
-- `~bumpdisable` - Disable reminders
+- `~bumpinfo` - View bump reminder status
 - Automatically detects `/bump` command and reminds after 2-hour cooldown
+- Hardcoded to ping designated role in bump channel
 
 ### Stream Notifications
-- `~streamnotify setup #channel @role` - Configure notifications
-- `~streamnotify add twitch/youtube <username>` - Add streamer
-- `~streamnotify remove <username>` - Remove streamer
-- `~streamnotify list` - View monitored streamers
+- `~list` - View monitored streamers
+- Hardcoded streamers: kursein, hikarai_, warinspanish209, loafylmaoo
 - Checks every 2 minutes and pings when streamers go live
 
 ### Utility Commands

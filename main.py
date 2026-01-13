@@ -539,9 +539,51 @@ async def stream_list(ctx):
 # COMMANDS - ROCKET LEAGUE
 # =====================
 
+@bot.hybrid_command(name='resetranks')
+@commands.has_permissions(administrator=True)
+async def reset_ranks(ctx):
+    """Reset all RL ranks for new season and ping users"""
+    global rl_ranks
+    
+    if not rl_ranks:
+        await ctx.send("❌ No ranks to reset.")
+        return
+    
+    # Get list of users to ping
+    user_ids = list(rl_ranks.keys())
+    mentions = [f"<@{uid}>" for uid in user_ids]
+    
+    # Clear all ranks
+    rl_ranks = {}
+    save_rl_ranks()
+    
+    embed = discord.Embed(
+        title="🚀 Season 21 Rank Reset!",
+        description=f"All Rocket League ranks have been reset for the new season!\n\n"
+                    f"**To update your rank:**\n"
+                    f"1. Link your tracker: `~setrlprofile <platform> <username>`\n"
+                    f"2. Set your rank: `~setrank <rank>`\n\n"
+                    f"An admin will verify your rank using your tracker profile.",
+        color=0xFF4500
+    )
+    embed.add_field(name="Players Reset", value=str(len(user_ids)), inline=True)
+    
+    # Send ping and embed
+    await ctx.send(" ".join(mentions), embed=embed)
+
 @bot.hybrid_command(name='setrank', aliases=['rlrank'])
 async def set_rl_rank(ctx, *, rank_input: str):
-    """Set your Rocket League rank"""
+    """Set your Rocket League rank (requires linked tracker for verification)"""
+    user_id = str(ctx.author.id)
+    
+    # Check if user has linked their tracker
+    if user_id not in rl_profiles:
+        prefix = get_prefix_from_ctx(ctx)
+        await ctx.send(f"❌ Please link your Rocket League tracker first!\n"
+                       f"Use: `{prefix}setrlprofile <platform> <username>`\n"
+                       f"Example: `{prefix}setrlprofile epic YourName`")
+        return
+    
     rank_input_lower = rank_input.lower().strip()
     
     matched_rank = None
@@ -561,13 +603,17 @@ async def set_rl_rank(ctx, *, rank_input: str):
         await ctx.send(f"❌ Invalid rank. Available ranks:\n{rank_list}")
         return
     
-    rl_ranks[str(ctx.author.id)] = matched_rank
+    rl_ranks[user_id] = matched_rank
     save_rl_ranks()
     
     rank_data = RL_RANKS[matched_rank]
+    profile = rl_profiles[user_id]
+    tracker_url = f"https://rocketleague.tracker.gg/rocket-league/profile/{profile['platform']}/{quote(profile['username'])}"
+    
     embed = discord.Embed(
-        title="🚀 Rank Set!",
-        description=f"{rank_data['emoji']} **{rank_data['name']}**",
+        title="🚀 Rank Submitted!",
+        description=f"{rank_data['emoji']} **{rank_data['name']}**\n\n"
+                    f"An admin will verify using your tracker:\n{tracker_url}",
         color=rank_data['color']
     )
     await ctx.send(embed=embed)
@@ -694,11 +740,12 @@ async def guide_command(ctx):
     )
     
     embed.add_field(name="🚀 Rocket League", value=f"""
+`{prefix}setrlprofile <platform> <user>` - Link Tracker (required)
 `{prefix}setrank <rank>` - Set your RL rank
 `{prefix}rllb` - Rank leaderboard
-`{prefix}setrlprofile <platform> <user>` - Link Tracker
 `{prefix}stats [@user]` - View RL stats
 `{prefix}profile [@user]` - View profile
+`{prefix}resetranks` - Reset all ranks (Admin)
     """, inline=False)
     
     embed.add_field(name="🔔 Bump Reminders", value=f"""
