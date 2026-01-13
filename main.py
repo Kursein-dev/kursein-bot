@@ -30,6 +30,14 @@ DEFAULT_PREFIX = "~"
 
 DISBOARD_BOT_ID = 302050872383242240
 ERROR_CHANNEL_ID = 1435009092782522449
+STREAM_CHANNEL_ID = 1442613254546526298
+
+HARDCODED_STREAMERS = [
+    {'platform': 'twitch', 'username': 'kursein', 'live': False},
+    {'platform': 'twitch', 'username': 'hikarai_', 'live': False},
+    {'platform': 'twitch', 'username': 'warinspanish209', 'live': False},
+    {'platform': 'twitch', 'username': 'loafylmaoo', 'live': False},
+]
 
 # Admin/Staff IDs
 OWNER_ID = 343055455263916045
@@ -431,57 +439,36 @@ async def check_streams():
         'Accept': 'text/html,application/xhtml+xml',
     }
     
-    for guild_id, config in streams_config.items():
+    channel = bot.get_channel(STREAM_CHANNEL_ID)
+    if not channel:
+        return
+    
+    for streamer in HARDCODED_STREAMERS:
+        username = streamer['username']
+        is_live = False
+        stream_data = {}
+        
         try:
-            guild = bot.get_guild(int(guild_id))
-            if not guild or not config.get('channel_id') or not config.get('role_id'):
-                continue
-            
-            channel = bot.get_channel(config['channel_id'])
-            role = guild.get_role(config['role_id'])
-            if not channel or not role:
-                continue
-            
-            for streamer in config.get('streamers', []):
-                platform = streamer.get('platform', '').lower()
-                username = streamer.get('username', '')
+            stream_data = await get_twitch_stream_data(username)
+            if stream_data:
+                is_live = stream_data.get('is_live', False)
+            else:
+                async with aiohttp.ClientSession() as session:
+                    async with session.get(f'https://www.twitch.tv/{username}', headers=headers, timeout=aiohttp.ClientTimeout(total=10)) as resp:
+                        if resp.status == 200:
+                            text = await resp.text()
+                            is_live = '"isLiveBroadcast":true' in text or '"isLive":true' in text
+        except Exception as e:
+            print(f"[STREAMS] Error checking {username}: {e}")
+            continue
+        
+        if is_live and not streamer.get('live'):
+            try:
+                title = stream_data.get('title', 'No title') if stream_data else 'No title'
+                game = stream_data.get('game_name', 'Unknown') if stream_data else 'Unknown'
+                viewers = stream_data.get('viewer_count', 0) if stream_data else 0
                 
-                if not username or platform not in ['twitch', 'youtube']:
-                    continue
-                
-                is_live = False
-                stream_data = {}
-                
-                try:
-                    if platform == 'twitch':
-                        stream_data = await get_twitch_stream_data(username)
-                        if stream_data:
-                            is_live = stream_data.get('is_live', False)
-                        else:
-                            async with aiohttp.ClientSession() as session:
-                                async with session.get(f'https://www.twitch.tv/{username}', headers=headers, timeout=aiohttp.ClientTimeout(total=10)) as resp:
-                                    if resp.status == 200:
-                                        text = await resp.text()
-                                        is_live = '"isLiveBroadcast":true' in text or '"isLive":true' in text
-                    
-                    elif platform == 'youtube':
-                        async with aiohttp.ClientSession() as session:
-                            async with session.get(f'https://www.youtube.com/@{username}/live', headers=headers, timeout=aiohttp.ClientTimeout(total=10)) as resp:
-                                if resp.status == 200:
-                                    text = await resp.text()
-                                    is_live = '"isLive":true' in text.lower() or 'watching now' in text.lower()
-                except Exception as e:
-                    print(f"[STREAMS] Error checking {username}: {e}")
-                    continue
-                
-                if is_live and not streamer.get('live'):
-                    try:
-                        if platform == 'twitch':
-                            title = stream_data.get('title', 'No title') if stream_data else 'No title'
-                            game = stream_data.get('game_name', 'Unknown') if stream_data else 'Unknown'
-                            viewers = stream_data.get('viewer_count', 0) if stream_data else 0
-                            
-                            message = f"""━━━━━━━━━━━━━━━━━━━━━━━━━━
+                message = f"""━━━━━━━━━━━━━━━━━━━━━━━━━━
 [ LIVE ] TWITCH STREAM ALERT
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
@@ -494,27 +481,12 @@ Watch Here:
 https://twitch.tv/{username}
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━"""
-                        else:
-                            message = f"""━━━━━━━━━━━━━━━━━━━━━━━━━━
-[ LIVE ] YOUTUBE STREAM ALERT
-━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-Channel: **{username}**
-
-Watch Here:
-https://youtube.com/@{username}/live
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━"""
-                        
-                        await channel.send(f"{role.mention}\n{message}")
-                    except Exception as e:
-                        print(f"[STREAMS] Error sending notification: {e}")
                 
-                streamer['live'] = is_live
-            
-            save_streams_config()
-        except Exception as e:
-            print(f"[STREAMS] Error for guild {guild_id}: {e}")
+                await channel.send(message)
+            except Exception as e:
+                print(f"[STREAMS] Error sending notification: {e}")
+        
+        streamer['live'] = is_live
 
 @check_streams.before_loop
 async def before_check_streams():
@@ -603,70 +575,22 @@ async def disable_bump(ctx):
 # COMMANDS - STREAM NOTIFICATIONS
 # =====================
 
-HARDCODED_STREAMERS = [
-    {'platform': 'twitch', 'username': 'kursein', 'live': False},
-    {'platform': 'twitch', 'username': 'hikarai_', 'live': False},
-    {'platform': 'twitch', 'username': 'warinspanish209', 'live': False},
-    {'platform': 'twitch', 'username': 'loafylmaoo', 'live': False},
-]
-
 @bot.hybrid_command(name='streamnotify')
-@commands.has_permissions(administrator=True)
-async def stream_notify(ctx, action: str, *, args: Optional[str] = None):
-    """Manage stream notifications"""
-    guild_id = str(ctx.guild.id)
-    prefix = get_prefix_from_ctx(ctx)
+async def stream_notify(ctx):
+    """View monitored streamers"""
+    lines = []
+    for s in HARDCODED_STREAMERS:
+        status = '🔴' if s.get('live') else '⚫'
+        url = f"https://twitch.tv/{s['username']}"
+        lines.append(f"{status} **[{s['username']}]({url})**")
     
-    if action.lower() == 'setup':
-        if not args:
-            await ctx.send(f"❌ Usage: `{prefix}streamnotify setup #channel @role`")
-            return
-        
-        channel_match = re.search(r'<#(\d+)>', args)
-        role_match = re.search(r'<@&(\d+)>', args)
-        
-        if not channel_match or not role_match:
-            await ctx.send(f"❌ Usage: `{prefix}streamnotify setup #channel @role`")
-            return
-        
-        streams_config[guild_id] = {
-            'channel_id': int(channel_match.group(1)),
-            'role_id': int(role_match.group(1)),
-            'streamers': HARDCODED_STREAMERS.copy()
-        }
-        save_streams_config()
-        await ctx.send("✅ Stream notifications configured with 4 streamers!")
-    
-    elif action.lower() == 'list':
-        if guild_id not in streams_config:
-            await ctx.send("❌ No stream notifications configured")
-            return
-        
-        config = streams_config[guild_id]
-        streamers = config.get('streamers', [])
-        
-        if not streamers:
-            await ctx.send("No streamers added yet")
-            return
-        
-        lines = []
-        for s in streamers:
-            status = '🔴' if s.get('live') else '⚫'
-            if s['platform'] == 'twitch':
-                url = f"https://twitch.tv/{s['username']}"
-            else:
-                url = f"https://youtube.com/@{s['username']}"
-            lines.append(f"{status} **[{s['username']}]({url})** ({s['platform']})")
-        
-        embed = discord.Embed(
-            title="📺 Monitored Streamers",
-            description="\n".join(lines),
-            color=0x9146FF
-        )
-        await ctx.send(embed=embed)
-    
-    else:
-        await ctx.send(f"❌ Actions: `setup`, `list`")
+    embed = discord.Embed(
+        title="📺 Monitored Streamers",
+        description="\n".join(lines),
+        color=0x9146FF
+    )
+    embed.set_footer(text="Notifications go to #stream-notifications")
+    await ctx.send(embed=embed)
 
 # =====================
 # COMMANDS - ROCKET LEAGUE
@@ -837,9 +761,8 @@ async def guide_command(ctx):
 `{prefix}bumpdisable` - Disable reminders
     """, inline=False)
     
-    embed.add_field(name="📺 Stream Notifications (Admin)", value=f"""
-`{prefix}streamnotify setup #channel @role` - Configure
-`{prefix}streamnotify list` - View streamers
+    embed.add_field(name="📺 Stream Notifications", value=f"""
+`{prefix}streamnotify` - View monitored streamers
     """, inline=False)
     
     await ctx.send(embed=embed)
