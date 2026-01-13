@@ -575,8 +575,8 @@ async def disable_bump(ctx):
 # COMMANDS - STREAM NOTIFICATIONS
 # =====================
 
-@bot.hybrid_command(name='streamnotify')
-async def stream_notify(ctx):
+@bot.hybrid_command(name='list')
+async def stream_list(ctx):
     """View monitored streamers"""
     lines = []
     for s in HARDCODED_STREAMERS:
@@ -762,7 +762,7 @@ async def guide_command(ctx):
     """, inline=False)
     
     embed.add_field(name="📺 Stream Notifications", value=f"""
-`{prefix}streamnotify` - View monitored streamers
+`{prefix}list` - View monitored streamers
     """, inline=False)
     
     await ctx.send(embed=embed)
