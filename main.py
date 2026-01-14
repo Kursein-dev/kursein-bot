@@ -28,6 +28,8 @@ RL_PROFILES_FILE = "rl_profiles.json"
 STREAMS_CONFIG_FILE = "streams_config.json"
 AFK_FILE = "afk_users.json"
 PENDING_RANKS_FILE = "pending_ranks.json"
+JJK_DATA_FILE = "jjk_data.json"
+JJK_CLANS_FILE = "jjk_clans.json"
 DEFAULT_PREFIX = "~"
 
 DISBOARD_BOT_ID = 302050872383242240
@@ -61,6 +63,104 @@ pending_ranks = {}
 
 # Rank to Role mapping (loaded from DB)
 rank_roles = {}
+
+# JJK Economy Data
+jjk_players = {}  # user_id -> player data
+jjk_clans = {}    # clan_name -> clan data
+jjk_cooldowns = {}  # user_id -> {action: timestamp}
+
+# JJK Game Constants
+JJK_SORCERERS = {
+    "yuji": {"name": "Yuji Itadori", "cost": 0, "income": 10, "emoji": "👊", "grade": "1st Grade", "unlock": 0},
+    "megumi": {"name": "Megumi Fushiguro", "cost": 5000, "income": 25, "emoji": "🐕", "grade": "1st Grade", "unlock": 5},
+    "nobara": {"name": "Nobara Kugisaki", "cost": 5000, "income": 25, "emoji": "🔨", "grade": "3rd Grade", "unlock": 5},
+    "maki": {"name": "Maki Zenin", "cost": 15000, "income": 50, "emoji": "🗡️", "grade": "Special Grade", "unlock": 10},
+    "panda": {"name": "Panda", "cost": 15000, "income": 50, "emoji": "🐼", "grade": "2nd Grade", "unlock": 10},
+    "inumaki": {"name": "Toge Inumaki", "cost": 25000, "income": 80, "emoji": "🍙", "grade": "Semi-1st Grade", "unlock": 15},
+    "todo": {"name": "Aoi Todo", "cost": 40000, "income": 120, "emoji": "👏", "grade": "1st Grade", "unlock": 20},
+    "yuta": {"name": "Yuta Okkotsu", "cost": 100000, "income": 300, "emoji": "💍", "grade": "Special Grade", "unlock": 30},
+    "gojo": {"name": "Satoru Gojo", "cost": 500000, "income": 1000, "emoji": "👁️", "grade": "Special Grade", "unlock": 50},
+}
+
+JJK_TECHNIQUES = {
+    "divergent_fist": {"name": "Divergent Fist", "cost": 2000, "multiplier": 1.1, "desc": "Delayed cursed energy impact"},
+    "black_flash": {"name": "Black Flash", "cost": 10000, "multiplier": 1.25, "desc": "2.5x cursed energy distortion"},
+    "ten_shadows": {"name": "Ten Shadows", "cost": 25000, "multiplier": 1.4, "desc": "Summon shikigami to fight"},
+    "cursed_speech": {"name": "Cursed Speech", "cost": 35000, "multiplier": 1.5, "desc": "Command curses with words"},
+    "boogie_woogie": {"name": "Boogie Woogie", "cost": 50000, "multiplier": 1.6, "desc": "Swap positions instantly"},
+    "reverse_cursed": {"name": "Reverse Cursed Technique", "cost": 100000, "multiplier": 1.8, "desc": "Heal from any injury"},
+    "domain_amplification": {"name": "Domain Amplification", "cost": 200000, "multiplier": 2.0, "desc": "Nullify cursed techniques"},
+}
+
+JJK_TOOLS = {
+    "slaughter_demon": {"name": "Slaughter Demon", "cost": 3000, "bonus": 15, "desc": "Maki's cursed tool"},
+    "playful_cloud": {"name": "Playful Cloud", "cost": 8000, "bonus": 40, "desc": "Three-section staff"},
+    "inverted_spear": {"name": "Inverted Spear of Heaven", "cost": 20000, "bonus": 100, "desc": "Nullifies cursed techniques"},
+    "split_soul_katana": {"name": "Split Soul Katana", "cost": 50000, "bonus": 250, "desc": "Cuts the soul directly"},
+    "prison_realm": {"name": "Prison Realm", "cost": 150000, "bonus": 750, "desc": "Seal anything inside"},
+}
+
+JJK_DOMAINS = {
+    0: {"name": "No Domain", "multiplier": 1.0, "cost": 0},
+    1: {"name": "Incomplete Domain", "multiplier": 1.5, "cost": 50000},
+    2: {"name": "Chimera Shadow Garden", "multiplier": 2.0, "cost": 150000},
+    3: {"name": "Malevolent Shrine", "multiplier": 3.0, "cost": 500000},
+    4: {"name": "Infinite Void", "multiplier": 5.0, "cost": 2000000},
+}
+
+JJK_CURSES = [
+    {"name": "Finger Bearer", "min_yen": 50, "max_yen": 150, "xp": 5},
+    {"name": "Cursed Spirit", "min_yen": 100, "max_yen": 300, "xp": 10},
+    {"name": "Grade 4 Curse", "min_yen": 200, "max_yen": 500, "xp": 15},
+    {"name": "Grade 3 Curse", "min_yen": 400, "max_yen": 800, "xp": 25},
+    {"name": "Grade 2 Curse", "min_yen": 600, "max_yen": 1200, "xp": 40},
+    {"name": "Grade 1 Curse", "min_yen": 1000, "max_yen": 2000, "xp": 60},
+    {"name": "Special Grade Curse", "min_yen": 2000, "max_yen": 5000, "xp": 100},
+]
+
+JJK_MISSIONS = [
+    {"name": "Clear Cursed Womb", "yen": 5000, "xp": 200, "cooldown": 3600},
+    {"name": "Protect Civilians", "yen": 3000, "xp": 150, "cooldown": 1800},
+    {"name": "Retrieve Cursed Object", "yen": 8000, "xp": 300, "cooldown": 7200},
+    {"name": "Exorcise Domain", "yen": 15000, "xp": 500, "cooldown": 14400},
+]
+
+def get_jjk_grade(level):
+    """Get sorcerer grade based on level"""
+    if level < 5: return "Grade 4"
+    if level < 10: return "Grade 3"
+    if level < 20: return "Grade 2"
+    if level < 35: return "Grade 1"
+    if level < 50: return "Semi-1st Grade"
+    return "Special Grade"
+
+def calculate_jjk_income(player):
+    """Calculate total hourly income for a player"""
+    base = 50
+    sorcerer_income = sum(JJK_SORCERERS.get(s, {}).get("income", 0) for s in player.get("sorcerers", []))
+    tool_bonus = sum(JJK_TOOLS.get(t, {}).get("bonus", 0) for t in player.get("tools", []))
+    tech_mult = 1.0
+    for tech in player.get("techniques", []):
+        tech_data = JJK_TECHNIQUES.get(tech, {})
+        tech_mult *= tech_data.get("multiplier", 1.0)
+    domain_mult = JJK_DOMAINS.get(player.get("domain", 0), JJK_DOMAINS[0])["multiplier"]
+    return int((base + sorcerer_income + tool_bonus) * tech_mult * domain_mult)
+
+def parse_iso_timestamp(ts_str):
+    """Safely parse ISO timestamp string"""
+    if not ts_str:
+        return None
+    try:
+        dt = datetime.fromisoformat(ts_str)
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=timezone.utc)
+        return dt
+    except (ValueError, TypeError):
+        return None
+
+def xp_for_level(level):
+    """XP needed for next level"""
+    return 100 + (level * 50)
 
 def get_rank_tier(rank_id):
     """Get the tier name from a rank ID"""
@@ -292,6 +392,69 @@ def save_rank_roles():
     except Exception as e:
         print(f"Error saving rank roles: {e}")
 
+def load_jjk_data():
+    global jjk_players, jjk_clans
+    if db.is_db_available():
+        jjk_players = db.load_data('jjk_players', {})
+        jjk_clans = db.load_data('jjk_clans', {})
+    else:
+        if os.path.exists(JJK_DATA_FILE):
+            try:
+                with open(JJK_DATA_FILE, 'r') as f:
+                    jjk_players = json.load(f)
+            except:
+                jjk_players = {}
+        if os.path.exists(JJK_CLANS_FILE):
+            try:
+                with open(JJK_CLANS_FILE, 'r') as f:
+                    jjk_clans = json.load(f)
+            except:
+                jjk_clans = {}
+
+def save_jjk_data():
+    try:
+        if db.is_db_available():
+            db.save_data('jjk_players', jjk_players)
+            db.save_data('jjk_clans', jjk_clans)
+        with open(JJK_DATA_FILE, 'w') as f:
+            json.dump(jjk_players, f, indent=2)
+        with open(JJK_CLANS_FILE, 'w') as f:
+            json.dump(jjk_clans, f, indent=2)
+    except Exception as e:
+        print(f"Error saving JJK data: {e}")
+
+def get_jjk_player(user_id):
+    """Get or create a JJK player profile"""
+    uid = str(user_id)
+    if uid not in jjk_players:
+        return None
+    return jjk_players[uid]
+
+def create_jjk_player(user_id):
+    """Create a new JJK player"""
+    uid = str(user_id)
+    jjk_players[uid] = {
+        "yen": 500,
+        "xp": 0,
+        "level": 1,
+        "sorcerers": ["yuji"],
+        "techniques": [],
+        "tools": [],
+        "domain": 0,
+        "curses_exorcised": 0,
+        "missions_completed": 0,
+        "clan": None,
+        "daily_streak": 0,
+        "last_daily": None,
+        "last_hunt": None,
+        "last_train": None,
+        "last_collect": None
+    }
+    save_jjk_data()
+    return jjk_players[uid]
+
+import random
+
 async def assign_rank_role(member, rank_id):
     """Assign the appropriate rank role and remove old rank roles"""
     if not rank_roles:
@@ -443,6 +606,7 @@ async def on_ready():
     load_afk_users()
     load_pending_ranks()
     load_rank_roles()
+    load_jjk_data()
     
     if not check_reminders.is_running():
         check_reminders.start()
@@ -1367,6 +1531,791 @@ async def warn_user(ctx, member: discord.Member, *, reason: str = "No reason pro
     
     await ctx.send(f"⚠️ Warned {member.mention}: {reason}")
 
+# =====================
+# JJK ECONOMY COMMANDS
+# =====================
+
+@bot.hybrid_command(name='jjkstart', aliases=['jstart'])
+async def jjk_start(ctx):
+    """Start your Jujutsu Sorcerer journey"""
+    uid = str(ctx.author.id)
+    if uid in jjk_players:
+        await ctx.send("You already have a Jujutsu School! Use `~school` to view it.")
+        return
+    
+    player = create_jjk_player(ctx.author.id)
+    embed = discord.Embed(
+        title="🔮 Welcome to Jujutsu High!",
+        description=f"**{ctx.author.display_name}**, you've enrolled as a Jujutsu Sorcerer!\n\nYou start as a **Grade 4** sorcerer with **Yuji Itadori** on your team.",
+        color=0x9B59B6
+    )
+    embed.add_field(name="💴 Starting Yen", value="500", inline=True)
+    embed.add_field(name="📊 Level", value="1", inline=True)
+    embed.add_field(name="⚔️ First Steps", value="`~hunt` - Exorcise curses for yen\n`~sorcerers` - View available sorcerers\n`~school` - View your stats", inline=False)
+    embed.set_footer(text="Rise through the ranks and become a Special Grade!")
+    await ctx.send(embed=embed)
+
+@bot.hybrid_command(name='school', aliases=['jjk', 'jschool'])
+async def jjk_school(ctx, member: Optional[discord.Member] = None):
+    """View your Jujutsu School stats"""
+    target = member or ctx.author
+    player = get_jjk_player(target.id)
+    if not player:
+        if target == ctx.author:
+            await ctx.send("You haven't started yet! Use `~jjkstart` to begin.")
+        else:
+            await ctx.send(f"{target.display_name} hasn't started their journey yet.")
+        return
+    
+    grade = get_jjk_grade(player['level'])
+    income = calculate_jjk_income(player)
+    domain = JJK_DOMAINS[player.get('domain', 0)]
+    xp_needed = xp_for_level(player['level'])
+    
+    embed = discord.Embed(
+        title=f"🏫 {target.display_name}'s Jujutsu School",
+        color=0x9B59B6
+    )
+    embed.set_thumbnail(url=target.display_avatar.url)
+    
+    embed.add_field(name="💴 Yen", value=f"{player['yen']:,}", inline=True)
+    embed.add_field(name="📊 Level", value=f"{player['level']} ({grade})", inline=True)
+    embed.add_field(name="✨ XP", value=f"{player['xp']}/{xp_needed}", inline=True)
+    embed.add_field(name="💰 Income/hr", value=f"{income:,} yen", inline=True)
+    embed.add_field(name="👻 Curses Exorcised", value=f"{player['curses_exorcised']:,}", inline=True)
+    embed.add_field(name="📜 Missions", value=f"{player['missions_completed']}", inline=True)
+    embed.add_field(name="🌀 Domain", value=domain['name'], inline=True)
+    embed.add_field(name="👥 Sorcerers", value=str(len(player.get('sorcerers', []))), inline=True)
+    
+    if player.get('clan'):
+        embed.add_field(name="🏯 Clan", value=player['clan'], inline=True)
+    
+    await ctx.send(embed=embed)
+
+@bot.hybrid_command(name='balance', aliases=['bal', 'yen'])
+async def jjk_balance(ctx, member: Optional[discord.Member] = None):
+    """Check your yen balance"""
+    target = member or ctx.author
+    player = get_jjk_player(target.id)
+    if not player:
+        await ctx.send("No profile found. Use `~jjkstart` to begin!")
+        return
+    
+    await ctx.send(f"💴 **{target.display_name}** has **{player['yen']:,}** yen")
+
+@bot.hybrid_command(name='hunt', aliases=['exorcise'])
+async def jjk_hunt(ctx):
+    """Hunt and exorcise curses for yen and XP"""
+    player = get_jjk_player(ctx.author.id)
+    if not player:
+        await ctx.send("Use `~jjkstart` to begin your journey!")
+        return
+    
+    uid = str(ctx.author.id)
+    now = datetime.now(timezone.utc)
+    
+    # Check cooldown (30 seconds)
+    last_hunt = parse_iso_timestamp(player.get('last_hunt'))
+    if last_hunt:
+        elapsed = (now - last_hunt).total_seconds()
+        if elapsed < 30:
+            remaining = max(1, int(30 - elapsed))
+            await ctx.send(f"⏳ You're still recovering! Wait **{remaining}s** before hunting again.")
+            return
+    
+    # Select curse based on level
+    max_curse_idx = min(player['level'] // 5, len(JJK_CURSES) - 1)
+    curse = random.choice(JJK_CURSES[:max_curse_idx + 1])
+    
+    # Calculate rewards with multipliers
+    base_yen = random.randint(curse['min_yen'], curse['max_yen'])
+    tech_mult = 1.0
+    for tech in player.get('techniques', []):
+        tech_mult *= JJK_TECHNIQUES[tech]['multiplier']
+    domain_mult = JJK_DOMAINS[player.get('domain', 0)]['multiplier']
+    
+    yen_earned = int(base_yen * tech_mult * domain_mult)
+    xp_earned = curse['xp']
+    
+    player['yen'] += yen_earned
+    player['xp'] += xp_earned
+    player['curses_exorcised'] += 1
+    player['last_hunt'] = now.isoformat()
+    
+    # Level up check
+    leveled = False
+    while player['xp'] >= xp_for_level(player['level']):
+        player['xp'] -= xp_for_level(player['level'])
+        player['level'] += 1
+        leveled = True
+    
+    save_jjk_data()
+    
+    embed = discord.Embed(
+        title=f"⚔️ Exorcised: {curse['name']}",
+        description=f"You defeated the curse and earned rewards!",
+        color=0x00FF00
+    )
+    embed.add_field(name="💴 Yen Earned", value=f"+{yen_earned:,}", inline=True)
+    embed.add_field(name="✨ XP Earned", value=f"+{xp_earned}", inline=True)
+    embed.add_field(name="💰 Total Yen", value=f"{player['yen']:,}", inline=True)
+    
+    if leveled:
+        grade = get_jjk_grade(player['level'])
+        embed.add_field(name="🎉 LEVEL UP!", value=f"You're now Level {player['level']} ({grade})!", inline=False)
+    
+    await ctx.send(embed=embed)
+
+@bot.hybrid_command(name='train')
+async def jjk_train(ctx):
+    """Train to gain XP and level up"""
+    player = get_jjk_player(ctx.author.id)
+    if not player:
+        await ctx.send("Use `~jjkstart` to begin your journey!")
+        return
+    
+    now = datetime.now(timezone.utc)
+    last_train = parse_iso_timestamp(player.get('last_train'))
+    if last_train:
+        elapsed = (now - last_train).total_seconds()
+        if elapsed < 60:
+            remaining = max(1, int(60 - elapsed))
+            await ctx.send(f"⏳ Still training! Wait **{remaining}s** to train again.")
+            return
+    
+    xp_earned = random.randint(20, 50) + (player['level'] * 2)
+    player['xp'] += xp_earned
+    player['last_train'] = now.isoformat()
+    
+    leveled = False
+    while player['xp'] >= xp_for_level(player['level']):
+        player['xp'] -= xp_for_level(player['level'])
+        player['level'] += 1
+        leveled = True
+    
+    save_jjk_data()
+    
+    messages = [
+        "practiced Divergent Fist on training dummies",
+        "sparred with Todo until exhaustion",
+        "meditated to control cursed energy",
+        "ran 100 laps around Jujutsu High",
+        "practiced domain expansion visualization"
+    ]
+    
+    embed = discord.Embed(
+        title="🥋 Training Complete!",
+        description=f"You {random.choice(messages)}.",
+        color=0x3498DB
+    )
+    embed.add_field(name="✨ XP Gained", value=f"+{xp_earned}", inline=True)
+    
+    if leveled:
+        grade = get_jjk_grade(player['level'])
+        embed.add_field(name="🎉 LEVEL UP!", value=f"Level {player['level']} ({grade})!", inline=False)
+    
+    await ctx.send(embed=embed)
+
+@bot.hybrid_command(name='daily')
+async def jjk_daily(ctx):
+    """Collect your daily yen reward"""
+    player = get_jjk_player(ctx.author.id)
+    if not player:
+        await ctx.send("Use `~jjkstart` to begin your journey!")
+        return
+    
+    now = datetime.now(timezone.utc)
+    last_daily = parse_iso_timestamp(player.get('last_daily'))
+    
+    if last_daily:
+        hours_passed = max(0, (now - last_daily).total_seconds() / 3600)
+        if hours_passed < 24:
+            remaining = 24 - hours_passed
+            hours = int(remaining)
+            mins = int((remaining - hours) * 60)
+            await ctx.send(f"⏳ Daily already claimed! Come back in **{hours}h {mins}m**")
+            return
+        
+        # Check streak
+        if hours_passed < 48:
+            player['daily_streak'] = player.get('daily_streak', 0) + 1
+        else:
+            player['daily_streak'] = 1
+    else:
+        player['daily_streak'] = 1
+    
+    streak = player['daily_streak']
+    base_reward = 1000
+    streak_bonus = min(streak * 100, 1000)
+    total = base_reward + streak_bonus
+    
+    player['yen'] += total
+    player['last_daily'] = now.isoformat()
+    save_jjk_data()
+    
+    embed = discord.Embed(
+        title="📅 Daily Reward Claimed!",
+        color=0xFFD700
+    )
+    embed.add_field(name="💴 Base Reward", value=f"{base_reward:,} yen", inline=True)
+    embed.add_field(name="🔥 Streak Bonus", value=f"+{streak_bonus:,} yen", inline=True)
+    embed.add_field(name="💰 Total", value=f"**{total:,}** yen", inline=True)
+    embed.add_field(name="📆 Streak", value=f"{streak} days", inline=True)
+    embed.set_footer(text="Come back tomorrow to keep your streak!")
+    
+    await ctx.send(embed=embed)
+
+@bot.hybrid_command(name='collect')
+async def jjk_collect(ctx):
+    """Collect your hourly income from sorcerers"""
+    player = get_jjk_player(ctx.author.id)
+    if not player:
+        await ctx.send("Use `~jjkstart` to begin your journey!")
+        return
+    
+    now = datetime.now(timezone.utc)
+    last_collect = parse_iso_timestamp(player.get('last_collect'))
+    
+    if last_collect:
+        hours_passed = max(0, (now - last_collect).total_seconds() / 3600)
+        if hours_passed < 1:
+            mins = max(1, int((1 - hours_passed) * 60))
+            await ctx.send(f"⏳ Income not ready! Wait **{mins}m** to collect.")
+            return
+    else:
+        hours_passed = 1
+    
+    hours_to_pay = max(1, min(int(hours_passed), 24))  # Cap at 24 hours, min 1
+    income = calculate_jjk_income(player)
+    total = income * hours_to_pay
+    
+    player['yen'] += total
+    player['last_collect'] = now.isoformat()
+    save_jjk_data()
+    
+    embed = discord.Embed(
+        title="💰 Income Collected!",
+        color=0x2ECC71
+    )
+    embed.add_field(name="⏰ Hours", value=str(hours_to_pay), inline=True)
+    embed.add_field(name="💴 Per Hour", value=f"{income:,}", inline=True)
+    embed.add_field(name="💵 Total", value=f"**{total:,}** yen", inline=True)
+    
+    await ctx.send(embed=embed)
+
+@bot.hybrid_command(name='sorcerers')
+async def jjk_sorcerers(ctx):
+    """View available sorcerers to hire"""
+    player = get_jjk_player(ctx.author.id)
+    if not player:
+        await ctx.send("Use `~jjkstart` to begin your journey!")
+        return
+    
+    embed = discord.Embed(
+        title="👥 Jujutsu Sorcerers",
+        description="Hire sorcerers to increase your income!",
+        color=0x9B59B6
+    )
+    
+    for key, sorc in JJK_SORCERERS.items():
+        owned = "✅" if key in player.get('sorcerers', []) else ""
+        locked = player['level'] < sorc['unlock']
+        status = "🔒" if locked else owned
+        
+        if locked:
+            value = f"Unlocks at Level {sorc['unlock']}"
+        else:
+            value = f"Cost: {sorc['cost']:,} yen\nIncome: +{sorc['income']}/hr"
+        
+        embed.add_field(
+            name=f"{sorc['emoji']} {sorc['name']} {status}",
+            value=value,
+            inline=True
+        )
+    
+    embed.set_footer(text="Use ~hire <name> to hire a sorcerer")
+    await ctx.send(embed=embed)
+
+@bot.hybrid_command(name='hire')
+async def jjk_hire(ctx, *, sorcerer_name: str):
+    """Hire a sorcerer for your school"""
+    player = get_jjk_player(ctx.author.id)
+    if not player:
+        await ctx.send("Use `~jjkstart` to begin your journey!")
+        return
+    
+    sorc_key = sorcerer_name.lower().replace(" ", "")
+    
+    # Find matching sorcerer
+    found = None
+    for key, sorc in JJK_SORCERERS.items():
+        if key == sorc_key or sorc['name'].lower().replace(" ", "") == sorc_key:
+            found = (key, sorc)
+            break
+    
+    if not found:
+        await ctx.send(f"❌ Sorcerer not found. Use `~sorcerers` to see available options.")
+        return
+    
+    key, sorc = found
+    
+    if key in player.get('sorcerers', []):
+        await ctx.send(f"❌ **{sorc['name']}** is already on your team!")
+        return
+    
+    if player['level'] < sorc['unlock']:
+        await ctx.send(f"🔒 You need Level {sorc['unlock']} to hire **{sorc['name']}**!")
+        return
+    
+    if player['yen'] < sorc['cost']:
+        await ctx.send(f"❌ You need **{sorc['cost']:,}** yen to hire **{sorc['name']}**! (You have {player['yen']:,})")
+        return
+    
+    player['yen'] -= sorc['cost']
+    player['sorcerers'].append(key)
+    save_jjk_data()
+    
+    embed = discord.Embed(
+        title=f"{sorc['emoji']} Sorcerer Hired!",
+        description=f"**{sorc['name']}** has joined your school!",
+        color=0x2ECC71
+    )
+    embed.add_field(name="💴 Cost", value=f"-{sorc['cost']:,} yen", inline=True)
+    embed.add_field(name="💰 Income Boost", value=f"+{sorc['income']}/hr", inline=True)
+    
+    await ctx.send(embed=embed)
+
+@bot.hybrid_command(name='techniques', aliases=['techs'])
+async def jjk_techniques(ctx):
+    """View available cursed techniques"""
+    player = get_jjk_player(ctx.author.id)
+    if not player:
+        await ctx.send("Use `~jjkstart` to begin your journey!")
+        return
+    
+    embed = discord.Embed(
+        title="🔮 Cursed Techniques",
+        description="Learn techniques to multiply your earnings!",
+        color=0xE74C3C
+    )
+    
+    for key, tech in JJK_TECHNIQUES.items():
+        owned = "✅" if key in player.get('techniques', []) else ""
+        mult_pct = int((tech['multiplier'] - 1) * 100)
+        embed.add_field(
+            name=f"{tech['name']} {owned}",
+            value=f"{tech['desc']}\nCost: {tech['cost']:,} yen | +{mult_pct}% earnings",
+            inline=False
+        )
+    
+    embed.set_footer(text="Use ~learntechnique <name> to learn")
+    await ctx.send(embed=embed)
+
+@bot.hybrid_command(name='learntechnique', aliases=['learntech'])
+async def jjk_learn_tech(ctx, *, technique_name: str):
+    """Learn a cursed technique"""
+    player = get_jjk_player(ctx.author.id)
+    if not player:
+        await ctx.send("Use `~jjkstart` to begin your journey!")
+        return
+    
+    tech_key = technique_name.lower().replace(" ", "_")
+    
+    found = None
+    for key, tech in JJK_TECHNIQUES.items():
+        if key == tech_key or tech['name'].lower().replace(" ", "_") == tech_key:
+            found = (key, tech)
+            break
+    
+    if not found:
+        await ctx.send("❌ Technique not found. Use `~techniques` to see options.")
+        return
+    
+    key, tech = found
+    
+    if key in player.get('techniques', []):
+        await ctx.send(f"❌ You already know **{tech['name']}**!")
+        return
+    
+    if player['yen'] < tech['cost']:
+        await ctx.send(f"❌ You need **{tech['cost']:,}** yen! (You have {player['yen']:,})")
+        return
+    
+    player['yen'] -= tech['cost']
+    player['techniques'].append(key)
+    save_jjk_data()
+    
+    await ctx.send(f"🔮 You learned **{tech['name']}**! {tech['desc']}")
+
+@bot.hybrid_command(name='tools')
+async def jjk_tools(ctx):
+    """View available cursed tools"""
+    player = get_jjk_player(ctx.author.id)
+    if not player:
+        await ctx.send("Use `~jjkstart` to begin your journey!")
+        return
+    
+    embed = discord.Embed(
+        title="🗡️ Cursed Tools",
+        description="Equip tools to boost your income!",
+        color=0x95A5A6
+    )
+    
+    for key, tool in JJK_TOOLS.items():
+        owned = "✅" if key in player.get('tools', []) else ""
+        embed.add_field(
+            name=f"{tool['name']} {owned}",
+            value=f"{tool['desc']}\nCost: {tool['cost']:,} yen | +{tool['bonus']}/hr",
+            inline=True
+        )
+    
+    embed.set_footer(text="Use ~buytool <name> to purchase")
+    await ctx.send(embed=embed)
+
+@bot.hybrid_command(name='buytool')
+async def jjk_buy_tool(ctx, *, tool_name: str):
+    """Buy a cursed tool"""
+    player = get_jjk_player(ctx.author.id)
+    if not player:
+        await ctx.send("Use `~jjkstart` to begin your journey!")
+        return
+    
+    tool_key = tool_name.lower().replace(" ", "_")
+    
+    found = None
+    for key, tool in JJK_TOOLS.items():
+        if key == tool_key or tool['name'].lower().replace(" ", "_") == tool_key:
+            found = (key, tool)
+            break
+    
+    if not found:
+        await ctx.send("❌ Tool not found. Use `~tools` to see options.")
+        return
+    
+    key, tool = found
+    
+    if key in player.get('tools', []):
+        await ctx.send(f"❌ You already own **{tool['name']}**!")
+        return
+    
+    if player['yen'] < tool['cost']:
+        await ctx.send(f"❌ You need **{tool['cost']:,}** yen! (You have {player['yen']:,})")
+        return
+    
+    player['yen'] -= tool['cost']
+    player['tools'].append(key)
+    save_jjk_data()
+    
+    await ctx.send(f"🗡️ You acquired **{tool['name']}**! +{tool['bonus']}/hr income")
+
+@bot.hybrid_command(name='domain', aliases=['domains'])
+async def jjk_domain(ctx):
+    """View and upgrade your Domain Expansion"""
+    player = get_jjk_player(ctx.author.id)
+    if not player:
+        await ctx.send("Use `~jjkstart` to begin your journey!")
+        return
+    
+    current = player.get('domain', 0)
+    
+    embed = discord.Embed(
+        title="🌀 Domain Expansion",
+        description="The pinnacle of Jujutsu - multiply all earnings!",
+        color=0x8E44AD
+    )
+    
+    for level, domain in JJK_DOMAINS.items():
+        if level == 0:
+            continue
+        is_current = "⬅️ Current" if level == current else ""
+        is_next = "📍 Next" if level == current + 1 else ""
+        owned = "✅" if level <= current else ""
+        
+        mult_pct = int(domain['multiplier'] * 100)
+        embed.add_field(
+            name=f"{domain['name']} {owned} {is_current} {is_next}",
+            value=f"Cost: {domain['cost']:,} yen\n{mult_pct}% earnings multiplier",
+            inline=False
+        )
+    
+    if current < 4:
+        embed.set_footer(text="Use ~upgradedomain to unlock the next level")
+    else:
+        embed.set_footer(text="You've mastered the ultimate Domain!")
+    
+    await ctx.send(embed=embed)
+
+@bot.hybrid_command(name='upgradedomain')
+async def jjk_upgrade_domain(ctx):
+    """Upgrade your Domain Expansion"""
+    player = get_jjk_player(ctx.author.id)
+    if not player:
+        await ctx.send("Use `~jjkstart` to begin your journey!")
+        return
+    
+    current = player.get('domain', 0)
+    
+    if current >= 4:
+        await ctx.send("🌀 You've already mastered **Infinite Void** - the ultimate Domain!")
+        return
+    
+    next_level = current + 1
+    next_domain = JJK_DOMAINS[next_level]
+    
+    if player['yen'] < next_domain['cost']:
+        await ctx.send(f"❌ You need **{next_domain['cost']:,}** yen for **{next_domain['name']}**! (You have {player['yen']:,})")
+        return
+    
+    player['yen'] -= next_domain['cost']
+    player['domain'] = next_level
+    save_jjk_data()
+    
+    mult_pct = int(next_domain['multiplier'] * 100)
+    embed = discord.Embed(
+        title="🌀 Domain Expansion Unlocked!",
+        description=f"**{next_domain['name']}**\n\nAll earnings now multiplied by **{mult_pct}%**!",
+        color=0x8E44AD
+    )
+    
+    await ctx.send(embed=embed)
+
+@bot.hybrid_command(name='jjklb', aliases=['jjkleaderboard', 'jlb'])
+async def jjk_leaderboard(ctx):
+    """View the JJK leaderboard"""
+    if not jjk_players:
+        await ctx.send("No players yet! Be the first with `~jjkstart`")
+        return
+    
+    sorted_players = sorted(jjk_players.items(), key=lambda x: x[1].get('yen', 0), reverse=True)[:10]
+    
+    embed = discord.Embed(
+        title="🏆 Jujutsu Sorcerer Leaderboard",
+        description="Top sorcerers by yen",
+        color=0xFFD700
+    )
+    
+    medals = ["🥇", "🥈", "🥉"]
+    lines = []
+    
+    for i, (uid, data) in enumerate(sorted_players):
+        user = bot.get_user(int(uid))
+        name = user.display_name if user else f"User {uid}"
+        medal = medals[i] if i < 3 else f"**{i+1}.**"
+        grade = get_jjk_grade(data.get('level', 1))
+        lines.append(f"{medal} {name}\n└ {data.get('yen', 0):,} yen | Lv.{data.get('level', 1)} ({grade})")
+    
+    embed.description = "\n".join(lines) if lines else "No players found"
+    await ctx.send(embed=embed)
+
+@bot.hybrid_command(name='clancreate', aliases=['createclan'])
+async def jjk_clan_create(ctx, *, clan_name: str):
+    """Create a clan (costs 50,000 yen)"""
+    player = get_jjk_player(ctx.author.id)
+    if not player:
+        await ctx.send("Use `~jjkstart` first!")
+        return
+    
+    if player.get('clan'):
+        await ctx.send("❌ You're already in a clan! Leave it first with `~clanleave`")
+        return
+    
+    if len(clan_name) > 30:
+        await ctx.send("❌ Clan name too long (max 30 characters)")
+        return
+    
+    clan_key = clan_name.lower()
+    if clan_key in jjk_clans:
+        await ctx.send("❌ A clan with that name already exists!")
+        return
+    
+    cost = 50000
+    if player['yen'] < cost:
+        await ctx.send(f"❌ Creating a clan costs **{cost:,}** yen! (You have {player['yen']:,})")
+        return
+    
+    player['yen'] -= cost
+    player['clan'] = clan_name
+    
+    jjk_clans[clan_key] = {
+        "name": clan_name,
+        "leader": str(ctx.author.id),
+        "members": [str(ctx.author.id)],
+        "created": datetime.now(timezone.utc).isoformat(),
+        "total_yen": player['yen']
+    }
+    
+    save_jjk_data()
+    
+    await ctx.send(f"🏯 **{clan_name}** clan has been created! You are the leader.")
+
+@bot.hybrid_command(name='clanjoin', aliases=['joinclan'])
+async def jjk_clan_join(ctx, *, clan_name: str):
+    """Join an existing clan"""
+    player = get_jjk_player(ctx.author.id)
+    if not player:
+        await ctx.send("Use `~jjkstart` first!")
+        return
+    
+    if player.get('clan'):
+        await ctx.send("❌ You're already in a clan! Leave it first.")
+        return
+    
+    clan_key = clan_name.lower()
+    if clan_key not in jjk_clans:
+        await ctx.send("❌ Clan not found!")
+        return
+    
+    clan = jjk_clans[clan_key]
+    clan['members'].append(str(ctx.author.id))
+    player['clan'] = clan['name']
+    save_jjk_data()
+    
+    await ctx.send(f"🏯 You joined **{clan['name']}**!")
+
+@bot.hybrid_command(name='clanleave', aliases=['leaveclan'])
+async def jjk_clan_leave(ctx):
+    """Leave your current clan"""
+    player = get_jjk_player(ctx.author.id)
+    if not player:
+        await ctx.send("Use `~jjkstart` first!")
+        return
+    
+    if not player.get('clan'):
+        await ctx.send("❌ You're not in a clan!")
+        return
+    
+    clan_key = player['clan'].lower()
+    if clan_key in jjk_clans:
+        clan = jjk_clans[clan_key]
+        uid = str(ctx.author.id)
+        if uid in clan['members']:
+            clan['members'].remove(uid)
+        
+        # Delete clan if empty
+        if not clan['members']:
+            del jjk_clans[clan_key]
+    
+    old_clan = player['clan']
+    player['clan'] = None
+    save_jjk_data()
+    
+    await ctx.send(f"👋 You left **{old_clan}**")
+
+@bot.hybrid_command(name='claninfo', aliases=['clan'])
+async def jjk_clan_info(ctx, *, clan_name: Optional[str] = None):
+    """View clan information"""
+    player = get_jjk_player(ctx.author.id)
+    
+    if clan_name:
+        clan_key = clan_name.lower()
+    elif player and player.get('clan'):
+        clan_key = player['clan'].lower()
+    else:
+        await ctx.send("Specify a clan name or join one first!")
+        return
+    
+    if clan_key not in jjk_clans:
+        await ctx.send("❌ Clan not found!")
+        return
+    
+    clan = jjk_clans[clan_key]
+    
+    # Calculate total clan wealth
+    total_yen = 0
+    total_level = 0
+    for mid in clan['members']:
+        mp = jjk_players.get(mid, {})
+        total_yen += mp.get('yen', 0)
+        total_level += mp.get('level', 1)
+    
+    leader = bot.get_user(int(clan['leader']))
+    leader_name = leader.display_name if leader else "Unknown"
+    
+    embed = discord.Embed(
+        title=f"🏯 {clan['name']}",
+        color=0x9B59B6
+    )
+    embed.add_field(name="👑 Leader", value=leader_name, inline=True)
+    embed.add_field(name="👥 Members", value=str(len(clan['members'])), inline=True)
+    embed.add_field(name="💴 Total Wealth", value=f"{total_yen:,}", inline=True)
+    embed.add_field(name="📊 Avg Level", value=f"{total_level // max(1, len(clan['members']))}", inline=True)
+    
+    await ctx.send(embed=embed)
+
+@bot.hybrid_command(name='clanlb', aliases=['clanleaderboard'])
+async def jjk_clan_lb(ctx):
+    """View clan leaderboard"""
+    if not jjk_clans:
+        await ctx.send("No clans exist yet! Create one with `~clancreate <name>`")
+        return
+    
+    # Calculate total wealth for each clan
+    clan_wealth = []
+    for key, clan in jjk_clans.items():
+        total = sum(jjk_players.get(m, {}).get('yen', 0) for m in clan['members'])
+        clan_wealth.append((clan['name'], len(clan['members']), total))
+    
+    clan_wealth.sort(key=lambda x: x[2], reverse=True)
+    
+    embed = discord.Embed(
+        title="🏯 Clan Leaderboard",
+        color=0xFFD700
+    )
+    
+    lines = []
+    medals = ["🥇", "🥈", "🥉"]
+    for i, (name, members, wealth) in enumerate(clan_wealth[:10]):
+        medal = medals[i] if i < 3 else f"**{i+1}.**"
+        lines.append(f"{medal} **{name}**\n└ {wealth:,} yen | {members} members")
+    
+    embed.description = "\n".join(lines)
+    await ctx.send(embed=embed)
+
+@bot.hybrid_command(name='jjkguide', aliases=['jguide'])
+async def jjk_guide(ctx):
+    """View all JJK commands"""
+    prefix = get_prefix_from_ctx(ctx)
+    
+    embed = discord.Embed(
+        title="🔮 Jujutsu Kaisen Economy Guide",
+        description="Become the strongest sorcerer!",
+        color=0x9B59B6
+    )
+    
+    embed.add_field(name="📝 Getting Started", value=f"""
+`{prefix}jjkstart` - Begin your journey
+`{prefix}school` - View your stats
+`{prefix}balance` - Check yen
+    """, inline=False)
+    
+    embed.add_field(name="⚔️ Earning Yen", value=f"""
+`{prefix}hunt` - Exorcise curses (30s cd)
+`{prefix}train` - Gain XP (60s cd)
+`{prefix}daily` - Daily reward
+`{prefix}collect` - Collect hourly income
+    """, inline=False)
+    
+    embed.add_field(name="🛒 Upgrades", value=f"""
+`{prefix}sorcerers` / `{prefix}hire <name>`
+`{prefix}techniques` / `{prefix}learntechnique <name>`
+`{prefix}tools` / `{prefix}buytool <name>`
+`{prefix}domain` / `{prefix}upgradedomain`
+    """, inline=False)
+    
+    embed.add_field(name="🏯 Clans", value=f"""
+`{prefix}clancreate <name>` - Create (50k yen)
+`{prefix}clanjoin <name>` - Join a clan
+`{prefix}clanleave` - Leave clan
+`{prefix}claninfo` - View clan
+`{prefix}clanlb` - Clan leaderboard
+    """, inline=False)
+    
+    embed.add_field(name="📊 Leaderboard", value=f"""
+`{prefix}jjklb` - Top sorcerers
+    """, inline=False)
+    
+    await ctx.send(embed=embed)
+
 @bot.hybrid_command(name='guide')
 async def guide_command(ctx):
     """Show all available commands"""
@@ -1412,6 +2361,11 @@ async def guide_command(ctx):
     embed.add_field(name="🔔 Other", value=f"""
 `{prefix}bumpinfo` - Bump reminder status
 `{prefix}list` - View monitored streamers
+    """, inline=False)
+    
+    embed.add_field(name="🔮 JJK Economy", value=f"""
+`{prefix}jjkguide` - Full JJK command list
+`{prefix}jjkstart` - Start your sorcerer journey
     """, inline=False)
     
     await ctx.send(embed=embed)
