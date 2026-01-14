@@ -1,22 +1,54 @@
 # Discord Kursein Bot - Tokyo Ghoul + Rocket League Theme
 
 ## Overview
-Kursein is a streamlined Discord bot with a Tokyo Ghoul and Rocket League theme. The bot focuses on community engagement through Rocket League integration, DISBOARD bump reminders, and stream notifications.
+Kursein is a streamlined Discord bot with a Tokyo Ghoul and Rocket League theme. The bot focuses on community engagement through Rocket League integration, DISBOARD bump reminders, stream notifications, and moderation tools.
 
 ## Recent Changes (January 2026)
 - **Complete Rebuild**: Removed all casino system (50+ commands) and Karuta features
 - **Ultra-Streamlined**: Reduced to core commands only
 - **Twitch API Update**: Now uses TWITCH_CLIENT_ID and TWITCH_CLIENT_SECRET for proper authentication
 - **Season 21 Update**: Added `~resetranks` command, setrank now requires linked tracker for admin verification
+- **Rank Verification Queue**: Ranks now go to pending queue for admin approval
+- **Auto Rank Roles**: Automatically assigns roles when ranks are approved
+- **AFK System**: Users can set AFK status with auto-clear on message
+- **Server Stats**: View server member count, growth, and activity
+- **Mod Logging**: Ban/unban events and warn command logged to updates channel
+- **Member Logging**: Join/leave with new account detection (< 7 days pings admin)
 
 ## Features
 
 ### Rocket League Integration
 - `~setrlprofile <platform> <username>` - Link Tracker.gg profile (required before setting rank)
-- `~setrank <rank>` - Set your RL rank (requires tracker link, admin will verify)
+- `~setrank <rank>` - Submit rank for admin verification (supports "Diamond 1" or "Diamond I")
 - `~rllb` - View server rank leaderboard
 - `~stats [@user]` - Fetch live RL stats from Tracker.gg
-- `~resetranks` - (Admin) Reset all ranks for new season and ping users to update
+- `~profile [@user]` - View user profile with RL rank and tracker link
+
+### Rank Admin Commands
+- `~pendingranks` - View pending rank verifications
+- `~approverank <@user>` - Approve rank (auto-assigns role)
+- `~denyrank <@user> [reason]` - Deny rank with reason
+- `~adminsetprofile <@user/ID> <rank> <url>` - Set rank directly without verification
+- `~setrankrole <tier> @role` - Configure auto-assign roles (bronze, silver, gold, etc.)
+- `~rankroles` - View configured rank roles
+- `~resetranks` - Reset all ranks for new season
+
+### AFK System
+- `~afk [reason]` - Set AFK status
+- Auto-clears when you send a message
+- Notifies others when they ping an AFK user
+
+### Server Stats
+- `~serverstats` - View member count, online users, channels, age, owner
+
+### Moderation
+- `~warn <@user> [reason]` - Warn a user (logs to updates channel, DMs user)
+- Auto-logs ban/unban events to updates channel
+
+### Member Logging
+- Join/leave messages with member count
+- New accounts (< 7 days) ping admin role with red warning
+- Semi-new accounts (< 30 days) show orange warning
 
 ### DISBOARD Bump Reminders
 - `~bumpinfo` - View bump reminder status
@@ -29,8 +61,8 @@ Kursein is a streamlined Discord bot with a Tokyo Ghoul and Rocket League theme.
 - Checks every 2 minutes and pings when streamers go live
 
 ### Utility Commands
-- `~profile [@user]` - View user profile with RL rank
 - `~guide` - View all commands
+- `~botinfo` - Bot stats (servers, members, commands)
 
 ## System Architecture
 
@@ -47,12 +79,22 @@ Primary storage in PostgreSQL with JSONB columns:
 - `prefixes` - Server prefixes
 - `bump_config` - Bump reminder configuration
 - `rl_ranks` - Rocket League ranks
-- `rl_profiles` - Linked Tracker.gg profiles
+- `rl_profiles` - Linked Tracker.gg profiles (with URL)
 - `streams_config` - Stream notification settings
+- `afk_users` - AFK status with reason and timestamp
+- `pending_ranks` - Pending rank verifications
+- `rank_roles` - Tier to role ID mapping
+
+### Hardcoded IDs
+- LOG_CHANNEL_ID: 1435009184285589554 (updates/logs)
+- ADMIN_ROLE_ID: 1410509859685662781 (pinged for new accounts)
+- BUMP_CHANNEL_ID: 1418819741471997982
+- BUMP_ROLE_ID: 1436421726727700542
+- STREAM_CHANNEL_ID: 1442613254546526298
 
 ### Background Tasks
 - **Reminder Checker** (1 min) - Sends bump reminders
-- **Stream Checker** (2 min) - Monitors Twitch/YouTube
+- **Stream Checker** (2 min) - Monitors Twitch
 
 ## Required Environment Variables
 
@@ -69,21 +111,9 @@ To get Twitch credentials:
 2. Create a new application
 3. Copy the Client ID and generate a Client Secret
 
-## Deployment
-
-### Replit (Development)
-- Uses `python main.py` workflow
-- Built-in PostgreSQL database
-- All environment variables in Secrets tab
-
-### Render (Production)
-- Requires `.python-version` file (3.11.10)
-- Provision PostgreSQL and set DATABASE_URL
-- Set all required environment variables
-
 ## File Structure
 ```
-├── main.py              # Main bot code (~700 lines)
+├── main.py              # Main bot code (~1400 lines)
 ├── db.py                # Database operations
 ├── main_backup_casino.py # Backup of casino version
 ├── replit.md            # This documentation
@@ -97,3 +127,4 @@ To get Twitch credentials:
 - Tokyo Ghoul + Rocket League theme
 - No casino/gambling features
 - No Karuta features
+- Ranks accept both "1" and "I" format (Diamond 1 = Diamond I)

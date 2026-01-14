@@ -26,6 +26,8 @@ BUMP_CONFIG_FILE = "bump_config.json"
 RL_RANKS_FILE = "rl_ranks.json"
 RL_PROFILES_FILE = "rl_profiles.json"
 STREAMS_CONFIG_FILE = "streams_config.json"
+AFK_FILE = "afk_users.json"
+PENDING_RANKS_FILE = "pending_ranks.json"
 DEFAULT_PREFIX = "~"
 
 DISBOARD_BOT_ID = 302050872383242240
@@ -54,6 +56,24 @@ bump_config = {}
 rl_ranks = {}
 rl_profiles = {}
 streams_config = {}
+afk_users = {}
+pending_ranks = {}
+
+# Rank to Role mapping (loaded from DB)
+rank_roles = {}
+
+def get_rank_tier(rank_id):
+    """Get the tier name from a rank ID"""
+    if rank_id == 0: return None
+    if rank_id <= 3: return 'bronze'
+    if rank_id <= 6: return 'silver'
+    if rank_id <= 9: return 'gold'
+    if rank_id <= 12: return 'platinum'
+    if rank_id <= 15: return 'diamond'
+    if rank_id <= 18: return 'champion'
+    if rank_id <= 21: return 'grand_champion'
+    if rank_id == 22: return 'ssl'
+    return None
 
 # Twitch API tokens
 twitch_access_token = None
@@ -220,6 +240,90 @@ def save_streams_config():
     except Exception as e:
         print(f"Error saving streams config: {e}")
 
+def load_afk_users():
+    global afk_users
+    if db.is_db_available():
+        afk_users = db.load_data('afk_users', {})
+    elif os.path.exists(AFK_FILE):
+        try:
+            with open(AFK_FILE, 'r') as f:
+                afk_users = json.load(f)
+        except:
+            afk_users = {}
+
+def save_afk_users():
+    try:
+        if db.is_db_available():
+            db.save_data('afk_users', afk_users)
+        with open(AFK_FILE, 'w') as f:
+            json.dump(afk_users, f, indent=2)
+    except Exception as e:
+        print(f"Error saving AFK users: {e}")
+
+def load_pending_ranks():
+    global pending_ranks
+    if db.is_db_available():
+        pending_ranks = db.load_data('pending_ranks', {})
+    elif os.path.exists(PENDING_RANKS_FILE):
+        try:
+            with open(PENDING_RANKS_FILE, 'r') as f:
+                pending_ranks = json.load(f)
+        except:
+            pending_ranks = {}
+
+def save_pending_ranks():
+    try:
+        if db.is_db_available():
+            db.save_data('pending_ranks', pending_ranks)
+        with open(PENDING_RANKS_FILE, 'w') as f:
+            json.dump(pending_ranks, f, indent=2)
+    except Exception as e:
+        print(f"Error saving pending ranks: {e}")
+
+def load_rank_roles():
+    global rank_roles
+    if db.is_db_available():
+        rank_roles = db.load_data('rank_roles', {})
+
+def save_rank_roles():
+    try:
+        if db.is_db_available():
+            db.save_data('rank_roles', rank_roles)
+    except Exception as e:
+        print(f"Error saving rank roles: {e}")
+
+async def assign_rank_role(member, rank_id):
+    """Assign the appropriate rank role and remove old rank roles"""
+    if not rank_roles:
+        return
+    
+    tier = get_rank_tier(rank_id)
+    if not tier:
+        return
+    
+    new_role_id = rank_roles.get(tier)
+    if not new_role_id:
+        return
+    
+    # Get all configured rank role IDs
+    all_rank_role_ids = set(v for v in rank_roles.values() if v)
+    
+    # Remove any existing rank roles
+    roles_to_remove = [r for r in member.roles if r.id in all_rank_role_ids]
+    for role in roles_to_remove:
+        try:
+            await member.remove_roles(role)
+        except:
+            pass
+    
+    # Add the new rank role
+    new_role = member.guild.get_role(int(new_role_id))
+    if new_role:
+        try:
+            await member.add_roles(new_role)
+        except Exception as e:
+            print(f"[ROLES] Error adding role: {e}")
+
 # =====================
 # TWITCH API
 # =====================
@@ -336,6 +440,9 @@ async def on_ready():
     load_rl_ranks()
     load_rl_profiles()
     load_streams_config()
+    load_afk_users()
+    load_pending_ranks()
+    load_rank_roles()
     
     if not check_reminders.is_running():
         check_reminders.start()
@@ -365,8 +472,29 @@ async def on_ready():
 
 @bot.event
 async def on_message(message):
+    # AFK system - clear AFK status when user sends a message
+    if not message.author.bot:
+        user_id = str(message.author.id)
+        if user_id in afk_users:
+            del afk_users[user_id]
+            save_afk_users()
+            await message.channel.send(f"👋 Welcome back {message.author.mention}! I removed your AFK status.", delete_after=5)
+        
+        # Notify when someone pings an AFK user
+        for mention in message.mentions:
+            mention_id = str(mention.id)
+            if mention_id in afk_users:
+                afk_data = afk_users[mention_id]
+                since = datetime.fromisoformat(afk_data['since'])
+                time_ago = datetime.now(timezone.utc) - since
+                mins = int(time_ago.total_seconds() // 60)
+                time_str = f"{mins} min ago" if mins < 60 else f"{mins // 60}h ago"
+                await message.channel.send(f"💤 **{mention.display_name}** is AFK: {afk_data['reason']} ({time_str})", delete_after=10)
+    
+    # Process commands
     await bot.process_commands(message)
     
+    # Bump detection (DISBOARD bot)
     if message.author.id == DISBOARD_BOT_ID and message.embeds:
         embed = message.embeds[0]
         if embed.description and "Bump done" in embed.description:
@@ -704,6 +832,11 @@ async def admin_set_profile(ctx, user_input: str, rank_input: str, *, url: str):
     rl_ranks[str(target.id)] = {'rank': matched_rank, 'division': division}
     save_rl_ranks()
     
+    # Auto-assign rank role
+    member = ctx.guild.get_member(int(target.id))
+    if member:
+        await assign_rank_role(member, matched_rank)
+    
     rank_data = RL_RANKS[matched_rank]
     div_text = f" Div {division}" if division else ""
     
@@ -762,21 +895,27 @@ async def set_rl_rank(ctx, *, rank_input: str):
     elif division is None:
         division = 1  # Default to Div 1 if not specified
     
-    # Store rank and division
-    rl_ranks[user_id] = {'rank': matched_rank, 'division': division}
-    save_rl_ranks()
-    
     rank_data = RL_RANKS[matched_rank]
     profile = rl_profiles[user_id]
-    tracker_url = f"https://rocketleague.tracker.gg/rocket-league/profile/{profile['platform']}/{quote(profile['username'])}"
+    tracker_url = profile.get('url') or f"https://rocketleague.tracker.gg/rocket-league/profile/{profile['platform']}/{quote(profile['username'])}"
+    
+    # Add to pending queue for admin verification
+    pending_ranks[user_id] = {
+        'rank': matched_rank,
+        'division': division,
+        'tracker_url': tracker_url,
+        'submitted': datetime.now(timezone.utc).isoformat()
+    }
+    save_pending_ranks()
     
     div_text = f" Div {division}" if division else ""
     embed = discord.Embed(
-        title="🚀 Rank Submitted!",
+        title="🚀 Rank Submitted for Verification!",
         description=f"{rank_data['emoji']} **{rank_data['name']}{div_text}**\n\n"
-                    f"An admin will verify using your tracker:\n{tracker_url}",
-        color=rank_data['color']
+                    f"⏳ An admin will verify using your tracker:\n{tracker_url}",
+        color=0xFFA500
     )
+    embed.set_footer(text="You'll be notified when approved")
     await ctx.send(embed=embed)
 
 @bot.hybrid_command(name='rllb', aliases=['rlleaderboard'])
@@ -974,6 +1113,260 @@ async def bot_info(ctx):
     
     await ctx.send(embed=embed)
 
+# =====================
+# COMMANDS - AFK SYSTEM
+# =====================
+
+@bot.hybrid_command(name='afk')
+async def set_afk(ctx, *, reason: str = "AFK"):
+    """Set your AFK status"""
+    user_id = str(ctx.author.id)
+    afk_users[user_id] = {
+        'reason': reason,
+        'since': datetime.now(timezone.utc).isoformat()
+    }
+    save_afk_users()
+    await ctx.send(f"💤 {ctx.author.display_name} is now AFK: **{reason}**")
+
+# =====================
+# COMMANDS - RANK VERIFICATION
+# =====================
+
+@bot.hybrid_command(name='pendingranks', aliases=['rankqueue'])
+@commands.has_permissions(administrator=True)
+async def pending_ranks_list(ctx):
+    """View pending rank verifications"""
+    if not pending_ranks:
+        await ctx.send("✅ No pending rank verifications!")
+        return
+    
+    lines = []
+    for user_id, data in list(pending_ranks.items())[:10]:
+        user = bot.get_user(int(user_id))
+        name = user.display_name if user else f"User {user_id}"
+        rank_data = RL_RANKS.get(data['rank'], RL_RANKS[0])
+        div_text = f" Div {data.get('division', 1)}" if data.get('division') else ""
+        tracker = data.get('tracker_url', 'No URL')
+        lines.append(f"**{name}** - {rank_data['emoji']} {rank_data['name']}{div_text}\n└ [Tracker]({tracker})")
+    
+    embed = discord.Embed(
+        title="⏳ Pending Rank Verifications",
+        description="\n\n".join(lines),
+        color=0xFFA500
+    )
+    embed.set_footer(text=f"Use ~approverank <@user> or ~denyrank <@user>")
+    await ctx.send(embed=embed)
+
+@bot.hybrid_command(name='approverank')
+@commands.has_permissions(administrator=True)
+async def approve_rank(ctx, user_input: str):
+    """Approve a pending rank verification"""
+    user_id = re.sub(r'[<@!>]', '', user_input)
+    
+    if user_id not in pending_ranks:
+        await ctx.send("❌ No pending rank for this user")
+        return
+    
+    data = pending_ranks[user_id]
+    rl_ranks[user_id] = {'rank': data['rank'], 'division': data.get('division', 1)}
+    save_rl_ranks()
+    
+    del pending_ranks[user_id]
+    save_pending_ranks()
+    
+    rank_data = RL_RANKS.get(data['rank'], RL_RANKS[0])
+    div_text = f" Div {data.get('division', 1)}" if data.get('division') else ""
+    
+    # Auto-assign rank role
+    member = ctx.guild.get_member(int(user_id))
+    if member:
+        await assign_rank_role(member, data['rank'])
+    
+    try:
+        user = await bot.fetch_user(int(user_id))
+        await user.send(f"✅ Your rank **{rank_data['name']}{div_text}** has been approved!")
+    except:
+        pass
+    
+    await ctx.send(f"✅ Approved {rank_data['emoji']} **{rank_data['name']}{div_text}** for <@{user_id}>")
+
+@bot.hybrid_command(name='setrankrole')
+@commands.has_permissions(administrator=True)
+async def set_rank_role(ctx, tier: str, role: discord.Role):
+    """Set a role for a rank tier - Usage: ~setrankrole diamond @Diamond"""
+    valid_tiers = ['bronze', 'silver', 'gold', 'platinum', 'diamond', 'champion', 'grand_champion', 'ssl']
+    tier_lower = tier.lower().replace(' ', '_')
+    
+    if tier_lower not in valid_tiers:
+        await ctx.send(f"❌ Invalid tier. Use: {', '.join(valid_tiers)}")
+        return
+    
+    rank_roles[tier_lower] = role.id
+    save_rank_roles()
+    await ctx.send(f"✅ {tier.title()} ranks will now receive {role.mention}")
+
+@bot.hybrid_command(name='rankroles')
+@commands.has_permissions(administrator=True)
+async def view_rank_roles(ctx):
+    """View configured rank roles"""
+    if not rank_roles:
+        await ctx.send("❌ No rank roles configured. Use `~setrankrole <tier> @role`")
+        return
+    
+    lines = []
+    tiers = ['bronze', 'silver', 'gold', 'platinum', 'diamond', 'champion', 'grand_champion', 'ssl']
+    for tier in tiers:
+        role_id = rank_roles.get(tier)
+        if role_id:
+            role = ctx.guild.get_role(int(role_id))
+            lines.append(f"**{tier.replace('_', ' ').title()}**: {role.mention if role else 'Role not found'}")
+        else:
+            lines.append(f"**{tier.replace('_', ' ').title()}**: Not set")
+    
+    embed = discord.Embed(
+        title="🎮 Rank Role Configuration",
+        description="\n".join(lines),
+        color=0x5865F2
+    )
+    await ctx.send(embed=embed)
+
+@bot.hybrid_command(name='denyrank')
+@commands.has_permissions(administrator=True)
+async def deny_rank(ctx, user_input: str, *, reason: str = "No reason provided"):
+    """Deny a pending rank verification"""
+    user_id = re.sub(r'[<@!>]', '', user_input)
+    
+    if user_id not in pending_ranks:
+        await ctx.send("❌ No pending rank for this user")
+        return
+    
+    data = pending_ranks[user_id]
+    rank_data = RL_RANKS.get(data['rank'], RL_RANKS[0])
+    
+    del pending_ranks[user_id]
+    save_pending_ranks()
+    
+    try:
+        user = await bot.fetch_user(int(user_id))
+        await user.send(f"❌ Your rank request for **{rank_data['name']}** was denied.\nReason: {reason}")
+    except:
+        pass
+    
+    await ctx.send(f"❌ Denied rank request from <@{user_id}>\nReason: {reason}")
+
+# =====================
+# COMMANDS - SERVER STATS
+# =====================
+
+@bot.hybrid_command(name='serverstats', aliases=['sstats'])
+async def server_stats(ctx):
+    """View server statistics"""
+    guild = ctx.guild
+    if not guild:
+        await ctx.send("❌ This command only works in a server")
+        return
+    
+    total_members = guild.member_count or 0
+    bots = sum(1 for m in guild.members if m.bot)
+    humans = total_members - bots
+    online = sum(1 for m in guild.members if m.status != discord.Status.offline)
+    
+    text_channels = len(guild.text_channels)
+    voice_channels = len(guild.voice_channels)
+    roles = len(guild.roles)
+    
+    created = guild.created_at
+    age_days = (datetime.now(timezone.utc) - created).days
+    
+    embed = discord.Embed(
+        title=f"📊 {guild.name} Stats",
+        color=0x5865F2
+    )
+    if guild.icon:
+        embed.set_thumbnail(url=guild.icon.url)
+    
+    embed.add_field(name="👥 Members", value=f"{humans:,} humans\n{bots} bots", inline=True)
+    embed.add_field(name="🟢 Online", value=f"{online:,}", inline=True)
+    embed.add_field(name="📅 Created", value=f"{created.strftime('%b %d, %Y')}\n({age_days:,} days ago)", inline=True)
+    embed.add_field(name="💬 Channels", value=f"{text_channels} text\n{voice_channels} voice", inline=True)
+    embed.add_field(name="🎭 Roles", value=str(roles), inline=True)
+    embed.add_field(name="👑 Owner", value=guild.owner.mention if guild.owner else "Unknown", inline=True)
+    
+    await ctx.send(embed=embed)
+
+# =====================
+# MOD LOGGING EVENTS
+# =====================
+
+@bot.event
+async def on_member_ban(guild, user):
+    """Log when a member is banned"""
+    channel = bot.get_channel(LOG_CHANNEL_ID)
+    if not channel:
+        return
+    
+    embed = discord.Embed(
+        title="🔨 Member Banned",
+        description=f"**User:** {user} ({user.id})",
+        color=0xFF0000
+    )
+    embed.set_thumbnail(url=user.display_avatar.url)
+    embed.timestamp = datetime.now(timezone.utc)
+    
+    try:
+        async for entry in guild.audit_logs(action=discord.AuditLogAction.ban, limit=1):
+            if entry.target.id == user.id:
+                embed.add_field(name="Banned by", value=entry.user.mention, inline=True)
+                if entry.reason:
+                    embed.add_field(name="Reason", value=entry.reason, inline=False)
+                break
+    except:
+        pass
+    
+    await channel.send(embed=embed)
+
+@bot.event
+async def on_member_unban(guild, user):
+    """Log when a member is unbanned"""
+    channel = bot.get_channel(LOG_CHANNEL_ID)
+    if not channel:
+        return
+    
+    embed = discord.Embed(
+        title="🔓 Member Unbanned",
+        description=f"**User:** {user} ({user.id})",
+        color=0x00FF00
+    )
+    embed.set_thumbnail(url=user.display_avatar.url)
+    embed.timestamp = datetime.now(timezone.utc)
+    await channel.send(embed=embed)
+
+@bot.hybrid_command(name='warn')
+@commands.has_permissions(kick_members=True)
+async def warn_user(ctx, member: discord.Member, *, reason: str = "No reason provided"):
+    """Warn a user and log it"""
+    channel = bot.get_channel(LOG_CHANNEL_ID)
+    
+    embed = discord.Embed(
+        title="⚠️ Member Warned",
+        color=0xFFFF00
+    )
+    embed.add_field(name="User", value=f"{member.mention} ({member})", inline=True)
+    embed.add_field(name="Warned by", value=ctx.author.mention, inline=True)
+    embed.add_field(name="Reason", value=reason, inline=False)
+    embed.set_thumbnail(url=member.display_avatar.url)
+    embed.timestamp = datetime.now(timezone.utc)
+    
+    if channel:
+        await channel.send(embed=embed)
+    
+    try:
+        await member.send(f"⚠️ You were warned in **{ctx.guild.name}**\nReason: {reason}")
+    except:
+        pass
+    
+    await ctx.send(f"⚠️ Warned {member.mention}: {reason}")
+
 @bot.hybrid_command(name='guide')
 async def guide_command(ctx):
     """Show all available commands"""
@@ -987,24 +1380,38 @@ async def guide_command(ctx):
     
     embed.add_field(name="🚀 Rocket League", value=f"""
 `{prefix}setrlprofile <platform> <user>` - Link Tracker (required)
-`{prefix}setrank <rank>` - Set your RL rank
+`{prefix}setrank <rank>` - Submit rank for verification
 `{prefix}rllb` - Rank leaderboard
 `{prefix}stats [@user]` - View RL stats
 `{prefix}profile [@user]` - View profile
-`{prefix}resetranks` - Reset all ranks (Admin)
-`{prefix}adminsetprofile <@user/ID> <rank> <url>` - Set user's rank & tracker (Admin)
     """, inline=False)
     
-    embed.add_field(name="🔔 Bump Reminders", value=f"""
-`{prefix}bumpinfo` - View bump reminder status
+    embed.add_field(name="🔧 RL Admin", value=f"""
+`{prefix}pendingranks` - View pending verifications
+`{prefix}approverank <@user>` - Approve rank
+`{prefix}denyrank <@user> [reason]` - Deny rank
+`{prefix}adminsetprofile <@user/ID> <rank> <url>` - Set rank directly
+`{prefix}setrankrole <tier> @role` - Configure auto-role
+`{prefix}rankroles` - View role config
+`{prefix}resetranks` - Reset all ranks
     """, inline=False)
     
-    embed.add_field(name="📺 Stream Notifications", value=f"""
-`{prefix}list` - View monitored streamers
+    embed.add_field(name="💤 AFK System", value=f"""
+`{prefix}afk [reason]` - Set AFK status
     """, inline=False)
     
-    embed.add_field(name="ℹ️ Info", value=f"""
+    embed.add_field(name="📊 Server", value=f"""
+`{prefix}serverstats` - Server statistics
 `{prefix}botinfo` - Bot stats & info
+    """, inline=False)
+    
+    embed.add_field(name="🔨 Moderation", value=f"""
+`{prefix}warn <@user> [reason]` - Warn a user
+    """, inline=False)
+    
+    embed.add_field(name="🔔 Other", value=f"""
+`{prefix}bumpinfo` - Bump reminder status
+`{prefix}list` - View monitored streamers
     """, inline=False)
     
     await ctx.send(embed=embed)
