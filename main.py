@@ -125,6 +125,139 @@ JJK_MISSIONS = [
     {"name": "Exorcise Domain", "yen": 15000, "xp": 500, "cooldown": 14400},
 ]
 
+# =====================
+# MISSION BOARD SYSTEM
+# =====================
+MISSION_BOARD_TEMPLATES = {
+    "easy": [
+        {"name": "Patrol the School", "desc": "Check for curse activity around Jujutsu High", "duration": 60, "yen": 300, "xp": 30, "risk": 0.0, "min_level": 1},
+        {"name": "Exorcise Weak Spirit", "desc": "A minor curse is causing disturbances", "duration": 90, "yen": 500, "xp": 50, "risk": 0.05, "min_level": 1},
+        {"name": "Escort Mission", "desc": "Protect a civilian from curse activity", "duration": 120, "yen": 600, "xp": 60, "risk": 0.05, "min_level": 1},
+        {"name": "Training Exercise", "desc": "Practice with fellow sorcerers", "duration": 60, "yen": 200, "xp": 80, "risk": 0.0, "min_level": 1},
+    ],
+    "medium": [
+        {"name": "Cursed Womb Investigation", "desc": "Investigate a potential cursed womb", "duration": 180, "yen": 1200, "xp": 120, "risk": 0.15, "min_level": 5},
+        {"name": "Retrieve Cursed Object", "desc": "Secure a dangerous artifact", "duration": 240, "yen": 1800, "xp": 150, "risk": 0.20, "min_level": 5},
+        {"name": "Grade 3 Curse Hunt", "desc": "A confirmed Grade 3 curse needs exorcising", "duration": 150, "yen": 1500, "xp": 130, "risk": 0.15, "min_level": 5},
+        {"name": "Protect VIP", "desc": "Guard someone with high curse attraction", "duration": 300, "yen": 2000, "xp": 180, "risk": 0.10, "min_level": 8},
+    ],
+    "hard": [
+        {"name": "Grade 2 Curse Elimination", "desc": "A dangerous curse threatens civilians", "duration": 360, "yen": 4000, "xp": 300, "risk": 0.35, "min_level": 15},
+        {"name": "Cursed Womb: Death Painting", "desc": "Confront a Death Painting Womb", "duration": 480, "yen": 6000, "xp": 400, "risk": 0.40, "min_level": 15},
+        {"name": "Domain Expansion Training", "desc": "Master your incomplete domain", "duration": 600, "yen": 3000, "xp": 500, "risk": 0.25, "min_level": 20},
+        {"name": "Rescue Operation", "desc": "Extract sorcerers from a hostile zone", "duration": 420, "yen": 5000, "xp": 350, "risk": 0.30, "min_level": 15},
+    ],
+    "extreme": [
+        {"name": "Grade 1 Curse Suppression", "desc": "An extremely dangerous curse emerged", "duration": 720, "yen": 12000, "xp": 800, "risk": 0.55, "min_level": 25},
+        {"name": "Special Grade Investigation", "desc": "Scout a Special Grade curse location", "duration": 900, "yen": 15000, "xp": 1000, "risk": 0.60, "min_level": 30},
+        {"name": "Shibuya Incident Cleanup", "desc": "Clear remaining curses from Shibuya", "duration": 1200, "yen": 20000, "xp": 1500, "risk": 0.50, "min_level": 35},
+        {"name": "Confront Disaster Curse", "desc": "Face one of the Disaster Curses", "duration": 1800, "yen": 50000, "xp": 3000, "risk": 0.70, "min_level": 40},
+    ]
+}
+
+# =====================
+# DISPATCH MISSIONS (Idle/Long-form)
+# =====================
+DISPATCH_MISSIONS = [
+    {"id": "patrol_city", "name": "City Patrol", "desc": "Scout for curse activity", "duration_min": 30, "duration_max": 60, "base_yen": 800, "base_xp": 80, "risk": 0.05, "min_level": 1, "rare_loot_chance": 0.02},
+    {"id": "clear_building", "name": "Building Cleanse", "desc": "Clear a cursed building", "duration_min": 60, "duration_max": 120, "base_yen": 2000, "base_xp": 150, "risk": 0.15, "min_level": 5, "rare_loot_chance": 0.05},
+    {"id": "artifact_hunt", "name": "Artifact Hunt", "desc": "Search for cursed tools", "duration_min": 120, "duration_max": 240, "base_yen": 4000, "base_xp": 300, "risk": 0.20, "min_level": 10, "rare_loot_chance": 0.10},
+    {"id": "curse_nest", "name": "Curse Nest Raid", "desc": "Clear a curse breeding ground", "duration_min": 180, "duration_max": 360, "base_yen": 8000, "base_xp": 500, "risk": 0.35, "min_level": 15, "rare_loot_chance": 0.15},
+    {"id": "domain_scout", "name": "Domain Scouting", "desc": "Investigate domain expansion", "duration_min": 240, "duration_max": 480, "base_yen": 15000, "base_xp": 800, "risk": 0.45, "min_level": 25, "rare_loot_chance": 0.20},
+    {"id": "special_grade", "name": "Special Grade Hunt", "desc": "Track a Special Grade curse", "duration_min": 360, "duration_max": 720, "base_yen": 30000, "base_xp": 1500, "risk": 0.60, "min_level": 35, "rare_loot_chance": 0.30},
+]
+
+# =====================
+# INJURY SYSTEM
+# =====================
+INJURIES = {
+    "minor_bruise": {"name": "Minor Bruise", "severity": 1, "duration_hours": 1, "hunt_penalty": 0.1, "train_penalty": 0.1, "blocks_hunt": False, "blocks_train": False},
+    "cursed_wound": {"name": "Cursed Wound", "severity": 2, "duration_hours": 3, "hunt_penalty": 0.25, "train_penalty": 0.25, "blocks_hunt": False, "blocks_train": False},
+    "broken_arm": {"name": "Broken Arm", "severity": 3, "duration_hours": 6, "hunt_penalty": 0.5, "train_penalty": 0.5, "blocks_hunt": True, "blocks_train": False},
+    "cursed_poison": {"name": "Cursed Poison", "severity": 4, "duration_hours": 12, "hunt_penalty": 0.75, "train_penalty": 0.5, "blocks_hunt": True, "blocks_train": True},
+    "domain_backlash": {"name": "Domain Backlash", "severity": 5, "duration_hours": 24, "hunt_penalty": 1.0, "train_penalty": 1.0, "blocks_hunt": True, "blocks_train": True},
+}
+
+# Injury chances by risk level
+def get_injury_from_risk(risk_level):
+    import random
+    if risk_level < 0.1:
+        return None
+    if random.random() > risk_level:
+        return None
+    if risk_level < 0.2:
+        return "minor_bruise"
+    elif risk_level < 0.35:
+        return random.choice(["minor_bruise", "cursed_wound"])
+    elif risk_level < 0.5:
+        return random.choice(["cursed_wound", "broken_arm"])
+    elif risk_level < 0.65:
+        return random.choice(["broken_arm", "cursed_poison"])
+    else:
+        return random.choice(["cursed_poison", "domain_backlash"])
+
+# =====================
+# ITEMS & INVENTORY
+# =====================
+JJK_ITEMS = {
+    "bandage": {"name": "Medical Bandage", "cost": 500, "desc": "Reduces injury duration by 1 hour", "emoji": "🩹", "type": "healing", "effect": {"reduce_injury_hours": 1}},
+    "cursed_salve": {"name": "Cursed Salve", "cost": 2000, "desc": "Reduces injury duration by 3 hours", "emoji": "💊", "type": "healing", "effect": {"reduce_injury_hours": 3}},
+    "reverse_technique": {"name": "Reverse Technique Scroll", "cost": 10000, "desc": "Instantly clears all injuries", "emoji": "📜", "type": "healing", "effect": {"clear_injuries": True}},
+    "xp_charm": {"name": "XP Charm", "cost": 3000, "desc": "+50% XP for next 3 hunts/trains", "emoji": "✨", "type": "boost", "effect": {"xp_mult": 1.5, "uses": 3}},
+    "luck_talisman": {"name": "Luck Talisman", "cost": 5000, "desc": "+20% success chance for next 3 missions", "emoji": "🍀", "type": "boost", "effect": {"success_boost": 0.2, "uses": 3}},
+    "protection_ward": {"name": "Protection Ward", "cost": 4000, "desc": "Blocks next injury", "emoji": "🛡️", "type": "protection", "effect": {"blocks_injury": 1}},
+    "energy_drink": {"name": "Cursed Energy Drink", "cost": 1500, "desc": "Reduces hunt cooldown by 15 seconds", "emoji": "🥤", "type": "cooldown", "effect": {"reduce_hunt_cd": 15}},
+    "onigiri": {"name": "Salmon Onigiri", "cost": 800, "desc": "Heals minor injuries and gives small XP", "emoji": "🍙", "type": "food", "effect": {"heal_minor": True, "xp": 25}},
+}
+
+# =====================
+# RARE LOOT & COLLECTIONS
+# =====================
+RARE_LOOT = {
+    "sukuna_finger": {"name": "Sukuna's Finger", "rarity": "legendary", "emoji": "☝️", "collection": "sukuna_parts"},
+    "cursed_painting": {"name": "Death Painting Fragment", "rarity": "rare", "emoji": "🖼️", "collection": "death_paintings"},
+    "gojo_blindfold": {"name": "Infinity Cloth", "rarity": "epic", "emoji": "🎭", "collection": "gojo_artifacts"},
+    "todo_photo": {"name": "Todo's Idol Photo", "rarity": "uncommon", "emoji": "📸", "collection": "mementos"},
+    "inumaki_throat": {"name": "Cursed Speech Seal", "rarity": "rare", "emoji": "🔇", "collection": "technique_scrolls"},
+    "megumi_contract": {"name": "Shikigami Contract", "rarity": "epic", "emoji": "📋", "collection": "technique_scrolls"},
+    "maki_glasses": {"name": "Heavenly Restriction Glasses", "rarity": "rare", "emoji": "👓", "collection": "zenin_relics"},
+    "yuta_ring": {"name": "Rika's Ring", "rarity": "legendary", "emoji": "💍", "collection": "cursed_bonds"},
+    "mahito_soul": {"name": "Idle Transfiguration Core", "rarity": "legendary", "emoji": "👤", "collection": "disaster_essence"},
+    "jogo_ember": {"name": "Jogo's Ember", "rarity": "epic", "emoji": "🔥", "collection": "disaster_essence"},
+    "hanami_seed": {"name": "Hanami's Seed", "rarity": "epic", "emoji": "🌱", "collection": "disaster_essence"},
+    "dagon_shell": {"name": "Dagon's Shell", "rarity": "epic", "emoji": "🐚", "collection": "disaster_essence"},
+}
+
+COLLECTIONS = {
+    "sukuna_parts": {"name": "King of Curses", "items_needed": 5, "bonus_type": "yen_mult", "bonus_value": 1.25, "title": "Vessel of Sukuna"},
+    "death_paintings": {"name": "Death Paintings", "items_needed": 3, "bonus_type": "xp_mult", "bonus_value": 1.15, "title": "Painting Collector"},
+    "gojo_artifacts": {"name": "Limitless Legacy", "items_needed": 3, "bonus_type": "success_boost", "bonus_value": 0.10, "title": "Six Eyes Heir"},
+    "mementos": {"name": "Jujutsu Memories", "items_needed": 5, "bonus_type": "income_mult", "bonus_value": 1.10, "title": "Memory Keeper"},
+    "technique_scrolls": {"name": "Technique Archive", "items_needed": 4, "bonus_type": "xp_mult", "bonus_value": 1.20, "title": "Technique Scholar"},
+    "zenin_relics": {"name": "Zenin Legacy", "items_needed": 3, "bonus_type": "hunt_bonus", "bonus_value": 100, "title": "Zenin Heir"},
+    "cursed_bonds": {"name": "Bonds of Curses", "items_needed": 2, "bonus_type": "yen_mult", "bonus_value": 1.30, "title": "Bound by Curse"},
+    "disaster_essence": {"name": "Disaster Curses", "items_needed": 4, "bonus_type": "all_mult", "bonus_value": 1.15, "title": "Disaster Tamer"},
+}
+
+import random as _random
+
+def roll_rare_loot(chance_multiplier=1.0):
+    """Roll for rare loot based on chance"""
+    base_chance = 0.05 * chance_multiplier
+    if _random.random() > base_chance:
+        return None
+    rarities = {"uncommon": 0.50, "rare": 0.30, "epic": 0.15, "legendary": 0.05}
+    roll = _random.random()
+    cumulative = 0
+    selected_rarity = "uncommon"
+    for rarity, weight in rarities.items():
+        cumulative += weight
+        if roll <= cumulative:
+            selected_rarity = rarity
+            break
+    matching = [k for k, v in RARE_LOOT.items() if v["rarity"] == selected_rarity]
+    return _random.choice(matching) if matching else None
+
 def get_jjk_grade(level):
     """Get sorcerer grade based on level"""
     if level < 5: return "Grade 4"
@@ -428,7 +561,7 @@ def get_jjk_player(user_id):
     uid = str(user_id)
     if uid not in jjk_players:
         return None
-    return jjk_players[uid]
+    return ensure_player_fields(jjk_players[uid])
 
 def create_jjk_player(user_id):
     """Create a new JJK player"""
@@ -448,10 +581,41 @@ def create_jjk_player(user_id):
         "last_daily": None,
         "last_hunt": None,
         "last_train": None,
-        "last_collect": None
+        "last_collect": None,
+        "inventory": {},
+        "injuries": {},
+        "active_mission": None,
+        "mission_offers": [],
+        "mission_offers_time": None,
+        "dispatch_slots": [],
+        "collections": {},
+        "boosts": {},
+        "last_eat": None,
+        "last_rest": None,
+        "protection_wards": 0
     }
     save_jjk_data()
     return jjk_players[uid]
+
+def ensure_player_fields(player):
+    """Ensure all new fields exist on a player (for migration)"""
+    defaults = {
+        "inventory": {},
+        "injuries": {},
+        "active_mission": None,
+        "mission_offers": [],
+        "mission_offers_time": None,
+        "dispatch_slots": [],
+        "collections": {},
+        "boosts": {},
+        "last_eat": None,
+        "last_rest": None,
+        "protection_wards": 0
+    }
+    for key, val in defaults.items():
+        if key not in player:
+            player[key] = val
+    return player
 
 import random
 
@@ -2288,11 +2452,40 @@ async def jjk_guide(ctx):
 `{prefix}balance` - Check yen
     """, inline=False)
     
-    embed.add_field(name="⚔️ Earning Yen", value=f"""
+    embed.add_field(name="📋 Mission Board", value=f"""
+`{prefix}missions` - View available missions
+`{prefix}accept <#>` - Accept a mission
+`{prefix}missionclaim` - Claim completed mission
+    """, inline=False)
+    
+    embed.add_field(name="📤 Dispatch (Idle)", value=f"""
+`{prefix}dispatchlist` - View dispatch missions
+`{prefix}dispatch <sorcerer> <id>` - Send sorcerer
+`{prefix}dispatchstatus` - Check progress
+`{prefix}dispatchclaim` - Claim rewards
+    """, inline=False)
+    
+    embed.add_field(name="⚔️ Quick Actions", value=f"""
 `{prefix}hunt` - Exorcise curses (30s cd)
 `{prefix}train` - Gain XP (60s cd)
 `{prefix}daily` - Daily reward
 `{prefix}collect` - Collect hourly income
+    """, inline=False)
+    
+    embed.add_field(name="🎒 Inventory & Items", value=f"""
+`{prefix}inventory` - View items
+`{prefix}shopitems` - Browse item shop
+`{prefix}buyitem <name>` - Buy item
+`{prefix}use <name>` - Use item
+    """, inline=False)
+    
+    embed.add_field(name="😴 Recovery", value=f"""
+`{prefix}eat` - Eat for XP (6h cd)
+`{prefix}rest` - Heal injuries (12h cd)
+    """, inline=False)
+    
+    embed.add_field(name="🏆 Collections", value=f"""
+`{prefix}collections` - View rare loot
     """, inline=False)
     
     embed.add_field(name="🛒 Upgrades", value=f"""
@@ -2305,13 +2498,7 @@ async def jjk_guide(ctx):
     embed.add_field(name="🏯 Clans", value=f"""
 `{prefix}clancreate <name>` - Create (50k yen)
 `{prefix}clanjoin <name>` - Join a clan
-`{prefix}clanleave` - Leave clan
-`{prefix}claninfo` - View clan
-`{prefix}clanlb` - Clan leaderboard
-    """, inline=False)
-    
-    embed.add_field(name="📊 Leaderboard", value=f"""
-`{prefix}jjklb` - Top sorcerers
+`{prefix}claninfo` - View clan | `{prefix}clanlb` - Leaderboard
     """, inline=False)
     
     await ctx.send(embed=embed)
@@ -2369,6 +2556,811 @@ async def guide_command(ctx):
     """, inline=False)
     
     await ctx.send(embed=embed)
+
+# =====================
+# MISSION BOARD COMMANDS
+# =====================
+
+def generate_mission_offers(player_level):
+    """Generate 4 mission offers based on player level"""
+    offers = []
+    difficulties = ["easy", "medium", "hard", "extreme"]
+    
+    for i, diff in enumerate(difficulties):
+        templates = MISSION_BOARD_TEMPLATES.get(diff, [])
+        eligible = [t for t in templates if t["min_level"] <= player_level]
+        if eligible:
+            mission = random.choice(eligible).copy()
+            mission["id"] = i + 1
+            mission["difficulty"] = diff
+            yen_var = random.uniform(0.8, 1.2)
+            xp_var = random.uniform(0.9, 1.1)
+            mission["yen"] = int(mission["yen"] * yen_var)
+            mission["xp"] = int(mission["xp"] * xp_var)
+            offers.append(mission)
+    
+    return offers
+
+def check_player_injuries(player):
+    """Check and clean up expired injuries, return active ones"""
+    now = datetime.now(timezone.utc)
+    injuries = player.get("injuries", {})
+    active = {}
+    for injury_key, data in injuries.items():
+        expires = parse_iso_timestamp(data.get("expires"))
+        if expires and expires > now:
+            active[injury_key] = data
+    player["injuries"] = active
+    return active
+
+def get_injury_status_text(player):
+    """Get a text summary of player injuries"""
+    injuries = check_player_injuries(player)
+    if not injuries:
+        return None
+    now = datetime.now(timezone.utc)
+    lines = []
+    for injury_key, data in injuries.items():
+        injury_info = INJURIES.get(injury_key, {})
+        expires = parse_iso_timestamp(data.get("expires"))
+        if expires:
+            remaining = (expires - now).total_seconds()
+            hours = int(remaining // 3600)
+            mins = int((remaining % 3600) // 60)
+            lines.append(f"• {injury_info.get('name', injury_key)}: {hours}h {mins}m remaining")
+    return "\n".join(lines) if lines else None
+
+def apply_injury(player, injury_key):
+    """Apply an injury to a player"""
+    if player.get("protection_wards", 0) > 0:
+        player["protection_wards"] -= 1
+        return None
+    injury_info = INJURIES.get(injury_key)
+    if not injury_info:
+        return None
+    now = datetime.now(timezone.utc)
+    expires = now + timedelta(hours=injury_info["duration_hours"])
+    player["injuries"][injury_key] = {"expires": expires.isoformat()}
+    return injury_info
+
+def can_hunt(player):
+    """Check if player can hunt (not blocked by injuries)"""
+    injuries = check_player_injuries(player)
+    for injury_key in injuries:
+        if INJURIES.get(injury_key, {}).get("blocks_hunt", False):
+            return False, INJURIES[injury_key]["name"]
+    return True, None
+
+def can_train(player):
+    """Check if player can train (not blocked by injuries)"""
+    injuries = check_player_injuries(player)
+    for injury_key in injuries:
+        if INJURIES.get(injury_key, {}).get("blocks_train", False):
+            return False, INJURIES[injury_key]["name"]
+    return True, None
+
+@bot.hybrid_command(name='missions', aliases=['mboard', 'missionboard'])
+async def mission_board(ctx):
+    """View available missions"""
+    player = get_jjk_player(ctx.author.id)
+    if not player:
+        await ctx.send("Use `~jjkstart` to begin your journey!")
+        return
+    
+    if player.get("active_mission"):
+        mission = player["active_mission"]
+        end_time = parse_iso_timestamp(mission.get("end_time"))
+        now = datetime.now(timezone.utc)
+        if end_time and end_time > now:
+            remaining = int((end_time - now).total_seconds())
+            mins = remaining // 60
+            secs = remaining % 60
+            await ctx.send(f"⚔️ You're on a mission: **{mission['name']}**\nTime remaining: **{mins}m {secs}s**\nUse `~missionclaim` when it's done!")
+            return
+    
+    now = datetime.now(timezone.utc)
+    offers_time = parse_iso_timestamp(player.get("mission_offers_time"))
+    
+    if not player.get("mission_offers") or not offers_time or (now - offers_time).total_seconds() > 1800:
+        player["mission_offers"] = generate_mission_offers(player["level"])
+        player["mission_offers_time"] = now.isoformat()
+        save_jjk_data()
+    
+    offers = player["mission_offers"]
+    
+    embed = discord.Embed(
+        title="📋 Mission Board",
+        description="Choose a mission with `~accept <number>`\nMissions refresh every 30 minutes",
+        color=0x9B59B6
+    )
+    
+    diff_colors = {"easy": "🟢", "medium": "🟡", "hard": "🟠", "extreme": "🔴"}
+    
+    for mission in offers:
+        diff_emoji = diff_colors.get(mission["difficulty"], "⚪")
+        duration_mins = mission["duration"] // 60
+        risk_pct = int(mission["risk"] * 100)
+        
+        field_value = f"{mission['desc']}\n"
+        field_value += f"⏱️ {duration_mins}m | 💰 {mission['yen']:,} | ✨ {mission['xp']} XP\n"
+        field_value += f"⚠️ Risk: {risk_pct}%"
+        if mission["min_level"] > player["level"]:
+            field_value += f"\n❌ Requires Level {mission['min_level']}"
+        
+        embed.add_field(
+            name=f"{diff_emoji} [{mission['id']}] {mission['name']} ({mission['difficulty'].upper()})",
+            value=field_value,
+            inline=False
+        )
+    
+    injury_text = get_injury_status_text(player)
+    if injury_text:
+        embed.add_field(name="🩹 Current Injuries", value=injury_text, inline=False)
+    
+    await ctx.send(embed=embed)
+
+@bot.hybrid_command(name='accept', aliases=['startmission'])
+async def accept_mission(ctx, mission_id: int):
+    """Accept a mission from the board"""
+    player = get_jjk_player(ctx.author.id)
+    if not player:
+        await ctx.send("Use `~jjkstart` to begin your journey!")
+        return
+    
+    if player.get("active_mission"):
+        await ctx.send("❌ You already have an active mission! Complete or claim it first.")
+        return
+    
+    can, injury_name = can_hunt(player)
+    if not can:
+        await ctx.send(f"❌ You can't take missions while injured with **{injury_name}**! Rest or use healing items.")
+        return
+    
+    offers = player.get("mission_offers", [])
+    mission = None
+    for m in offers:
+        if m["id"] == mission_id:
+            mission = m
+            break
+    
+    if not mission:
+        await ctx.send(f"❌ Mission #{mission_id} not found. Use `~missions` to see available missions.")
+        return
+    
+    if mission["min_level"] > player["level"]:
+        await ctx.send(f"❌ You need to be Level {mission['min_level']} for this mission!")
+        return
+    
+    now = datetime.now(timezone.utc)
+    end_time = now + timedelta(seconds=mission["duration"])
+    
+    player["active_mission"] = {
+        "name": mission["name"],
+        "difficulty": mission["difficulty"],
+        "yen": mission["yen"],
+        "xp": mission["xp"],
+        "risk": mission["risk"],
+        "end_time": end_time.isoformat(),
+        "start_time": now.isoformat()
+    }
+    player["mission_offers"] = []
+    save_jjk_data()
+    
+    duration_mins = mission["duration"] // 60
+    await ctx.send(f"⚔️ **Mission Accepted: {mission['name']}**\nDuration: **{duration_mins} minutes**\nUse `~missionclaim` when the time is up!")
+
+@bot.hybrid_command(name='missionclaim', aliases=['mclaim', 'claimission'])
+async def claim_mission(ctx):
+    """Claim rewards from completed mission"""
+    player = get_jjk_player(ctx.author.id)
+    if not player:
+        await ctx.send("Use `~jjkstart` to begin your journey!")
+        return
+    
+    mission = player.get("active_mission")
+    if not mission:
+        await ctx.send("❌ You don't have an active mission! Use `~missions` to find one.")
+        return
+    
+    end_time = parse_iso_timestamp(mission.get("end_time"))
+    now = datetime.now(timezone.utc)
+    
+    if end_time and end_time > now:
+        remaining = int((end_time - now).total_seconds())
+        mins = remaining // 60
+        secs = remaining % 60
+        await ctx.send(f"⏳ Mission not complete yet! **{mins}m {secs}s** remaining.")
+        return
+    
+    yen_reward = mission["yen"]
+    xp_reward = mission["xp"]
+    risk = mission.get("risk", 0)
+    
+    xp_boost = player.get("boosts", {}).get("xp_mult", {})
+    if xp_boost.get("uses", 0) > 0:
+        xp_reward = int(xp_reward * xp_boost.get("value", 1.0))
+        xp_boost["uses"] -= 1
+        if xp_boost["uses"] <= 0:
+            del player["boosts"]["xp_mult"]
+    
+    injury_result = None
+    if risk > 0:
+        injury_key = get_injury_from_risk(risk)
+        if injury_key:
+            injury_result = apply_injury(player, injury_key)
+    
+    loot_item = None
+    if random.random() < 0.05 + (0.02 * (["easy", "medium", "hard", "extreme"].index(mission.get("difficulty", "easy")))):
+        loot_item = roll_rare_loot(1.0)
+        if loot_item:
+            player["collections"][loot_item] = player.get("collections", {}).get(loot_item, 0) + 1
+    
+    player["yen"] += yen_reward
+    player["xp"] += xp_reward
+    player["missions_completed"] = player.get("missions_completed", 0) + 1
+    player["active_mission"] = None
+    
+    while player["xp"] >= xp_for_level(player["level"]):
+        player["xp"] -= xp_for_level(player["level"])
+        player["level"] += 1
+    
+    save_jjk_data()
+    
+    embed = discord.Embed(
+        title=f"✅ Mission Complete: {mission['name']}",
+        color=0x00FF00
+    )
+    embed.add_field(name="Rewards", value=f"💰 {yen_reward:,} yen\n✨ {xp_reward} XP", inline=True)
+    
+    if injury_result:
+        embed.add_field(name="🩹 Injury!", value=f"You sustained a **{injury_result['name']}**!\nDuration: {injury_result['duration_hours']}h", inline=True)
+    
+    if loot_item:
+        loot_info = RARE_LOOT.get(loot_item, {})
+        embed.add_field(name="🎁 Rare Loot!", value=f"{loot_info.get('emoji', '📦')} **{loot_info.get('name', loot_item)}**", inline=True)
+    
+    await ctx.send(embed=embed)
+
+# =====================
+# DISPATCH COMMANDS
+# =====================
+
+@bot.hybrid_command(name='dispatchlist', aliases=['dispatches', 'dlist'])
+async def dispatch_list(ctx):
+    """View available dispatch missions"""
+    player = get_jjk_player(ctx.author.id)
+    if not player:
+        await ctx.send("Use `~jjkstart` to begin your journey!")
+        return
+    
+    embed = discord.Embed(
+        title="📤 Dispatch Missions",
+        description="Send a sorcerer on a long mission\nUse `~dispatch <sorcerer> <mission_id>`",
+        color=0x3498DB
+    )
+    
+    for dm in DISPATCH_MISSIONS:
+        if dm["min_level"] <= player["level"]:
+            duration_text = f"{dm['duration_min']}-{dm['duration_max']}m"
+            risk_pct = int(dm["risk"] * 100)
+            loot_pct = int(dm["rare_loot_chance"] * 100)
+            
+            embed.add_field(
+                name=f"[{dm['id']}] {dm['name']}",
+                value=f"{dm['desc']}\n⏱️ {duration_text} | 💰 {dm['base_yen']:,} | ✨ {dm['base_xp']} XP\n⚠️ Risk: {risk_pct}% | 🎁 Loot: {loot_pct}%",
+                inline=False
+            )
+    
+    available_sorcerers = [s for s in player.get("sorcerers", []) if not any(d.get("sorcerer") == s for d in player.get("dispatch_slots", []))]
+    if available_sorcerers:
+        sorcerer_names = ", ".join([JJK_SORCERERS.get(s, {}).get("name", s) for s in available_sorcerers])
+        embed.add_field(name="Available Sorcerers", value=sorcerer_names, inline=False)
+    
+    await ctx.send(embed=embed)
+
+@bot.hybrid_command(name='dispatch', aliases=['send'])
+async def dispatch_sorcerer(ctx, sorcerer: str, mission_id: str):
+    """Send a sorcerer on a dispatch mission"""
+    player = get_jjk_player(ctx.author.id)
+    if not player:
+        await ctx.send("Use `~jjkstart` to begin your journey!")
+        return
+    
+    sorcerer_key = sorcerer.lower()
+    if sorcerer_key not in player.get("sorcerers", []):
+        await ctx.send(f"❌ You don't have **{sorcerer}**! Use `~sorcerers` to see who you have.")
+        return
+    
+    if any(d.get("sorcerer") == sorcerer_key for d in player.get("dispatch_slots", [])):
+        await ctx.send(f"❌ **{JJK_SORCERERS.get(sorcerer_key, {}).get('name', sorcerer)}** is already on a mission!")
+        return
+    
+    mission = None
+    for dm in DISPATCH_MISSIONS:
+        if dm["id"] == mission_id:
+            mission = dm
+            break
+    
+    if not mission:
+        await ctx.send(f"❌ Mission `{mission_id}` not found. Use `~dispatchlist` to see available missions.")
+        return
+    
+    if mission["min_level"] > player["level"]:
+        await ctx.send(f"❌ You need Level {mission['min_level']} for this mission!")
+        return
+    
+    now = datetime.now(timezone.utc)
+    duration = random.randint(mission["duration_min"], mission["duration_max"]) * 60
+    end_time = now + timedelta(seconds=duration)
+    
+    dispatch_data = {
+        "sorcerer": sorcerer_key,
+        "mission_id": mission_id,
+        "mission_name": mission["name"],
+        "end_time": end_time.isoformat(),
+        "base_yen": mission["base_yen"],
+        "base_xp": mission["base_xp"],
+        "risk": mission["risk"],
+        "rare_loot_chance": mission["rare_loot_chance"]
+    }
+    
+    player["dispatch_slots"].append(dispatch_data)
+    save_jjk_data()
+    
+    sorcerer_name = JJK_SORCERERS.get(sorcerer_key, {}).get("name", sorcerer)
+    duration_mins = duration // 60
+    await ctx.send(f"📤 **{sorcerer_name}** dispatched on **{mission['name']}**!\nExpected return: **{duration_mins} minutes**\nCheck status with `~dispatchstatus`")
+
+@bot.hybrid_command(name='dispatchstatus', aliases=['dstatus', 'mystatus'])
+async def dispatch_status(ctx):
+    """Check status of dispatched sorcerers"""
+    player = get_jjk_player(ctx.author.id)
+    if not player:
+        await ctx.send("Use `~jjkstart` to begin your journey!")
+        return
+    
+    dispatches = player.get("dispatch_slots", [])
+    if not dispatches:
+        await ctx.send("📭 No sorcerers on dispatch. Use `~dispatchlist` to send someone!")
+        return
+    
+    now = datetime.now(timezone.utc)
+    embed = discord.Embed(title="📤 Dispatch Status", color=0x3498DB)
+    
+    ready_count = 0
+    for d in dispatches:
+        sorcerer_name = JJK_SORCERERS.get(d["sorcerer"], {}).get("name", d["sorcerer"])
+        end_time = parse_iso_timestamp(d.get("end_time"))
+        
+        if end_time and end_time <= now:
+            status = "✅ **READY TO CLAIM**"
+            ready_count += 1
+        elif end_time:
+            remaining = int((end_time - now).total_seconds())
+            mins = remaining // 60
+            secs = remaining % 60
+            status = f"⏳ {mins}m {secs}s remaining"
+        else:
+            status = "❓ Unknown"
+        
+        embed.add_field(
+            name=f"{JJK_SORCERERS.get(d['sorcerer'], {}).get('emoji', '👤')} {sorcerer_name}",
+            value=f"Mission: {d['mission_name']}\n{status}",
+            inline=True
+        )
+    
+    if ready_count > 0:
+        embed.set_footer(text=f"Use ~dispatchclaim to claim {ready_count} completed mission(s)")
+    
+    await ctx.send(embed=embed)
+
+@bot.hybrid_command(name='dispatchclaim', aliases=['dclaim'])
+async def dispatch_claim(ctx):
+    """Claim all completed dispatch missions"""
+    player = get_jjk_player(ctx.author.id)
+    if not player:
+        await ctx.send("Use `~jjkstart` to begin your journey!")
+        return
+    
+    dispatches = player.get("dispatch_slots", [])
+    if not dispatches:
+        await ctx.send("📭 No sorcerers on dispatch!")
+        return
+    
+    now = datetime.now(timezone.utc)
+    completed = []
+    still_active = []
+    
+    for d in dispatches:
+        end_time = parse_iso_timestamp(d.get("end_time"))
+        if end_time and end_time <= now:
+            completed.append(d)
+        else:
+            still_active.append(d)
+    
+    if not completed:
+        await ctx.send("⏳ No dispatches are ready yet! Check `~dispatchstatus`")
+        return
+    
+    total_yen = 0
+    total_xp = 0
+    injuries = []
+    loot = []
+    
+    for d in completed:
+        yen_var = random.uniform(0.8, 1.3)
+        xp_var = random.uniform(0.9, 1.2)
+        yen = int(d["base_yen"] * yen_var)
+        xp = int(d["base_xp"] * xp_var)
+        
+        success_boost = player.get("boosts", {}).get("success_boost", {})
+        effective_risk = d["risk"]
+        if success_boost.get("uses", 0) > 0:
+            effective_risk = max(0, effective_risk - success_boost.get("value", 0))
+            success_boost["uses"] -= 1
+            if success_boost["uses"] <= 0:
+                del player["boosts"]["success_boost"]
+        
+        if random.random() < effective_risk:
+            injury_key = get_injury_from_risk(effective_risk)
+            if injury_key:
+                injury_result = apply_injury(player, injury_key)
+                if injury_result:
+                    injuries.append(f"{JJK_SORCERERS.get(d['sorcerer'], {}).get('name', d['sorcerer'])}: {injury_result['name']}")
+        
+        if random.random() < d["rare_loot_chance"]:
+            loot_item = roll_rare_loot(1.5)
+            if loot_item:
+                player["collections"][loot_item] = player.get("collections", {}).get(loot_item, 0) + 1
+                loot.append(RARE_LOOT.get(loot_item, {}).get("name", loot_item))
+        
+        total_yen += yen
+        total_xp += xp
+    
+    player["dispatch_slots"] = still_active
+    player["yen"] += total_yen
+    player["xp"] += total_xp
+    
+    while player["xp"] >= xp_for_level(player["level"]):
+        player["xp"] -= xp_for_level(player["level"])
+        player["level"] += 1
+    
+    save_jjk_data()
+    
+    embed = discord.Embed(
+        title=f"📥 Dispatch Complete ({len(completed)} missions)",
+        color=0x00FF00
+    )
+    embed.add_field(name="Rewards", value=f"💰 {total_yen:,} yen\n✨ {total_xp} XP", inline=True)
+    
+    if injuries:
+        embed.add_field(name="🩹 Injuries", value="\n".join(injuries), inline=True)
+    
+    if loot:
+        embed.add_field(name="🎁 Rare Loot", value="\n".join(loot), inline=True)
+    
+    await ctx.send(embed=embed)
+
+# =====================
+# INVENTORY COMMANDS
+# =====================
+
+@bot.hybrid_command(name='inventory', aliases=['inv', 'items'])
+async def inventory_cmd(ctx):
+    """View your inventory"""
+    player = get_jjk_player(ctx.author.id)
+    if not player:
+        await ctx.send("Use `~jjkstart` to begin your journey!")
+        return
+    
+    inventory = player.get("inventory", {})
+    
+    embed = discord.Embed(title="🎒 Your Inventory", color=0xE67E22)
+    
+    if not inventory:
+        embed.description = "Your inventory is empty!\nUse `~shopitems` to see what you can buy."
+    else:
+        for item_key, count in inventory.items():
+            item_info = JJK_ITEMS.get(item_key, {})
+            embed.add_field(
+                name=f"{item_info.get('emoji', '📦')} {item_info.get('name', item_key)} x{count}",
+                value=item_info.get("desc", "Unknown item"),
+                inline=True
+            )
+    
+    injury_text = get_injury_status_text(player)
+    if injury_text:
+        embed.add_field(name="🩹 Injuries", value=injury_text, inline=False)
+    
+    boosts = player.get("boosts", {})
+    if boosts:
+        boost_lines = []
+        for boost_key, boost_data in boosts.items():
+            uses = boost_data.get("uses", 0)
+            if uses > 0:
+                boost_lines.append(f"• {boost_key}: {uses} uses left")
+        if boost_lines:
+            embed.add_field(name="✨ Active Boosts", value="\n".join(boost_lines), inline=False)
+    
+    embed.add_field(name="🛡️ Protection Wards", value=str(player.get("protection_wards", 0)), inline=True)
+    
+    await ctx.send(embed=embed)
+
+@bot.hybrid_command(name='shopitems', aliases=['itemshop', 'ishop'])
+async def shop_items(ctx):
+    """View items available for purchase"""
+    player = get_jjk_player(ctx.author.id)
+    if not player:
+        await ctx.send("Use `~jjkstart` to begin your journey!")
+        return
+    
+    embed = discord.Embed(
+        title="🏪 Item Shop",
+        description=f"Your balance: **{player['yen']:,} yen**\nBuy with `~buyitem <name>`",
+        color=0xE67E22
+    )
+    
+    for item_key, item in JJK_ITEMS.items():
+        embed.add_field(
+            name=f"{item['emoji']} {item['name']} - {item['cost']:,} yen",
+            value=f"{item['desc']}\n`~buyitem {item_key}`",
+            inline=True
+        )
+    
+    await ctx.send(embed=embed)
+
+@bot.hybrid_command(name='buyitem', aliases=['ibuy'])
+async def buy_item(ctx, item_name: str):
+    """Buy an item from the shop"""
+    player = get_jjk_player(ctx.author.id)
+    if not player:
+        await ctx.send("Use `~jjkstart` to begin your journey!")
+        return
+    
+    item_key = item_name.lower().replace(" ", "_")
+    if item_key not in JJK_ITEMS:
+        await ctx.send(f"❌ Item `{item_name}` not found. Use `~shopitems` to see available items.")
+        return
+    
+    item = JJK_ITEMS[item_key]
+    if player["yen"] < item["cost"]:
+        await ctx.send(f"❌ Not enough yen! You need **{item['cost']:,}** but have **{player['yen']:,}**")
+        return
+    
+    player["yen"] -= item["cost"]
+    player["inventory"][item_key] = player.get("inventory", {}).get(item_key, 0) + 1
+    save_jjk_data()
+    
+    await ctx.send(f"✅ Bought **{item['name']}** for **{item['cost']:,} yen**!")
+
+@bot.hybrid_command(name='use', aliases=['useitem'])
+async def use_item(ctx, item_name: str):
+    """Use an item from your inventory"""
+    player = get_jjk_player(ctx.author.id)
+    if not player:
+        await ctx.send("Use `~jjkstart` to begin your journey!")
+        return
+    
+    item_key = item_name.lower().replace(" ", "_")
+    if item_key not in player.get("inventory", {}) or player["inventory"][item_key] <= 0:
+        await ctx.send(f"❌ You don't have **{item_name}**! Check `~inventory`")
+        return
+    
+    item = JJK_ITEMS.get(item_key)
+    if not item:
+        await ctx.send("❌ Unknown item!")
+        return
+    
+    effect = item.get("effect", {})
+    result_text = []
+    
+    if effect.get("clear_injuries"):
+        player["injuries"] = {}
+        result_text.append("All injuries cleared!")
+    
+    if effect.get("reduce_injury_hours"):
+        hours = effect["reduce_injury_hours"]
+        injuries = player.get("injuries", {})
+        now = datetime.now(timezone.utc)
+        updated_injuries = {}
+        for injury_key, data in injuries.items():
+            expires = parse_iso_timestamp(data.get("expires"))
+            if expires:
+                new_expires = expires - timedelta(hours=hours)
+                if new_expires > now:
+                    data["expires"] = new_expires.isoformat()
+                    updated_injuries[injury_key] = data
+        player["injuries"] = updated_injuries
+        result_text.append(f"Reduced injury duration by {hours} hour(s)")
+    
+    if effect.get("heal_minor"):
+        if "minor_bruise" in player.get("injuries", {}):
+            del player["injuries"]["minor_bruise"]
+            result_text.append("Healed minor bruise")
+    
+    if effect.get("xp"):
+        player["xp"] += effect["xp"]
+        result_text.append(f"+{effect['xp']} XP")
+    
+    if effect.get("xp_mult"):
+        player["boosts"]["xp_mult"] = {"value": effect["xp_mult"], "uses": effect.get("uses", 3)}
+        result_text.append(f"XP boost active for {effect.get('uses', 3)} actions")
+    
+    if effect.get("success_boost"):
+        player["boosts"]["success_boost"] = {"value": effect["success_boost"], "uses": effect.get("uses", 3)}
+        result_text.append(f"Success boost active for {effect.get('uses', 3)} missions")
+    
+    if effect.get("blocks_injury"):
+        player["protection_wards"] = player.get("protection_wards", 0) + effect["blocks_injury"]
+        result_text.append(f"+{effect['blocks_injury']} protection ward(s)")
+    
+    if effect.get("reduce_hunt_cd"):
+        result_text.append(f"Hunt cooldown reduced by {effect['reduce_hunt_cd']}s (applies next hunt)")
+    
+    player["inventory"][item_key] -= 1
+    if player["inventory"][item_key] <= 0:
+        del player["inventory"][item_key]
+    
+    save_jjk_data()
+    
+    await ctx.send(f"✅ Used **{item['name']}**!\n" + "\n".join(result_text))
+
+# =====================
+# IDLE ACTIONS
+# =====================
+
+@bot.hybrid_command(name='eat', aliases=['snack'])
+async def eat_cmd(ctx):
+    """Eat to recover (6h cooldown)"""
+    player = get_jjk_player(ctx.author.id)
+    if not player:
+        await ctx.send("Use `~jjkstart` to begin your journey!")
+        return
+    
+    now = datetime.now(timezone.utc)
+    last_eat = parse_iso_timestamp(player.get("last_eat"))
+    
+    if last_eat:
+        hours_passed = max(0, (now - last_eat).total_seconds() / 3600)
+        if hours_passed < 6:
+            remaining = 6 - hours_passed
+            hours = int(remaining)
+            mins = int((remaining - hours) * 60)
+            await ctx.send(f"🍜 You're still full! Wait **{hours}h {mins}m** to eat again.")
+            return
+    
+    xp_gain = random.randint(30, 60) + player["level"]
+    heal_minor = random.random() < 0.3
+    
+    player["xp"] += xp_gain
+    player["last_eat"] = now.isoformat()
+    
+    result = f"🍜 You enjoyed a meal!\n✨ +{xp_gain} XP"
+    
+    if heal_minor and "minor_bruise" in player.get("injuries", {}):
+        del player["injuries"]["minor_bruise"]
+        result += "\n🩹 Your minor bruise healed!"
+    
+    while player["xp"] >= xp_for_level(player["level"]):
+        player["xp"] -= xp_for_level(player["level"])
+        player["level"] += 1
+    
+    save_jjk_data()
+    await ctx.send(result)
+
+@bot.hybrid_command(name='rest', aliases=['sleep'])
+async def rest_cmd(ctx):
+    """Rest to recover from injuries (12h cooldown)"""
+    player = get_jjk_player(ctx.author.id)
+    if not player:
+        await ctx.send("Use `~jjkstart` to begin your journey!")
+        return
+    
+    now = datetime.now(timezone.utc)
+    last_rest = parse_iso_timestamp(player.get("last_rest"))
+    
+    if last_rest:
+        hours_passed = max(0, (now - last_rest).total_seconds() / 3600)
+        if hours_passed < 12:
+            remaining = 12 - hours_passed
+            hours = int(remaining)
+            mins = int((remaining - hours) * 60)
+            await ctx.send(f"😴 You're not tired! Wait **{hours}h {mins}m** to rest again.")
+            return
+    
+    injuries = player.get("injuries", {})
+    healed = []
+    reduced = []
+    
+    for injury_key, data in list(injuries.items()):
+        injury_info = INJURIES.get(injury_key, {})
+        if injury_info.get("severity", 0) <= 2:
+            healed.append(injury_info.get("name", injury_key))
+            del injuries[injury_key]
+        else:
+            expires = parse_iso_timestamp(data.get("expires"))
+            if expires:
+                new_expires = expires - timedelta(hours=3)
+                if new_expires <= now:
+                    healed.append(injury_info.get("name", injury_key))
+                    del injuries[injury_key]
+                else:
+                    data["expires"] = new_expires.isoformat()
+                    reduced.append(injury_info.get("name", injury_key))
+    
+    player["injuries"] = injuries
+    player["last_rest"] = now.isoformat()
+    save_jjk_data()
+    
+    result = "😴 You had a good rest!"
+    if healed:
+        result += f"\n✅ Healed: {', '.join(healed)}"
+    if reduced:
+        result += f"\n⏱️ Reduced duration: {', '.join(reduced)} (-3h each)"
+    if not healed and not reduced:
+        result += "\nNo injuries to heal, but you feel refreshed!"
+    
+    await ctx.send(result)
+
+# =====================
+# COLLECTIONS
+# =====================
+
+@bot.hybrid_command(name='collections', aliases=['collection', 'loot'])
+async def collections_cmd(ctx):
+    """View your rare loot collections"""
+    player = get_jjk_player(ctx.author.id)
+    if not player:
+        await ctx.send("Use `~jjkstart` to begin your journey!")
+        return
+    
+    player_collections = player.get("collections", {})
+    
+    embed = discord.Embed(
+        title="🏆 Your Collections",
+        description="Collect rare items from missions to unlock bonuses!",
+        color=0xF1C40F
+    )
+    
+    for collection_key, collection_info in COLLECTIONS.items():
+        items_in_collection = [k for k, v in RARE_LOOT.items() if v.get("collection") == collection_key]
+        owned = sum(1 for item in items_in_collection if player_collections.get(item, 0) > 0)
+        total = collection_info["items_needed"]
+        
+        progress = f"{owned}/{total}"
+        status = "✅ COMPLETE" if owned >= total else f"🔒 {progress}"
+        
+        item_list = []
+        for item in items_in_collection:
+            loot_info = RARE_LOOT.get(item, {})
+            count = player_collections.get(item, 0)
+            if count > 0:
+                item_list.append(f"{loot_info.get('emoji', '📦')} {loot_info.get('name', item)} x{count}")
+            else:
+                item_list.append(f"❓ ???")
+        
+        bonus_text = ""
+        if owned >= total:
+            bonus_type = collection_info["bonus_type"]
+            bonus_value = collection_info["bonus_value"]
+            title = collection_info["title"]
+            if "mult" in bonus_type:
+                bonus_text = f"\n🎁 Bonus: {int((bonus_value - 1) * 100)}% {bonus_type.replace('_mult', '').replace('_', ' ')}"
+            else:
+                bonus_text = f"\n🎁 Bonus: +{bonus_value} {bonus_type.replace('_', ' ')}"
+            bonus_text += f"\n👑 Title: {title}"
+        
+        embed.add_field(
+            name=f"{collection_info['name']} [{status}]",
+            value="\n".join(item_list[:5]) + bonus_text,
+            inline=True
+        )
+    
+    await ctx.send(embed=embed)
+
+# =====================
+# UPDATED JJK GUIDE
+# =====================
 
 # Run the bot
 if __name__ == "__main__":

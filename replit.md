@@ -1,21 +1,20 @@
 # Discord Kursein Bot - Tokyo Ghoul + Rocket League + JJK Theme
 
 ## Overview
-Kursein is a streamlined Discord bot with a Tokyo Ghoul, Rocket League, and Jujutsu Kaisen theme. The bot features Rocket League integration, DISBOARD bump reminders, stream notifications, moderation tools, and a full JJK-themed economy game.
+Kursein is a streamlined Discord bot with a Tokyo Ghoul, Rocket League, and Jujutsu Kaisen theme. The bot features Rocket League integration, DISBOARD bump reminders, stream notifications, moderation tools, and a full JJK-themed idle RPG economy game.
 
 ## Recent Changes (January 2026)
-- **JJK Economy System**: Full Jujutsu Kaisen themed economy game (20+ commands)
-- **Complete Rebuild**: Removed all casino system (50+ commands) and Karuta features
-- **Twitch API Update**: Uses TWITCH_CLIENT_ID and TWITCH_CLIENT_SECRET for authentication
-- **Rank Verification Queue**: Ranks go to pending queue for admin approval
-- **Auto Rank Roles**: Automatically assigns roles when ranks are approved
-- **AFK System**: Users can set AFK status with auto-clear on message
-- **Server Stats**: View server member count, growth, and activity
-- **Mod Logging**: Ban/unban events and warn command logged to updates channel
+- **Mission Board System**: Choice-based missions with difficulty tiers, risk/reward tradeoffs
+- **Dispatch System**: Send sorcerers on idle missions (30min-12hr), claim rewards later
+- **Injury System**: High-risk missions can cause injuries that block actions until healed
+- **Item Shop & Inventory**: Healing items, XP boosts, protection wards, success boosters
+- **Recovery Actions**: ~eat (6h cd) and ~rest (12h cd) for healing and XP
+- **Rare Loot Collections**: 12 rare items across 8 collections with set bonuses
+- **JJK Economy System**: Full Jujutsu Kaisen themed economy game (55+ commands)
 
 ## Features
 
-### JJK Economy System (NEW!)
+### JJK Idle RPG System
 Run your own Jujutsu School, exorcise curses, and become a Special Grade sorcerer!
 
 **Getting Started:**
@@ -24,7 +23,41 @@ Run your own Jujutsu School, exorcise curses, and become a Special Grade sorcere
 - `~balance` - Check yen balance
 - `~jjkguide` - Full command list
 
-**Earning Yen:**
+**Mission Board (Choice-Based Gameplay):**
+- `~missions` - View 4 available missions (Easy/Medium/Hard/Extreme)
+- `~accept <#>` - Accept a mission by number
+- `~missionclaim` - Claim rewards when mission completes
+- Missions have different durations, rewards, and injury risks
+- Board refreshes every 30 minutes
+
+**Dispatch System (Idle Missions):**
+- `~dispatchlist` - View dispatch mission options
+- `~dispatch <sorcerer> <mission_id>` - Send a sorcerer on a long mission
+- `~dispatchstatus` - Check progress of dispatched sorcerers
+- `~dispatchclaim` - Claim all completed dispatch rewards
+- Missions range from 30 minutes to 12 hours
+- Higher risk = better rewards + rare loot chances
+
+**Injury & Recovery:**
+- Injuries can block hunting/training until healed
+- `~rest` - Rest to heal injuries (12h cooldown)
+- `~eat` - Eat for small XP and minor healing (6h cooldown)
+- Use healing items to speed recovery
+
+**Item Shop & Inventory:**
+- `~inventory` - View your items
+- `~shopitems` - Browse the item shop
+- `~buyitem <name>` - Purchase an item
+- `~use <name>` - Use an item
+- Items: Bandages, Cursed Salve, XP Charms, Luck Talismans, Protection Wards, etc.
+
+**Rare Loot & Collections:**
+- `~collections` - View your rare loot progress
+- 12 rare items across 8 collections
+- Complete collections for permanent bonuses and titles
+- Collections: King of Curses, Disaster Curses, Limitless Legacy, etc.
+
+**Quick Earning (Legacy):**
 - `~hunt` - Exorcise curses for yen/XP (30s cooldown)
 - `~train` - Train to gain XP (60s cooldown)
 - `~daily` - Daily reward with streak bonus
@@ -104,7 +137,7 @@ Primary storage in PostgreSQL with JSONB columns:
 - `afk_users` - AFK status
 - `pending_ranks` - Pending rank verifications
 - `rank_roles` - Tier to role ID mapping
-- `jjk_players` - JJK economy player data
+- `jjk_players` - JJK economy player data (includes inventory, injuries, missions, collections)
 - `jjk_clans` - JJK clan data
 
 ### JJK Game Data
@@ -113,6 +146,13 @@ Primary storage in PostgreSQL with JSONB columns:
 **Tools (5):** Slaughter Demon, Playful Cloud, Inverted Spear, Split Soul Katana, Prison Realm
 **Domains (5):** No Domain, Incomplete, Chimera Shadow Garden, Malevolent Shrine, Infinite Void
 **Grades:** Grade 4 -> Grade 3 -> Grade 2 -> Grade 1 -> Semi-1st -> Special Grade
+
+**Mission Difficulties:** Easy (1-2 min), Medium (3-5 min), Hard (6-10 min), Extreme (12-30 min)
+**Dispatch Durations:** 30 min to 12 hours
+**Items (8):** Bandage, Cursed Salve, Reverse Technique Scroll, XP Charm, Luck Talisman, Protection Ward, Energy Drink, Salmon Onigiri
+**Injuries (5):** Minor Bruise, Cursed Wound, Broken Arm, Cursed Poison, Domain Backlash
+**Rare Loot (12):** Sukuna's Finger, Death Painting Fragment, Infinity Cloth, Todo's Idol Photo, etc.
+**Collections (8):** King of Curses, Death Paintings, Limitless Legacy, Jujutsu Memories, Technique Archive, Zenin Legacy, Cursed Bonds, Disaster Curses
 
 ### Hardcoded IDs
 - LOG_CHANNEL_ID: 1435009184285589554
@@ -137,7 +177,7 @@ Primary storage in PostgreSQL with JSONB columns:
 
 ## File Structure
 ```
-├── main.py              # Main bot code (~2400 lines)
+├── main.py              # Main bot code (~3100 lines)
 ├── db.py                # Database operations
 ├── replit.md            # This documentation
 ├── jjk_data.json        # JJK player data backup
@@ -150,3 +190,4 @@ Primary storage in PostgreSQL with JSONB columns:
 - Default prefix: `~`
 - Tokyo Ghoul + Rocket League + JJK theme
 - Ranks accept both "1" and "I" format (Diamond 1 = Diamond I)
+- NO gambling/casino mechanics - focus on choice-based idle RPG gameplay
