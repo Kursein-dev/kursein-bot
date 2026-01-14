@@ -10,7 +10,9 @@ Kursein is a streamlined Discord bot with a Tokyo Ghoul, Rocket League, and Juju
 - **Item Shop & Inventory**: Healing items, XP boosts, protection wards, success boosters
 - **Recovery Actions**: ~eat (6h cd) and ~rest (12h cd) for healing and XP
 - **Rare Loot Collections**: 12 rare items across 8 collections with set bonuses
-- **JJK Economy System**: Full Jujutsu Kaisen themed economy game (55+ commands)
+- **Story Mode**: 6 story arcs with 22 chapters following the JJK storyline
+- **More Characters**: 21 sorcerers including villains like Sukuna, Toji, Choso, Naoya
+- **JJK Economy System**: Full Jujutsu Kaisen themed economy game (59+ commands)
 
 ## Features
 
@@ -22,6 +24,14 @@ Run your own Jujutsu School, exorcise curses, and become a Special Grade sorcere
 - `~school` - View your school stats
 - `~balance` - Check yen balance
 - `~jjkguide` - Full command list
+
+**Story Mode (NEW!):**
+- `~story` - View your story progress
+- `~chapter` - Start your current story chapter
+- `~storyclaim` - Claim completed chapter rewards
+- `~arcs` - View all story arcs and their rewards
+- 6 Story Arcs: Fearsome Womb, Cursed Training, Kyoto Exchange, Origin of Obedience, Shibuya Incident, Culling Game
+- Complete arcs to unlock techniques and characters!
 
 **Mission Board (Choice-Based Gameplay):**
 - `~missions` - View 4 available missions (Easy/Medium/Hard/Extreme)
@@ -137,16 +147,18 @@ Primary storage in PostgreSQL with JSONB columns:
 - `afk_users` - AFK status
 - `pending_ranks` - Pending rank verifications
 - `rank_roles` - Tier to role ID mapping
-- `jjk_players` - JJK economy player data (includes inventory, injuries, missions, collections)
+- `jjk_players` - JJK economy player data (includes inventory, injuries, missions, collections, story progress)
 - `jjk_clans` - JJK clan data
 
 ### JJK Game Data
-**Sorcerers (9):** Yuji, Megumi, Nobara, Maki, Panda, Inumaki, Todo, Yuta, Gojo
+**Sorcerers (21):** Yuji, Megumi, Nobara, Maki, Panda, Inumaki, Todo, Yuta, Gojo, Nanami, Mei Mei, Kusakabe, Miwa, Momo, Mechamaru, Kamo, Mai, Naoya, Choso, Toji, Sukuna
 **Techniques (7):** Divergent Fist, Black Flash, Ten Shadows, Cursed Speech, Boogie Woogie, Reverse Cursed, Domain Amplification
 **Tools (5):** Slaughter Demon, Playful Cloud, Inverted Spear, Split Soul Katana, Prison Realm
 **Domains (5):** No Domain, Incomplete, Chimera Shadow Garden, Malevolent Shrine, Infinite Void
 **Grades:** Grade 4 -> Grade 3 -> Grade 2 -> Grade 1 -> Semi-1st -> Special Grade
 
+**Story Arcs (6):** Fearsome Womb, Cursed Training, Kyoto Goodwill Event, Origin of Obedience, Shibuya Incident, Culling Game
+**Story Chapters:** 22 total chapters across all arcs
 **Mission Difficulties:** Easy (1-2 min), Medium (3-5 min), Hard (6-10 min), Extreme (12-30 min)
 **Dispatch Durations:** 30 min to 12 hours
 **Items (8):** Bandage, Cursed Salve, Reverse Technique Scroll, XP Charm, Luck Talisman, Protection Ward, Energy Drink, Salmon Onigiri
@@ -177,7 +189,7 @@ Primary storage in PostgreSQL with JSONB columns:
 
 ## File Structure
 ```
-├── main.py              # Main bot code (~3100 lines)
+├── main.py              # Main bot code (~3600 lines)
 ├── db.py                # Database operations
 ├── replit.md            # This documentation
 ├── jjk_data.json        # JJK player data backup

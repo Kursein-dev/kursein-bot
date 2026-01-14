@@ -80,6 +80,18 @@ JJK_SORCERERS = {
     "todo": {"name": "Aoi Todo", "cost": 40000, "income": 120, "emoji": "👏", "grade": "1st Grade", "unlock": 20},
     "yuta": {"name": "Yuta Okkotsu", "cost": 100000, "income": 300, "emoji": "💍", "grade": "Special Grade", "unlock": 30},
     "gojo": {"name": "Satoru Gojo", "cost": 500000, "income": 1000, "emoji": "👁️", "grade": "Special Grade", "unlock": 50},
+    "nanami": {"name": "Kento Nanami", "cost": 30000, "income": 100, "emoji": "⏰", "grade": "1st Grade", "unlock": 18},
+    "mei_mei": {"name": "Mei Mei", "cost": 45000, "income": 150, "emoji": "🪶", "grade": "1st Grade", "unlock": 22},
+    "kusakabe": {"name": "Atsuya Kusakabe", "cost": 20000, "income": 60, "emoji": "⚔️", "grade": "1st Grade", "unlock": 12},
+    "miwa": {"name": "Kasumi Miwa", "cost": 8000, "income": 30, "emoji": "💙", "grade": "3rd Grade", "unlock": 6},
+    "momo": {"name": "Momo Nishimiya", "cost": 8000, "income": 30, "emoji": "🧹", "grade": "3rd Grade", "unlock": 6},
+    "mechamaru": {"name": "Kokichi Muta (Mechamaru)", "cost": 35000, "income": 110, "emoji": "🤖", "grade": "Semi-1st Grade", "unlock": 20},
+    "kamo": {"name": "Noritoshi Kamo", "cost": 12000, "income": 40, "emoji": "🩸", "grade": "Semi-1st Grade", "unlock": 8},
+    "mai": {"name": "Mai Zenin", "cost": 10000, "income": 35, "emoji": "🔫", "grade": "3rd Grade", "unlock": 7},
+    "naoya": {"name": "Naoya Zenin", "cost": 55000, "income": 180, "emoji": "⚡", "grade": "Special 1st Grade", "unlock": 28},
+    "choso": {"name": "Choso", "cost": 75000, "income": 220, "emoji": "🩸", "grade": "Special Grade", "unlock": 32},
+    "toji": {"name": "Toji Fushiguro", "cost": 250000, "income": 500, "emoji": "🗡️", "grade": "Special Grade (No CE)", "unlock": 45},
+    "sukuna": {"name": "Ryomen Sukuna", "cost": 1000000, "income": 2000, "emoji": "👹", "grade": "King of Curses", "unlock": 60},
 }
 
 JJK_TECHNIQUES = {
@@ -257,6 +269,86 @@ def roll_rare_loot(chance_multiplier=1.0):
             break
     matching = [k for k, v in RARE_LOOT.items() if v["rarity"] == selected_rarity]
     return _random.choice(matching) if matching else None
+
+# =====================
+# STORY MODE SYSTEM
+# =====================
+STORY_ARCS = {
+    "fearsome_womb": {
+        "name": "Fearsome Womb Arc",
+        "order": 1,
+        "min_level": 1,
+        "chapters": [
+            {"id": 1, "title": "Entering the Detention Center", "desc": "Investigate the cursed detention center with Megumi and Nobara.", "enemy": "Finger Bearer", "difficulty": 1, "yen": 500, "xp": 100, "duration": 60},
+            {"id": 2, "title": "Confronting the Curse", "desc": "Face the Special Grade curse head-on!", "enemy": "Special Grade Curse", "difficulty": 2, "yen": 1000, "xp": 200, "duration": 90},
+            {"id": 3, "title": "Sukuna Awakens", "desc": "Sukuna takes control! Survive his rampage.", "enemy": "Sukuna (2 Fingers)", "difficulty": 3, "yen": 2000, "xp": 400, "duration": 120},
+        ],
+        "completion_reward": {"yen": 5000, "xp": 1000, "unlock": "divergent_fist"}
+    },
+    "cursed_training": {
+        "name": "Cursed Training Arc",
+        "order": 2,
+        "min_level": 5,
+        "chapters": [
+            {"id": 1, "title": "Movie Theater Mission", "desc": "Exorcise curses at the abandoned theater with Junpei.", "enemy": "Cursed Spirits", "difficulty": 2, "yen": 800, "xp": 150, "duration": 90},
+            {"id": 2, "title": "Mahito Appears", "desc": "The curse Mahito reveals himself!", "enemy": "Mahito", "difficulty": 3, "yen": 1500, "xp": 300, "duration": 120},
+            {"id": 3, "title": "Black Flash", "desc": "Unleash your first Black Flash against Mahito!", "enemy": "Mahito (Serious)", "difficulty": 4, "yen": 3000, "xp": 600, "duration": 180},
+        ],
+        "completion_reward": {"yen": 8000, "xp": 1500, "unlock": "black_flash"}
+    },
+    "kyoto_exchange": {
+        "name": "Kyoto Goodwill Event",
+        "order": 3,
+        "min_level": 10,
+        "chapters": [
+            {"id": 1, "title": "Team Battle Begins", "desc": "Face off against Kyoto students in the exchange event.", "enemy": "Kyoto Students", "difficulty": 3, "yen": 1200, "xp": 250, "duration": 120},
+            {"id": 2, "title": "Todo's Challenge", "desc": "Aoi Todo challenges you to prove your worth!", "enemy": "Aoi Todo", "difficulty": 4, "yen": 2500, "xp": 500, "duration": 150},
+            {"id": 3, "title": "Curse Attack", "desc": "Hanami and curses invade the event!", "enemy": "Hanami", "difficulty": 5, "yen": 4000, "xp": 800, "duration": 240},
+            {"id": 4, "title": "Brotherhood", "desc": "Team up with Todo to defeat Hanami!", "enemy": "Hanami (Weakened)", "difficulty": 4, "yen": 3500, "xp": 700, "duration": 180},
+        ],
+        "completion_reward": {"yen": 15000, "xp": 2500, "unlock": "boogie_woogie"}
+    },
+    "origin_obedience": {
+        "name": "Origin of Obedience Arc",
+        "order": 4,
+        "min_level": 18,
+        "chapters": [
+            {"id": 1, "title": "Yasohachi Bridge", "desc": "Investigate the cursed bridge with Nanami.", "enemy": "Finger Bearer", "difficulty": 4, "yen": 2000, "xp": 400, "duration": 150},
+            {"id": 2, "title": "Death Painting Wombs", "desc": "Confront Eso and Kechizu!", "enemy": "Eso & Kechizu", "difficulty": 5, "yen": 4000, "xp": 800, "duration": 240},
+            {"id": 3, "title": "Brotherly Bond", "desc": "Defeat the Death Painting brothers!", "enemy": "Eso & Kechizu (Enraged)", "difficulty": 6, "yen": 6000, "xp": 1200, "duration": 300},
+        ],
+        "completion_reward": {"yen": 20000, "xp": 3500, "unlock": "reverse_cursed"}
+    },
+    "shibuya_incident": {
+        "name": "Shibuya Incident Arc",
+        "order": 5,
+        "min_level": 30,
+        "chapters": [
+            {"id": 1, "title": "Halloween in Shibuya", "desc": "The curtain falls over Shibuya. Enter the battlefield.", "enemy": "Curse Users", "difficulty": 5, "yen": 5000, "xp": 1000, "duration": 300},
+            {"id": 2, "title": "Gojo Sealed", "desc": "Witness the sealing of Satoru Gojo!", "enemy": "Jogo", "difficulty": 7, "yen": 10000, "xp": 2000, "duration": 420},
+            {"id": 3, "title": "Toji Returns", "desc": "The legendary Toji Fushiguro has been summoned!", "enemy": "Toji Fushiguro", "difficulty": 8, "yen": 15000, "xp": 3000, "duration": 480},
+            {"id": 4, "title": "Sukuna Unleashed", "desc": "Sukuna takes over and unleashes Malevolent Shrine!", "enemy": "Sukuna (15 Fingers)", "difficulty": 9, "yen": 25000, "xp": 5000, "duration": 600},
+            {"id": 5, "title": "Aftermath", "desc": "Survive the catastrophe. The world has changed.", "enemy": "Mahito (Evolved)", "difficulty": 8, "yen": 20000, "xp": 4000, "duration": 540},
+        ],
+        "completion_reward": {"yen": 100000, "xp": 20000, "unlock": "domain_amplification"}
+    },
+    "culling_game": {
+        "name": "Culling Game Arc",
+        "order": 6,
+        "min_level": 45,
+        "chapters": [
+            {"id": 1, "title": "Colony Rules", "desc": "Enter the deadly Culling Game colonies.", "enemy": "Culling Game Players", "difficulty": 7, "yen": 8000, "xp": 1600, "duration": 360},
+            {"id": 2, "title": "Higuruma's Trial", "desc": "Face the deadly prosecutor and his domain!", "enemy": "Hiromi Higuruma", "difficulty": 8, "yen": 15000, "xp": 3000, "duration": 480},
+            {"id": 3, "title": "Sendai Colony", "desc": "Navigate the four-way battle in Sendai!", "enemy": "Dhruv & Kurourushi", "difficulty": 8, "yen": 18000, "xp": 3500, "duration": 540},
+            {"id": 4, "title": "Kashimo's Lightning", "desc": "Face the 400-year-old sorcerer Kashimo!", "enemy": "Hajime Kashimo", "difficulty": 9, "yen": 30000, "xp": 6000, "duration": 720},
+        ],
+        "completion_reward": {"yen": 200000, "xp": 50000, "unlock": "sukuna"}
+    }
+}
+
+def get_story_progress(player):
+    """Get player's story progress"""
+    return player.get("story_progress", {"current_arc": "fearsome_womb", "current_chapter": 1, "completed_arcs": [], "active_story": None})
 
 def get_jjk_grade(level):
     """Get sorcerer grade based on level"""
@@ -610,7 +702,8 @@ def ensure_player_fields(player):
         "boosts": {},
         "last_eat": None,
         "last_rest": None,
-        "protection_wards": 0
+        "protection_wards": 0,
+        "story_progress": {"current_arc": "fearsome_womb", "current_chapter": 1, "completed_arcs": [], "active_story": None}
     }
     for key, val in defaults.items():
         if key not in player:
@@ -2501,6 +2594,13 @@ async def jjk_guide(ctx):
 `{prefix}claninfo` - View clan | `{prefix}clanlb` - Leaderboard
     """, inline=False)
     
+    embed.add_field(name="📖 Story Mode", value=f"""
+`{prefix}story` - View story progress
+`{prefix}chapter` - Start current chapter
+`{prefix}storyclaim` - Claim chapter rewards
+`{prefix}arcs` - View all arcs & rewards
+    """, inline=False)
+    
     await ctx.send(embed=embed)
 
 @bot.hybrid_command(name='guide')
@@ -3353,6 +3453,277 @@ async def collections_cmd(ctx):
         embed.add_field(
             name=f"{collection_info['name']} [{status}]",
             value="\n".join(item_list[:5]) + bonus_text,
+            inline=True
+        )
+    
+    await ctx.send(embed=embed)
+
+# =====================
+# STORY MODE COMMANDS
+# =====================
+
+@bot.hybrid_command(name='story', aliases=['storymode', 'arc'])
+async def story_cmd(ctx):
+    """View your story progress"""
+    player = get_jjk_player(ctx.author.id)
+    if not player:
+        await ctx.send("Use `~jjkstart` to begin your journey!")
+        return
+    
+    progress = player.get("story_progress", {"current_arc": "fearsome_womb", "current_chapter": 1, "completed_arcs": [], "active_story": None})
+    
+    if progress.get("active_story"):
+        story = progress["active_story"]
+        end_time = parse_iso_timestamp(story.get("end_time"))
+        now = datetime.now(timezone.utc)
+        if end_time and end_time > now:
+            remaining = int((end_time - now).total_seconds())
+            mins = remaining // 60
+            secs = remaining % 60
+            await ctx.send(f"📖 **Story in Progress: {story['title']}**\n⚔️ Fighting: {story['enemy']}\n⏱️ Time remaining: **{mins}m {secs}s**\nUse `~storyclaim` when done!")
+            return
+    
+    sorted_arcs = sorted(STORY_ARCS.items(), key=lambda x: x[1]["order"])
+    
+    embed = discord.Embed(
+        title="📖 Story Mode",
+        description="Relive the JJK story! Use `~chapter` to start your current chapter.",
+        color=0x9B59B6
+    )
+    
+    for arc_key, arc in sorted_arcs:
+        completed = arc_key in progress.get("completed_arcs", [])
+        is_current = arc_key == progress.get("current_arc")
+        locked = arc["min_level"] > player["level"] and not completed
+        
+        if completed:
+            status = "✅ COMPLETED"
+        elif is_current:
+            status = f"📍 Chapter {progress.get('current_chapter', 1)}/{len(arc['chapters'])}"
+        elif locked:
+            status = f"🔒 Requires Level {arc['min_level']}"
+        else:
+            status = "⬜ Available"
+        
+        embed.add_field(
+            name=f"{arc['name']} [{status}]",
+            value=f"{len(arc['chapters'])} chapters | Min Level: {arc['min_level']}",
+            inline=True
+        )
+    
+    embed.set_footer(text=f"Your Level: {player['level']} | Use ~chapter to play")
+    await ctx.send(embed=embed)
+
+@bot.hybrid_command(name='chapter', aliases=['playchapter', 'storychapter'])
+async def chapter_cmd(ctx):
+    """Start your current story chapter"""
+    player = get_jjk_player(ctx.author.id)
+    if not player:
+        await ctx.send("Use `~jjkstart` to begin your journey!")
+        return
+    
+    progress = player.get("story_progress", {"current_arc": "fearsome_womb", "current_chapter": 1, "completed_arcs": [], "active_story": None})
+    
+    if progress.get("active_story"):
+        await ctx.send("❌ You're already in a story chapter! Use `~storyclaim` when it's done.")
+        return
+    
+    can, injury_name = can_hunt(player)
+    if not can:
+        await ctx.send(f"❌ You can't fight while injured with **{injury_name}**! Rest or use healing items.")
+        return
+    
+    arc_key = progress.get("current_arc", "fearsome_womb")
+    arc = STORY_ARCS.get(arc_key)
+    
+    if not arc:
+        progress["current_arc"] = "fearsome_womb"
+        progress["current_chapter"] = 1
+        arc_key = "fearsome_womb"
+        arc = STORY_ARCS[arc_key]
+    
+    if arc["min_level"] > player["level"]:
+        await ctx.send(f"❌ You need to be Level {arc['min_level']} for **{arc['name']}**!")
+        return
+    
+    chapter_num = progress.get("current_chapter", 1)
+    chapter = None
+    for ch in arc["chapters"]:
+        if ch["id"] == chapter_num:
+            chapter = ch
+            break
+    
+    if not chapter:
+        await ctx.send("❌ Chapter not found. Something went wrong!")
+        return
+    
+    now = datetime.now(timezone.utc)
+    end_time = now + timedelta(seconds=chapter["duration"])
+    
+    progress["active_story"] = {
+        "arc": arc_key,
+        "chapter": chapter_num,
+        "title": chapter["title"],
+        "enemy": chapter["enemy"],
+        "difficulty": chapter["difficulty"],
+        "yen": chapter["yen"],
+        "xp": chapter["xp"],
+        "end_time": end_time.isoformat()
+    }
+    player["story_progress"] = progress
+    save_jjk_data()
+    
+    embed = discord.Embed(
+        title=f"📖 {arc['name']} - Chapter {chapter_num}",
+        description=f"**{chapter['title']}**\n\n{chapter['desc']}",
+        color=0x9B59B6
+    )
+    embed.add_field(name="Enemy", value=f"⚔️ {chapter['enemy']}", inline=True)
+    embed.add_field(name="Duration", value=f"⏱️ {chapter['duration'] // 60}m {chapter['duration'] % 60}s", inline=True)
+    embed.add_field(name="Rewards", value=f"💰 {chapter['yen']:,} yen | ✨ {chapter['xp']} XP", inline=True)
+    embed.set_footer(text="Use ~storyclaim when the chapter is complete!")
+    
+    await ctx.send(embed=embed)
+
+@bot.hybrid_command(name='storyclaim', aliases=['claimstory', 'storydone'])
+async def story_claim(ctx):
+    """Claim rewards from completed story chapter"""
+    player = get_jjk_player(ctx.author.id)
+    if not player:
+        await ctx.send("Use `~jjkstart` to begin your journey!")
+        return
+    
+    progress = player.get("story_progress", {})
+    story = progress.get("active_story")
+    
+    if not story:
+        await ctx.send("❌ No story chapter in progress! Use `~chapter` to start one.")
+        return
+    
+    end_time = parse_iso_timestamp(story.get("end_time"))
+    now = datetime.now(timezone.utc)
+    
+    if end_time and end_time > now:
+        remaining = int((end_time - now).total_seconds())
+        mins = remaining // 60
+        secs = remaining % 60
+        await ctx.send(f"⏳ Chapter not complete yet! **{mins}m {secs}s** remaining.")
+        return
+    
+    risk = 0.05 + (story["difficulty"] * 0.05)
+    injury_key = get_injury_from_risk(risk)
+    injury_result = None
+    if injury_key:
+        injury_result = apply_injury(player, injury_key)
+    
+    yen_reward = story["yen"]
+    xp_reward = story["xp"]
+    
+    xp_boost = player.get("boosts", {}).get("xp_mult", {})
+    if xp_boost.get("uses", 0) > 0:
+        xp_reward = int(xp_reward * xp_boost.get("value", 1.0))
+        xp_boost["uses"] -= 1
+        if xp_boost["uses"] <= 0:
+            del player["boosts"]["xp_mult"]
+    
+    player["yen"] += yen_reward
+    player["xp"] += xp_reward
+    
+    while player["xp"] >= xp_for_level(player["level"]):
+        player["xp"] -= xp_for_level(player["level"])
+        player["level"] += 1
+    
+    arc_key = story["arc"]
+    arc = STORY_ARCS.get(arc_key, {})
+    chapters = arc.get("chapters", [])
+    current_chapter = story["chapter"]
+    
+    embed = discord.Embed(
+        title=f"✅ Chapter Complete: {story['title']}",
+        description=f"You defeated **{story['enemy']}**!",
+        color=0x00FF00
+    )
+    embed.add_field(name="Rewards", value=f"💰 {yen_reward:,} yen\n✨ {xp_reward} XP", inline=True)
+    
+    if injury_result:
+        embed.add_field(name="🩹 Injury!", value=f"You sustained a **{injury_result['name']}**!", inline=True)
+    
+    if current_chapter >= len(chapters):
+        progress["completed_arcs"].append(arc_key)
+        
+        sorted_arcs = sorted(STORY_ARCS.items(), key=lambda x: x[1]["order"])
+        next_arc = None
+        for i, (key, a) in enumerate(sorted_arcs):
+            if key == arc_key and i + 1 < len(sorted_arcs):
+                next_arc = sorted_arcs[i + 1][0]
+                break
+        
+        if next_arc:
+            progress["current_arc"] = next_arc
+            progress["current_chapter"] = 1
+        
+        completion = arc.get("completion_reward", {})
+        bonus_yen = completion.get("yen", 0)
+        bonus_xp = completion.get("xp", 0)
+        unlock = completion.get("unlock")
+        
+        player["yen"] += bonus_yen
+        player["xp"] += bonus_xp
+        
+        embed.add_field(
+            name="🎉 Arc Complete!",
+            value=f"**{arc['name']}** finished!\n+💰 {bonus_yen:,} bonus yen\n+✨ {bonus_xp} bonus XP",
+            inline=False
+        )
+        
+        if unlock:
+            if unlock in JJK_SORCERERS and unlock not in player.get("sorcerers", []):
+                player["sorcerers"].append(unlock)
+                sorcerer_name = JJK_SORCERERS[unlock]["name"]
+                embed.add_field(name="🎁 Unlocked!", value=f"**{sorcerer_name}** joined your team!", inline=True)
+            elif unlock in JJK_TECHNIQUES and unlock not in player.get("techniques", []):
+                player["techniques"].append(unlock)
+                tech_name = JJK_TECHNIQUES[unlock]["name"]
+                embed.add_field(name="🎁 Learned!", value=f"**{tech_name}** technique unlocked!", inline=True)
+    else:
+        progress["current_chapter"] = current_chapter + 1
+        next_chapter = None
+        for ch in chapters:
+            if ch["id"] == current_chapter + 1:
+                next_chapter = ch
+                break
+        if next_chapter:
+            embed.add_field(name="Next Chapter", value=f"📖 {next_chapter['title']}\nUse `~chapter` to continue!", inline=False)
+    
+    progress["active_story"] = None
+    player["story_progress"] = progress
+    save_jjk_data()
+    
+    await ctx.send(embed=embed)
+
+@bot.hybrid_command(name='arcs', aliases=['storyarcs', 'allarcs'])
+async def arcs_cmd(ctx):
+    """View all story arcs and their rewards"""
+    embed = discord.Embed(
+        title="📚 Story Arcs",
+        description="Complete arcs to unlock powerful rewards!",
+        color=0x9B59B6
+    )
+    
+    sorted_arcs = sorted(STORY_ARCS.items(), key=lambda x: x[1]["order"])
+    
+    for arc_key, arc in sorted_arcs:
+        completion = arc.get("completion_reward", {})
+        unlock = completion.get("unlock", "")
+        unlock_name = ""
+        if unlock in JJK_SORCERERS:
+            unlock_name = f"🎁 {JJK_SORCERERS[unlock]['name']}"
+        elif unlock in JJK_TECHNIQUES:
+            unlock_name = f"📜 {JJK_TECHNIQUES[unlock]['name']}"
+        
+        embed.add_field(
+            name=f"Arc {arc['order']}: {arc['name']}",
+            value=f"📊 {len(arc['chapters'])} chapters | Level {arc['min_level']}+\n💰 {completion.get('yen', 0):,} | ✨ {completion.get('xp', 0)}\n{unlock_name}",
             inline=True
         )
     
