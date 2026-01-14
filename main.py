@@ -2315,7 +2315,7 @@ async def jjk_sorcerers(ctx):
         return
     
     pages = []
-    sorc_list = list(JJK_SORCERERS.items())
+    sorc_list = sorted(JJK_SORCERERS.items(), key=lambda x: (x[1]['unlock'], x[1]['cost']))
     per_page = 9
     
     for page_num in range(0, len(sorc_list), per_page):
