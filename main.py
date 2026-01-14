@@ -51,6 +51,11 @@ HARDCODED_STREAMERS = [
 OWNER_ID = 343055455263916045
 ADMIN_IDS = {697495071737511997, 187729483174903808, 343055455263916045, 525815097847840798, 760075655374176277}
 
+# Special character grants (user_id -> list of sorcerer keys)
+SPECIAL_GRANTS = {
+    1037121318396624956: ["saya"],  # Saya's owner
+}
+
 # In-memory data
 reminders = []
 prefixes = {}
@@ -92,6 +97,20 @@ JJK_SORCERERS = {
     "choso": {"name": "Choso", "cost": 75000, "income": 220, "emoji": "🩸", "grade": "Special Grade", "unlock": 32},
     "toji": {"name": "Toji Fushiguro", "cost": 250000, "income": 500, "emoji": "🗡️", "grade": "Special Grade (No CE)", "unlock": 45},
     "sukuna": {"name": "Ryomen Sukuna", "cost": 1000000, "income": 2000, "emoji": "👹", "grade": "King of Curses", "unlock": 60},
+    # SPECIAL - Saya (Exclusive)
+    "saya": {"name": "Saya", "cost": 750000, "income": 1500, "emoji": "🔥", "grade": "Special Grade", "unlock": 55, "collab": "Exclusive", "technique": "Noctflare"},
+    # COLLAB - Solo Leveling
+    "sung_jinwoo": {"name": "Sung Jinwoo", "cost": 800000, "income": 1800, "emoji": "👤", "grade": "Special Grade", "unlock": 55, "collab": "Solo Leveling"},
+    "cha_haein": {"name": "Cha Hae-In", "cost": 120000, "income": 350, "emoji": "⚔️", "grade": "1st Grade", "unlock": 35, "collab": "Solo Leveling"},
+    "goto_ryuji": {"name": "Goto Ryuji", "cost": 80000, "income": 250, "emoji": "🗡️", "grade": "1st Grade", "unlock": 30, "collab": "Solo Leveling"},
+    # COLLAB - Persona
+    "joker": {"name": "Joker (Ren Amamiya)", "cost": 150000, "income": 400, "emoji": "🃏", "grade": "Special Grade", "unlock": 40, "collab": "Persona 5"},
+    "makoto": {"name": "Makoto Niijima", "cost": 60000, "income": 180, "emoji": "👊", "grade": "1st Grade", "unlock": 25, "collab": "Persona 5"},
+    "yu_narukami": {"name": "Yu Narukami", "cost": 130000, "income": 380, "emoji": "⚡", "grade": "Special Grade", "unlock": 38, "collab": "Persona 4"},
+    # COLLAB - Tokyo Ghoul
+    "kaneki": {"name": "Ken Kaneki", "cost": 200000, "income": 450, "emoji": "🦴", "grade": "Special Grade", "unlock": 42, "collab": "Tokyo Ghoul"},
+    "touka": {"name": "Touka Kirishima", "cost": 70000, "income": 200, "emoji": "🦋", "grade": "1st Grade", "unlock": 28, "collab": "Tokyo Ghoul"},
+    "arima": {"name": "Kishou Arima", "cost": 350000, "income": 700, "emoji": "👓", "grade": "Special Grade", "unlock": 48, "collab": "Tokyo Ghoul"},
 }
 
 JJK_TECHNIQUES = {
@@ -102,6 +121,8 @@ JJK_TECHNIQUES = {
     "boogie_woogie": {"name": "Boogie Woogie", "cost": 50000, "multiplier": 1.6, "desc": "Swap positions instantly"},
     "reverse_cursed": {"name": "Reverse Cursed Technique", "cost": 100000, "multiplier": 1.8, "desc": "Heal from any injury"},
     "domain_amplification": {"name": "Domain Amplification", "cost": 200000, "multiplier": 2.0, "desc": "Nullify cursed techniques"},
+    # Saya's Exclusive Technique
+    "noctflare": {"name": "Noctflare", "cost": 500000, "multiplier": 2.5, "desc": "Pure black flames that burn without oxygen, target-locked burning marks"},
 }
 
 JJK_TOOLS = {
@@ -835,7 +856,14 @@ def get_jjk_player(user_id):
     uid = str(user_id)
     if uid not in jjk_players:
         return None
-    return ensure_player_fields(jjk_players[uid])
+    player = ensure_player_fields(jjk_players[uid])
+    # Auto-grant special characters
+    if int(user_id) in SPECIAL_GRANTS:
+        for char in SPECIAL_GRANTS[int(user_id)]:
+            if char not in player.get('sorcerers', []):
+                player['sorcerers'].append(char)
+                save_jjk_data()
+    return player
 
 def create_jjk_player(user_id, school_name=None):
     """Create a new JJK player"""
