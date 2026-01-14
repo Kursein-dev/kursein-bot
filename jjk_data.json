@@ -1,0 +1,33 @@
+{
+  "343055455263916045": {
+    "yen": 500,
+    "xp": 0,
+    "level": 1,
+    "school_name": "fake emma's Jujutsu School",
+    "sorcerers": [
+      "yuji"
+    ],
+    "techniques": [],
+    "tools": [],
+    "domain": 0,
+    "curses_exorcised": 0,
+    "missions_completed": 0,
+    "clan": null,
+    "daily_streak": 0,
+    "last_daily": null,
+    "last_hunt": null,
+    "last_train": null,
+    "last_collect": null,
+    "inventory": {},
+    "injuries": {},
+    "active_mission": null,
+    "mission_offers": [],
+    "mission_offers_time": null,
+    "dispatch_slots": [],
+    "collections": {},
+    "boosts": {},
+    "last_eat": null,
+    "last_rest": null,
+    "protection_wards": 0
+  }
+}
