@@ -2314,30 +2314,44 @@ async def jjk_sorcerers(ctx):
         await ctx.send("Use `~jjkstart` to begin your journey!")
         return
     
-    embed = discord.Embed(
-        title="👥 Jujutsu Sorcerers",
-        description="Hire sorcerers to increase your income!",
-        color=0x9B59B6
-    )
+    pages = []
+    sorc_list = list(JJK_SORCERERS.items())
+    per_page = 9
     
-    for key, sorc in JJK_SORCERERS.items():
-        owned = "✅" if key in player.get('sorcerers', []) else ""
-        locked = player['level'] < sorc['unlock']
-        status = "🔒" if locked else owned
-        
-        if locked:
-            value = f"Unlocks at Level {sorc['unlock']}"
-        else:
-            value = f"Cost: {sorc['cost']:,} yen\nIncome: +{sorc['income']}/hr"
-        
-        embed.add_field(
-            name=f"{sorc['emoji']} {sorc['name']} {status}",
-            value=value,
-            inline=True
+    for page_num in range(0, len(sorc_list), per_page):
+        page_sorcs = sorc_list[page_num:page_num + per_page]
+        embed = discord.Embed(
+            title="👥 Jujutsu Sorcerers",
+            description="Hire sorcerers to increase your income!",
+            color=0x9B59B6
         )
+        
+        for key, sorc in page_sorcs:
+            owned = "✅" if key in player.get('sorcerers', []) else ""
+            locked = player['level'] < sorc['unlock']
+            status = "🔒" if locked else owned
+            
+            collab = f" [{sorc.get('collab', '')}]" if sorc.get('collab') else ""
+            
+            if locked:
+                value = f"Unlocks at Level {sorc['unlock']}{collab}"
+            else:
+                value = f"Cost: {sorc['cost']:,} yen\nIncome: +{sorc['income']}/hr{collab}"
+            
+            embed.add_field(
+                name=f"{sorc['emoji']} {sorc['name']} {status}",
+                value=value,
+                inline=True
+            )
+        
+        embed.set_footer(text=f"Page {page_num // per_page + 1}/{(len(sorc_list) + per_page - 1) // per_page} | Use ~hire <name> to hire")
+        pages.append(embed)
     
-    embed.set_footer(text="Use ~hire <name> to hire a sorcerer")
-    await ctx.send(embed=embed)
+    if len(pages) == 1:
+        await ctx.send(embed=pages[0])
+    else:
+        paginator = EmbedPaginator(pages, ctx.author.id)
+        await ctx.send(embed=pages[0], view=paginator)
 
 @bot.hybrid_command(name='hire')
 async def jjk_hire(ctx, *, sorcerer_name: str):
