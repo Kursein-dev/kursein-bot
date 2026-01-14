@@ -2632,6 +2632,22 @@ async def give_yen(ctx, member: discord.Member, amount: int):
     embed.add_field(name="Your Balance", value=f"💰 {sender['yen']:,} yen", inline=True)
     await ctx.send(embed=embed)
 
+@bot.hybrid_command(name='addyen', aliases=['giveyen', 'yenadd'])
+async def add_yen_admin(ctx, member: Optional[discord.Member] = None, amount: int = 0):
+    """[Owner Only] Add yen to a player"""
+    if ctx.author.id != OWNER_ID:
+        return
+    
+    target = member or ctx.author
+    player = get_jjk_player(target.id)
+    if not player:
+        await ctx.send(f"❌ {target.display_name} hasn't started their JJK journey yet!")
+        return
+    
+    player["yen"] += amount
+    save_jjk_data()
+    await ctx.send(f"✅ Added **{amount:,}** yen to **{target.display_name}**. New balance: **{player['yen']:,}** yen")
+
 @bot.hybrid_command(name='facilities', aliases=['facility', 'fac', 'buildings'])
 async def facilities_cmd(ctx):
     """View your facilities and their bonuses"""
