@@ -60,6 +60,14 @@ twitch_access_token = None
 twitch_token_expiry = None
 
 # Rocket League Ranks
+def normalize_rank_input(rank_input):
+    """Convert number suffixes to roman numerals (e.g., Diamond 1 -> Diamond I)"""
+    replacements = {'1': 'I', '2': 'II', '3': 'III'}
+    result = rank_input
+    for num, roman in replacements.items():
+        result = re.sub(rf'\b{num}\b', roman, result)
+    return result
+
 RL_RANKS = {
     0: {"name": "Unranked", "emoji": "⚪", "color": 0x808080},
     1: {"name": "Bronze I", "emoji": "<:Bronze1:1438556246990127246>", "color": 0xCD7F32},
@@ -660,22 +668,22 @@ async def admin_set_profile(ctx, user_input: str, rank_input: str, *, url: str):
         await ctx.send("❌ Invalid tracker URL. Use a rocketleague.tracker.gg URL")
         return
     
-    # Parse rank
-    rank_input_lower = rank_input.lower().strip()
+    # Parse rank (normalize 1/2/3 to I/II/III)
+    rank_input_normalized = normalize_rank_input(rank_input).lower().strip()
     division = None
-    div_match = re.search(r'\b(?:div(?:ision)?\.?\s*|d)([1-4])\b', rank_input_lower)
+    div_match = re.search(r'\b(?:div(?:ision)?\.?\s*|d)([1-4])\b', rank_input_normalized)
     if div_match:
         division = int(div_match.group(1))
-        rank_input_lower = re.sub(r'\b(?:div(?:ision)?\.?\s*|d)[1-4]\b', '', rank_input_lower).strip()
+        rank_input_normalized = re.sub(r'\b(?:div(?:ision)?\.?\s*|d)[1-4]\b', '', rank_input_normalized).strip()
     
     matched_rank = None
     for rank_id, rank_data in RL_RANKS.items():
-        if rank_data['name'].lower() == rank_input_lower:
+        if rank_data['name'].lower() == rank_input_normalized:
             matched_rank = rank_id
             break
     if matched_rank is None:
         for rank_id, rank_data in RL_RANKS.items():
-            if rank_input_lower in rank_data['name'].lower():
+            if rank_input_normalized in rank_data['name'].lower():
                 matched_rank = rank_id
                 break
     
@@ -720,25 +728,26 @@ async def set_rl_rank(ctx, *, rank_input: str):
                        f"Use: `{prefix}setrlprofile <url>` or `{prefix}setrlprofile <platform> <username>`")
         return
     
-    rank_input_lower = rank_input.lower().strip()
+    # Normalize 1/2/3 to I/II/III
+    rank_input_normalized = normalize_rank_input(rank_input).lower().strip()
     
     # Parse division from input (div 1, div 2, div 3, div 4, d1, d2, d3, d4)
     division = None
-    div_match = re.search(r'\b(?:div(?:ision)?\.?\s*|d)([1-4])\b', rank_input_lower)
+    div_match = re.search(r'\b(?:div(?:ision)?\.?\s*|d)([1-4])\b', rank_input_normalized)
     if div_match:
         division = int(div_match.group(1))
         # Remove division from rank input for matching
-        rank_input_lower = re.sub(r'\b(?:div(?:ision)?\.?\s*|d)[1-4]\b', '', rank_input_lower).strip()
+        rank_input_normalized = re.sub(r'\b(?:div(?:ision)?\.?\s*|d)[1-4]\b', '', rank_input_normalized).strip()
     
     matched_rank = None
     for rank_id, rank_data in RL_RANKS.items():
-        if rank_data['name'].lower() == rank_input_lower:
+        if rank_data['name'].lower() == rank_input_normalized:
             matched_rank = rank_id
             break
     
     if matched_rank is None:
         for rank_id, rank_data in RL_RANKS.items():
-            if rank_input_lower in rank_data['name'].lower():
+            if rank_input_normalized in rank_data['name'].lower():
                 matched_rank = rank_id
                 break
     
