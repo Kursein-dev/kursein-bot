@@ -2648,6 +2648,30 @@ async def add_yen_admin(ctx, member: Optional[discord.Member] = None, amount: in
     save_jjk_data()
     await ctx.send(f"✅ Added **{amount:,}** yen to **{target.display_name}**. New balance: **{player['yen']:,}** yen")
 
+@bot.hybrid_command(name='addxp', aliases=['xpadd', 'givexp'])
+async def add_xp_admin(ctx, member: Optional[discord.Member] = None, amount: int = 0):
+    """[Owner Only] Add XP to a player"""
+    if ctx.author.id != OWNER_ID:
+        return
+    
+    target = member or ctx.author
+    player = get_jjk_player(target.id)
+    if not player:
+        await ctx.send(f"❌ {target.display_name} hasn't started their JJK journey yet!")
+        return
+    
+    player["xp"] += amount
+    old_level = player["level"]
+    
+    while player["xp"] >= xp_for_level(player["level"]):
+        player["xp"] -= xp_for_level(player["level"])
+        player["level"] += 1
+    
+    save_jjk_data()
+    
+    level_msg = f" (Level up! {old_level} → {player['level']})" if player["level"] > old_level else ""
+    await ctx.send(f"✅ Added **{amount:,}** XP to **{target.display_name}**. XP: **{player['xp']}/{xp_for_level(player['level'])}**{level_msg}")
+
 @bot.hybrid_command(name='facilities', aliases=['facility', 'fac', 'buildings'])
 async def facilities_cmd(ctx):
     """View your facilities and their bonuses"""
