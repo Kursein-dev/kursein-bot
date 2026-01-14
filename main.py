@@ -2528,125 +2528,191 @@ async def jjk_clan_lb(ctx):
     embed.description = "\n".join(lines)
     await ctx.send(embed=embed)
 
+class JJKGuideView(discord.ui.View):
+    def __init__(self, prefix, author_id):
+        super().__init__(timeout=180)
+        self.prefix = prefix
+        self.author_id = author_id
+    
+    def get_home_embed(self):
+        embed = discord.Embed(
+            title="🔮 Jujutsu Kaisen Economy Guide",
+            description="Become the strongest sorcerer! Select a category below.",
+            color=0x9B59B6
+        )
+        embed.add_field(name="📝 Getting Started", value="Begin your journey", inline=True)
+        embed.add_field(name="📋 Missions", value="Mission board & dispatch", inline=True)
+        embed.add_field(name="⚔️ Actions", value="Hunt, train, recover", inline=True)
+        embed.add_field(name="🎒 Items", value="Shop & inventory", inline=True)
+        embed.add_field(name="🛒 Upgrades", value="Sorcerers, techniques, tools", inline=True)
+        embed.add_field(name="📖 Story", value="Story mode & clans", inline=True)
+        embed.set_footer(text="Click a button to view commands!")
+        return embed
+    
+    def get_start_embed(self):
+        embed = discord.Embed(title="📝 Getting Started", color=0x9B59B6)
+        embed.add_field(name="Begin Your Journey", value=f"""
+`{self.prefix}jjkstart` - Create your sorcerer profile
+`{self.prefix}school` - View your school stats
+`{self.prefix}balance` - Check your yen balance
+`{self.prefix}jjklb` - View the leaderboard
+        """, inline=False)
+        embed.add_field(name="Understanding Grades", value="""
+Grade 4 → Grade 3 → Grade 2 → Grade 1 → Semi-1st → **Special Grade**
+Level up to increase your grade and unlock more content!
+        """, inline=False)
+        return embed
+    
+    def get_missions_embed(self):
+        embed = discord.Embed(title="📋 Missions & Dispatch", color=0x9B59B6)
+        embed.add_field(name="Mission Board", value=f"""
+`{self.prefix}missions` - View 4 available missions
+`{self.prefix}accept <#>` - Accept a mission by number
+`{self.prefix}missionclaim` - Claim rewards when done
+Missions refresh every 30 minutes!
+        """, inline=False)
+        embed.add_field(name="Dispatch System (Idle)", value=f"""
+`{self.prefix}dispatchlist` - View dispatch options (30min-12hr)
+`{self.prefix}dispatch <sorcerer> <id>` - Send a sorcerer
+`{self.prefix}dispatchstatus` - Check progress
+`{self.prefix}dispatchclaim` - Claim all completed
+        """, inline=False)
+        return embed
+    
+    def get_actions_embed(self):
+        embed = discord.Embed(title="⚔️ Actions & Recovery", color=0x9B59B6)
+        embed.add_field(name="Quick Earning", value=f"""
+`{self.prefix}hunt` - Exorcise curses for yen/XP (30s cooldown)
+`{self.prefix}train` - Train to gain XP (60s cooldown)
+`{self.prefix}daily` - Daily reward with streak bonus
+`{self.prefix}collect` - Collect hourly income from sorcerers
+        """, inline=False)
+        embed.add_field(name="Recovery", value=f"""
+`{self.prefix}eat` - Eat for small XP & minor healing (6h cd)
+`{self.prefix}rest` - Rest to heal injuries (12h cd)
+        """, inline=False)
+        embed.add_field(name="Collections", value=f"""
+`{self.prefix}collections` - View your rare loot progress
+Complete collections for permanent bonuses!
+        """, inline=False)
+        return embed
+    
+    def get_items_embed(self):
+        embed = discord.Embed(title="🎒 Items & Inventory", color=0x9B59B6)
+        embed.add_field(name="Managing Items", value=f"""
+`{self.prefix}inventory` - View your items
+`{self.prefix}shopitems` - Browse the item shop
+`{self.prefix}buyitem <name>` - Purchase an item
+`{self.prefix}use <name>` - Use an item
+        """, inline=False)
+        embed.add_field(name="Available Items", value="""
+🩹 **Bandage** - Heal minor injuries
+💜 **Cursed Salve** - Heal any injury
+📜 **RT Scroll** - Instant full heal
+✨ **XP Charm** - 1.5x XP for 5 hunts
+🍀 **Luck Talisman** - Better loot chances
+🛡️ **Protection Ward** - Block next injury
+⚡ **Energy Drink** - Reset hunt cooldown
+🍙 **Salmon Onigiri** - Small heal + XP
+        """, inline=False)
+        return embed
+    
+    def get_upgrades_embed(self):
+        embed = discord.Embed(title="🛒 Upgrades", color=0x9B59B6)
+        embed.add_field(name="Sorcerers", value=f"""
+`{self.prefix}sorcerers` - View available sorcerers
+`{self.prefix}hire <name>` - Hire a sorcerer
+Sorcerers generate passive income!
+        """, inline=False)
+        embed.add_field(name="Techniques", value=f"""
+`{self.prefix}techniques` - View available techniques
+`{self.prefix}learntechnique <name>` - Learn a technique
+Techniques boost your combat power!
+        """, inline=False)
+        embed.add_field(name="Tools & Domain", value=f"""
+`{self.prefix}tools` - View cursed tools
+`{self.prefix}buytool <name>` - Buy a tool
+`{self.prefix}domain` - View domain status
+`{self.prefix}upgradedomain` - Upgrade your domain
+        """, inline=False)
+        return embed
+    
+    def get_story_embed(self):
+        embed = discord.Embed(title="📖 Story Mode & Clans", color=0x9B59B6)
+        embed.add_field(name="Story Mode", value=f"""
+`{self.prefix}story` - View your story progress
+`{self.prefix}chapter` - Start current chapter
+`{self.prefix}storyclaim` - Claim chapter rewards
+`{self.prefix}arcs` - View all arcs & rewards
+Complete arcs to unlock techniques & characters!
+        """, inline=False)
+        embed.add_field(name="Clans", value=f"""
+`{self.prefix}clancreate <name>` - Create a clan (50,000 yen)
+`{self.prefix}clanjoin <name>` - Join an existing clan
+`{self.prefix}clanleave` - Leave your clan
+`{self.prefix}claninfo` - View clan details
+`{self.prefix}clanlb` - Clan leaderboard
+        """, inline=False)
+        return embed
+    
+    async def interaction_check(self, interaction: discord.Interaction) -> bool:
+        if interaction.user.id != self.author_id:
+            await interaction.response.send_message("This menu isn't for you!", ephemeral=True)
+            return False
+        return True
+    
+    @discord.ui.button(label="Home", style=discord.ButtonStyle.secondary, emoji="🏠", row=0)
+    async def home_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.edit_message(embed=self.get_home_embed(), view=self)
+    
+    @discord.ui.button(label="Start", style=discord.ButtonStyle.primary, emoji="📝", row=0)
+    async def start_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.edit_message(embed=self.get_start_embed(), view=self)
+    
+    @discord.ui.button(label="Missions", style=discord.ButtonStyle.primary, emoji="📋", row=0)
+    async def missions_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.edit_message(embed=self.get_missions_embed(), view=self)
+    
+    @discord.ui.button(label="Actions", style=discord.ButtonStyle.primary, emoji="⚔️", row=1)
+    async def actions_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.edit_message(embed=self.get_actions_embed(), view=self)
+    
+    @discord.ui.button(label="Items", style=discord.ButtonStyle.primary, emoji="🎒", row=1)
+    async def items_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.edit_message(embed=self.get_items_embed(), view=self)
+    
+    @discord.ui.button(label="Upgrades", style=discord.ButtonStyle.primary, emoji="🛒", row=1)
+    async def upgrades_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.edit_message(embed=self.get_upgrades_embed(), view=self)
+    
+    @discord.ui.button(label="Story & Clans", style=discord.ButtonStyle.success, emoji="📖", row=2)
+    async def story_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.edit_message(embed=self.get_story_embed(), view=self)
+
 @bot.hybrid_command(name='jjkguide', aliases=['jguide'])
 async def jjk_guide(ctx):
     """View all JJK commands"""
     prefix = get_prefix_from_ctx(ctx)
-    
-    embed = discord.Embed(
-        title="🔮 Jujutsu Kaisen Economy Guide",
-        description="Become the strongest sorcerer!",
-        color=0x9B59B6
-    )
-    
-    embed.add_field(name="📝 Getting Started", value=f"""
-`{prefix}jjkstart` - Begin your journey
-`{prefix}school` - View your stats
-`{prefix}balance` - Check yen
-    """, inline=False)
-    
-    embed.add_field(name="📋 Mission Board", value=f"""
-`{prefix}missions` - View available missions
-`{prefix}accept <#>` - Accept a mission
-`{prefix}missionclaim` - Claim completed mission
-    """, inline=False)
-    
-    embed.add_field(name="📤 Dispatch (Idle)", value=f"""
-`{prefix}dispatchlist` - View dispatch missions
-`{prefix}dispatch <sorcerer> <id>` - Send sorcerer
-`{prefix}dispatchstatus` - Check progress
-`{prefix}dispatchclaim` - Claim rewards
-    """, inline=False)
-    
-    embed.add_field(name="⚔️ Quick Actions", value=f"""
-`{prefix}hunt` - Exorcise curses (30s cd)
-`{prefix}train` - Gain XP (60s cd)
-`{prefix}daily` - Daily reward
-`{prefix}collect` - Collect hourly income
-    """, inline=False)
-    
-    embed.add_field(name="🎒 Inventory & Items", value=f"""
-`{prefix}inventory` - View items
-`{prefix}shopitems` - Browse item shop
-`{prefix}buyitem <name>` - Buy item
-`{prefix}use <name>` - Use item
-    """, inline=False)
-    
-    embed.add_field(name="😴 Recovery", value=f"""
-`{prefix}eat` - Eat for XP (6h cd)
-`{prefix}rest` - Heal injuries (12h cd)
-    """, inline=False)
-    
-    embed.add_field(name="🏆 Collections", value=f"""
-`{prefix}collections` - View rare loot
-    """, inline=False)
-    
-    embed.add_field(name="🛒 Upgrades", value=f"""
-`{prefix}sorcerers` / `{prefix}hire <name>`
-`{prefix}techniques` / `{prefix}learntechnique <name>`
-`{prefix}tools` / `{prefix}buytool <name>`
-`{prefix}domain` / `{prefix}upgradedomain`
-    """, inline=False)
-    
-    embed.add_field(name="🏯 Clans", value=f"""
-`{prefix}clancreate <name>` - Create (50k yen)
-`{prefix}clanjoin <name>` - Join a clan
-`{prefix}claninfo` - View clan | `{prefix}clanlb` - Leaderboard
-    """, inline=False)
-    
-    embed.add_field(name="📖 Story Mode", value=f"""
-`{prefix}story` - View story progress
-`{prefix}chapter` - Start current chapter
-`{prefix}storyclaim` - Claim chapter rewards
-`{prefix}arcs` - View all arcs & rewards
-    """, inline=False)
-    
-    await ctx.send(embed=embed)
+    view = JJKGuideView(prefix, ctx.author.id)
+    await ctx.send(embed=view.get_home_embed(), view=view)
 
 class GuideView(discord.ui.View):
     def __init__(self, prefix, author_id):
         super().__init__(timeout=120)
         self.prefix = prefix
         self.author_id = author_id
-        self.current_page = "home"
     
     def get_home_embed(self):
         embed = discord.Embed(
             title="📚 Kursein Bot Guide",
             description="Select a category below to view commands!",
-            color=0x5865F2
+            color=0x9B59B6
         )
-        embed.add_field(name="🚀 Rocket League", value="RL stats, ranks, profiles", inline=True)
-        embed.add_field(name="🔧 RL Admin", value="Rank verification tools", inline=True)
+        embed.add_field(name="🔮 JJK Economy", value="Full idle RPG game", inline=True)
         embed.add_field(name="💤 AFK & Server", value="AFK status, server stats", inline=True)
         embed.add_field(name="🔨 Moderation", value="Warn, modlogs", inline=True)
         embed.add_field(name="🔔 Bump & Streams", value="Reminders, streamers", inline=True)
-        embed.add_field(name="🔮 JJK Economy", value="Full idle RPG game", inline=True)
         embed.set_footer(text="Click a button to view commands")
-        return embed
-    
-    def get_rl_embed(self):
-        embed = discord.Embed(title="🚀 Rocket League Commands", color=0x5865F2)
-        embed.add_field(name="Commands", value=f"""
-`{self.prefix}setrlprofile <platform> <user>` - Link Tracker.gg (required)
-`{self.prefix}setrank <rank>` - Submit rank for verification
-`{self.prefix}rllb` - View server rank leaderboard
-`{self.prefix}stats [@user]` - View RL stats from Tracker.gg
-`{self.prefix}profile [@user]` - View user's RL profile
-        """, inline=False)
-        return embed
-    
-    def get_admin_embed(self):
-        embed = discord.Embed(title="🔧 RL Admin Commands", color=0x5865F2)
-        embed.add_field(name="Commands", value=f"""
-`{self.prefix}pendingranks` - View pending rank verifications
-`{self.prefix}approverank <@user>` - Approve a rank submission
-`{self.prefix}denyrank <@user> [reason]` - Deny rank with reason
-`{self.prefix}adminsetprofile <@user/ID> <rank> <url>` - Set rank directly
-`{self.prefix}setrankrole <tier> @role` - Configure auto-assign role
-`{self.prefix}rankroles` - View configured rank roles
-`{self.prefix}resetranks` - Reset all ranks for new season
-        """, inline=False)
         return embed
     
     def get_afk_embed(self):
@@ -2704,15 +2770,11 @@ Run your own Jujutsu School, hire sorcerers, exorcise curses, complete missions,
     async def home_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         await interaction.response.edit_message(embed=self.get_home_embed(), view=self)
     
-    @discord.ui.button(label="Rocket League", style=discord.ButtonStyle.primary, emoji="🚀", row=0)
-    async def rl_button(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await interaction.response.edit_message(embed=self.get_rl_embed(), view=self)
+    @discord.ui.button(label="JJK Economy", style=discord.ButtonStyle.success, emoji="🔮", row=0)
+    async def jjk_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.edit_message(embed=self.get_jjk_embed(), view=self)
     
-    @discord.ui.button(label="RL Admin", style=discord.ButtonStyle.primary, emoji="🔧", row=0)
-    async def admin_button(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await interaction.response.edit_message(embed=self.get_admin_embed(), view=self)
-    
-    @discord.ui.button(label="AFK & Server", style=discord.ButtonStyle.primary, emoji="💤", row=1)
+    @discord.ui.button(label="AFK & Server", style=discord.ButtonStyle.primary, emoji="💤", row=0)
     async def afk_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         await interaction.response.edit_message(embed=self.get_afk_embed(), view=self)
     
@@ -2723,10 +2785,6 @@ Run your own Jujutsu School, hire sorcerers, exorcise curses, complete missions,
     @discord.ui.button(label="Bump & Streams", style=discord.ButtonStyle.primary, emoji="🔔", row=1)
     async def bump_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         await interaction.response.edit_message(embed=self.get_bump_embed(), view=self)
-    
-    @discord.ui.button(label="JJK Economy", style=discord.ButtonStyle.success, emoji="🔮", row=2)
-    async def jjk_button(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await interaction.response.edit_message(embed=self.get_jjk_embed(), view=self)
 
 @bot.hybrid_command(name='guide')
 async def guide_command(ctx):
