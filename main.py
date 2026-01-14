@@ -191,8 +191,11 @@ INJURIES = {
 }
 
 # Injury chances by risk level
-def get_injury_from_risk(risk_level):
+def get_injury_from_risk(risk_level, player=None):
     import random
+    if player:
+        injury_reduction = get_facility_bonus(player, "injury_reduction")
+        risk_level = max(0, risk_level - injury_reduction)
     if risk_level < 0.1:
         return None
     if random.random() > risk_level:
@@ -253,8 +256,11 @@ COLLECTIONS = {
 
 import random as _random
 
-def roll_rare_loot(chance_multiplier=1.0):
+def roll_rare_loot(chance_multiplier=1.0, player=None):
     """Roll for rare loot based on chance"""
+    if player:
+        loot_bonus = get_facility_bonus(player, "loot_chance")
+        chance_multiplier += loot_bonus
     base_chance = 0.05 * chance_multiplier
     if _random.random() > base_chance:
         return None
@@ -350,6 +356,175 @@ def get_story_progress(player):
     """Get player's story progress"""
     return player.get("story_progress", {"current_arc": "fearsome_womb", "current_chapter": 1, "completed_arcs": [], "active_story": None})
 
+# =====================
+# FACILITIES SYSTEM (Passive Income)
+# =====================
+JJK_FACILITIES = {
+    "dormitory": {
+        "name": "Sorcerer Dormitory",
+        "desc": "Houses sorcerers, increasing their income output",
+        "emoji": "🏠",
+        "base_cost": 10000,
+        "max_level": 10,
+        "bonus_type": "income_mult",
+        "bonus_per_level": 0.1
+    },
+    "training_grounds": {
+        "name": "Training Grounds",
+        "desc": "Boosts XP from all activities",
+        "emoji": "⚔️",
+        "base_cost": 15000,
+        "max_level": 10,
+        "bonus_type": "xp_mult",
+        "bonus_per_level": 0.08
+    },
+    "cursed_archives": {
+        "name": "Cursed Archives",
+        "desc": "Generates passive yen every hour",
+        "emoji": "📚",
+        "base_cost": 25000,
+        "max_level": 10,
+        "bonus_type": "passive_yen",
+        "bonus_per_level": 50
+    },
+    "barrier_ward": {
+        "name": "Barrier Ward",
+        "desc": "Reduces injury chance from missions",
+        "emoji": "🛡️",
+        "base_cost": 20000,
+        "max_level": 5,
+        "bonus_type": "injury_reduction",
+        "bonus_per_level": 0.05
+    },
+    "curse_workshop": {
+        "name": "Curse Workshop",
+        "desc": "Increases rare loot drop chance",
+        "emoji": "🔮",
+        "base_cost": 30000,
+        "max_level": 5,
+        "bonus_type": "loot_chance",
+        "bonus_per_level": 0.02
+    }
+}
+
+def get_facility_cost(facility_key, current_level):
+    """Calculate cost to upgrade facility"""
+    facility = JJK_FACILITIES.get(facility_key)
+    if not facility:
+        return 0
+    return int(facility["base_cost"] * (1.5 ** current_level))
+
+def get_facility_bonus(player, bonus_type):
+    """Get total bonus from facilities"""
+    facilities = player.get("facilities", {})
+    total = 0
+    for fac_key, fac_data in JJK_FACILITIES.items():
+        if fac_data["bonus_type"] == bonus_type:
+            level = facilities.get(fac_key, 0)
+            total += fac_data["bonus_per_level"] * level
+    return total
+
+# =====================
+# HOLIDAY EVENTS SYSTEM
+# =====================
+JJK_EVENTS = {
+    "bot_launch": {
+        "name": "🎉 Bot Launch Celebration",
+        "desc": "Celebrating Kursein going public!",
+        "start": "2026-01-14",
+        "end": "2026-01-21",
+        "bonuses": {
+            "income_mult": 1.5,
+            "xp_mult": 1.5,
+            "special_item": "launch_ticket"
+        },
+        "claim_reward": {"yen": 5000, "xp": 500}
+    },
+    "birthday_kursein": {
+        "name": "🎂 Kursein's Birthday",
+        "desc": "Happy Birthday! Enjoy special bonuses!",
+        "start": "2026-01-17",
+        "end": "2026-01-18",
+        "bonuses": {
+            "income_mult": 2.0,
+            "xp_mult": 2.0,
+            "special_item": "birthday_cake"
+        },
+        "claim_reward": {"yen": 10000, "xp": 1000}
+    }
+}
+
+def get_active_events():
+    """Get list of currently active events"""
+    now = datetime.now(timezone.utc).date()
+    active = []
+    for event_key, event in JJK_EVENTS.items():
+        start = datetime.strptime(event["start"], "%Y-%m-%d").date()
+        end = datetime.strptime(event["end"], "%Y-%m-%d").date()
+        if start <= now <= end:
+            active.append((event_key, event))
+    return active
+
+def get_event_multiplier(mult_type):
+    """Get combined multiplier from all active events"""
+    active = get_active_events()
+    total = 1.0
+    for _, event in active:
+        bonus = event.get("bonuses", {}).get(mult_type, 1.0)
+        if mult_type.endswith("_mult"):
+            total *= bonus
+    return total
+
+def apply_xp_multipliers(base_xp, player):
+    """Apply facility and event XP multipliers"""
+    facility_xp_mult = 1.0 + get_facility_bonus(player, "xp_mult")
+    event_xp_mult = get_event_multiplier("xp_mult")
+    return int(base_xp * facility_xp_mult * event_xp_mult)
+
+def apply_yen_multipliers(base_yen, player):
+    """Apply facility and event yen multipliers"""
+    facility_income_mult = 1.0 + get_facility_bonus(player, "income_mult")
+    event_income_mult = get_event_multiplier("income_mult")
+    return int(base_yen * facility_income_mult * event_income_mult)
+
+# =====================
+# REUSABLE PAGINATOR
+# =====================
+class EmbedPaginator(discord.ui.View):
+    def __init__(self, pages, author_id, timeout=120):
+        super().__init__(timeout=timeout)
+        self.pages = pages
+        self.author_id = author_id
+        self.current_page = 0
+        self.update_buttons()
+    
+    def update_buttons(self):
+        self.prev_button.disabled = self.current_page == 0
+        self.next_button.disabled = self.current_page >= len(self.pages) - 1
+    
+    def get_current_embed(self):
+        embed = self.pages[self.current_page]
+        embed.set_footer(text=f"Page {self.current_page + 1}/{len(self.pages)}")
+        return embed
+    
+    async def interaction_check(self, interaction: discord.Interaction) -> bool:
+        if interaction.user.id != self.author_id:
+            await interaction.response.send_message("This isn't for you!", ephemeral=True)
+            return False
+        return True
+    
+    @discord.ui.button(label="◀", style=discord.ButtonStyle.primary)
+    async def prev_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        self.current_page = max(0, self.current_page - 1)
+        self.update_buttons()
+        await interaction.response.edit_message(embed=self.get_current_embed(), view=self)
+    
+    @discord.ui.button(label="▶", style=discord.ButtonStyle.primary)
+    async def next_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        self.current_page = min(len(self.pages) - 1, self.current_page + 1)
+        self.update_buttons()
+        await interaction.response.edit_message(embed=self.get_current_embed(), view=self)
+
 def get_jjk_grade(level):
     """Get sorcerer grade based on level"""
     if level < 5: return "Grade 4"
@@ -369,7 +544,14 @@ def calculate_jjk_income(player):
         tech_data = JJK_TECHNIQUES.get(tech, {})
         tech_mult *= tech_data.get("multiplier", 1.0)
     domain_mult = JJK_DOMAINS.get(player.get("domain", 0), JJK_DOMAINS[0])["multiplier"]
-    return int((base + sorcerer_income + tool_bonus) * tech_mult * domain_mult)
+    
+    facility_income_mult = 1.0 + get_facility_bonus(player, "income_mult")
+    facility_passive = get_facility_bonus(player, "passive_yen")
+    
+    event_mult = get_event_multiplier("income_mult")
+    
+    base_income = int((base + sorcerer_income + tool_bonus + facility_passive) * tech_mult * domain_mult * facility_income_mult)
+    return int(base_income * event_mult)
 
 def parse_iso_timestamp(ts_str):
     """Safely parse ISO timestamp string"""
@@ -703,7 +885,10 @@ def ensure_player_fields(player):
         "last_eat": None,
         "last_rest": None,
         "protection_wards": 0,
-        "story_progress": {"current_arc": "fearsome_womb", "current_chapter": 1, "completed_arcs": [], "active_story": None}
+        "story_progress": {"current_arc": "fearsome_womb", "current_chapter": 1, "completed_arcs": [], "active_story": None},
+        "facilities": {},
+        "event_claims": [],
+        "last_facility_collect": None
     }
     for key, val in defaults.items():
         if key not in player:
@@ -1892,7 +2077,8 @@ async def jjk_hunt(ctx):
     domain_mult = JJK_DOMAINS[player.get('domain', 0)]['multiplier']
     
     yen_earned = int(base_yen * tech_mult * domain_mult)
-    xp_earned = curse['xp']
+    yen_earned = apply_yen_multipliers(yen_earned, player)
+    xp_earned = apply_xp_multipliers(curse['xp'], player)
     
     player['yen'] += yen_earned
     player['xp'] += xp_earned
@@ -1940,7 +2126,8 @@ async def jjk_train(ctx):
             await ctx.send(f"⏳ Still training! Wait **{remaining}s** to train again.")
             return
     
-    xp_earned = random.randint(20, 50) + (player['level'] * 2)
+    base_xp = random.randint(20, 50) + (player['level'] * 2)
+    xp_earned = apply_xp_multipliers(base_xp, player)
     player['xp'] += xp_earned
     player['last_train'] = now.isoformat()
     
@@ -2338,31 +2525,298 @@ async def jjk_upgrade_domain(ctx):
 
 @bot.hybrid_command(name='jjklb', aliases=['jjkleaderboard', 'jlb'])
 async def jjk_leaderboard(ctx):
-    """View the JJK leaderboard"""
+    """View the JJK leaderboard with pages"""
     if not jjk_players:
         await ctx.send("No players yet! Be the first with `~jjkstart`")
         return
     
-    sorted_players = sorted(jjk_players.items(), key=lambda x: x[1].get('yen', 0), reverse=True)[:10]
+    sorted_players = sorted(jjk_players.items(), key=lambda x: x[1].get('yen', 0), reverse=True)
+    
+    per_page = 10
+    pages = []
+    medals = ["🥇", "🥈", "🥉"]
+    
+    for page_num in range(0, len(sorted_players), per_page):
+        page_players = sorted_players[page_num:page_num + per_page]
+        embed = discord.Embed(
+            title="🏆 Jujutsu Sorcerer Leaderboard",
+            description="Top sorcerers by yen",
+            color=0xFFD700
+        )
+        lines = []
+        for i, (uid, data) in enumerate(page_players):
+            rank = page_num + i
+            user = bot.get_user(int(uid))
+            name = user.display_name if user else f"User {uid}"
+            medal = medals[rank] if rank < 3 else f"**{rank+1}.**"
+            grade = get_jjk_grade(data.get('level', 1))
+            lines.append(f"{medal} {name}\n└ {data.get('yen', 0):,} yen | Lv.{data.get('level', 1)} ({grade})")
+        embed.description = "\n".join(lines) if lines else "No players found"
+        pages.append(embed)
+    
+    if len(pages) == 1:
+        await ctx.send(embed=pages[0])
+    else:
+        view = EmbedPaginator(pages, ctx.author.id)
+        await ctx.send(embed=view.get_current_embed(), view=view)
+
+@bot.hybrid_command(name='give', aliases=['pay', 'transfer', 'sendyen'])
+async def give_yen(ctx, member: discord.Member, amount: int):
+    """Give yen to another player"""
+    if member.id == ctx.author.id:
+        await ctx.send("❌ You can't give yen to yourself!")
+        return
+    
+    if member.bot:
+        await ctx.send("❌ You can't give yen to bots!")
+        return
+    
+    if amount <= 0:
+        await ctx.send("❌ Amount must be positive!")
+        return
+    
+    sender = get_jjk_player(ctx.author.id)
+    if not sender:
+        await ctx.send("Use `~jjkstart` to begin your journey!")
+        return
+    
+    receiver = get_jjk_player(member.id)
+    if not receiver:
+        await ctx.send(f"❌ {member.display_name} hasn't started their JJK journey yet!")
+        return
+    
+    if sender["yen"] < amount:
+        await ctx.send(f"❌ You only have **{sender['yen']:,}** yen!")
+        return
+    
+    sender["yen"] -= amount
+    receiver["yen"] += amount
+    save_jjk_data()
     
     embed = discord.Embed(
-        title="🏆 Jujutsu Sorcerer Leaderboard",
-        description="Top sorcerers by yen",
-        color=0xFFD700
+        title="💸 Yen Transfer",
+        description=f"**{ctx.author.display_name}** sent **{amount:,}** yen to **{member.display_name}**!",
+        color=0x00FF00
+    )
+    embed.add_field(name="Your Balance", value=f"💰 {sender['yen']:,} yen", inline=True)
+    await ctx.send(embed=embed)
+
+@bot.hybrid_command(name='facilities', aliases=['facility', 'fac', 'buildings'])
+async def facilities_cmd(ctx):
+    """View your facilities and their bonuses"""
+    player = get_jjk_player(ctx.author.id)
+    if not player:
+        await ctx.send("Use `~jjkstart` to begin your journey!")
+        return
+    
+    facilities = player.get("facilities", {})
+    
+    pages = []
+    fac_list = list(JJK_FACILITIES.items())
+    per_page = 3
+    
+    for page_num in range(0, len(fac_list), per_page):
+        page_facs = fac_list[page_num:page_num + per_page]
+        embed = discord.Embed(
+            title="🏗️ Your Facilities",
+            description="Upgrade facilities for passive bonuses!",
+            color=0x9B59B6
+        )
+        
+        for fac_key, fac_data in page_facs:
+            level = facilities.get(fac_key, 0)
+            max_level = fac_data["max_level"]
+            cost = get_facility_cost(fac_key, level) if level < max_level else 0
+            current_bonus = fac_data["bonus_per_level"] * level
+            
+            if fac_data["bonus_type"] in ["income_mult", "xp_mult"]:
+                bonus_str = f"+{int(current_bonus * 100)}%"
+            elif fac_data["bonus_type"] == "passive_yen":
+                bonus_str = f"+{int(current_bonus)}/hr"
+            else:
+                bonus_str = f"+{int(current_bonus * 100)}%"
+            
+            status = f"Level {level}/{max_level}"
+            if level >= max_level:
+                upgrade_info = "✅ MAX LEVEL"
+            else:
+                upgrade_info = f"Upgrade: {cost:,} yen"
+            
+            embed.add_field(
+                name=f"{fac_data['emoji']} {fac_data['name']} [{status}]",
+                value=f"{fac_data['desc']}\nBonus: **{bonus_str}** | {upgrade_info}",
+                inline=False
+            )
+        pages.append(embed)
+    
+    if len(pages) == 1:
+        pages[0].set_footer(text="Use ~upgfacility <name> to upgrade")
+        await ctx.send(embed=pages[0])
+    else:
+        view = EmbedPaginator(pages, ctx.author.id)
+        await ctx.send(embed=view.get_current_embed(), view=view)
+
+@bot.hybrid_command(name='upgfacility', aliases=['upgradefacility', 'ufac', 'buildfacility'])
+async def upgrade_facility(ctx, *, facility_name: str):
+    """Upgrade a facility"""
+    player = get_jjk_player(ctx.author.id)
+    if not player:
+        await ctx.send("Use `~jjkstart` to begin your journey!")
+        return
+    
+    facility_key = facility_name.lower().replace(" ", "_").replace("'", "")
+    
+    if facility_key not in JJK_FACILITIES:
+        for key in JJK_FACILITIES:
+            if facility_name.lower() in JJK_FACILITIES[key]["name"].lower() or facility_name.lower() == key:
+                facility_key = key
+                break
+    
+    if facility_key not in JJK_FACILITIES:
+        available = ", ".join([f["name"] for f in JJK_FACILITIES.values()])
+        await ctx.send(f"❌ Unknown facility! Available: {available}")
+        return
+    
+    fac_data = JJK_FACILITIES[facility_key]
+    facilities = player.get("facilities", {})
+    current_level = facilities.get(facility_key, 0)
+    
+    if current_level >= fac_data["max_level"]:
+        await ctx.send(f"❌ **{fac_data['name']}** is already at max level!")
+        return
+    
+    cost = get_facility_cost(facility_key, current_level)
+    
+    if player["yen"] < cost:
+        await ctx.send(f"❌ You need **{cost:,}** yen! You have {player['yen']:,}.")
+        return
+    
+    player["yen"] -= cost
+    facilities[facility_key] = current_level + 1
+    player["facilities"] = facilities
+    save_jjk_data()
+    
+    new_level = current_level + 1
+    new_bonus = fac_data["bonus_per_level"] * new_level
+    
+    if fac_data["bonus_type"] in ["income_mult", "xp_mult"]:
+        bonus_str = f"+{int(new_bonus * 100)}%"
+    elif fac_data["bonus_type"] == "passive_yen":
+        bonus_str = f"+{int(new_bonus)}/hr"
+    else:
+        bonus_str = f"+{int(new_bonus * 100)}%"
+    
+    embed = discord.Embed(
+        title=f"{fac_data['emoji']} Facility Upgraded!",
+        description=f"**{fac_data['name']}** is now Level **{new_level}**!",
+        color=0x00FF00
+    )
+    embed.add_field(name="New Bonus", value=bonus_str, inline=True)
+    embed.add_field(name="Cost", value=f"-{cost:,} yen", inline=True)
+    await ctx.send(embed=embed)
+
+@bot.hybrid_command(name='events', aliases=['event', 'holidays'])
+async def events_cmd(ctx):
+    """View active and upcoming events"""
+    active = get_active_events()
+    now = datetime.now(timezone.utc).date()
+    
+    embed = discord.Embed(
+        title="🎊 Events",
+        color=0xFF69B4
     )
     
-    medals = ["🥇", "🥈", "🥉"]
-    lines = []
+    if active:
+        for event_key, event in active:
+            bonuses = event.get("bonuses", {})
+            bonus_lines = []
+            if "income_mult" in bonuses:
+                bonus_lines.append(f"💰 {bonuses['income_mult']}x Income")
+            if "xp_mult" in bonuses:
+                bonus_lines.append(f"✨ {bonuses['xp_mult']}x XP")
+            
+            end_date = datetime.strptime(event["end"], "%Y-%m-%d").date()
+            days_left = (end_date - now).days
+            
+            embed.add_field(
+                name=f"{event['name']} (Active!)",
+                value=f"{event['desc']}\n{chr(10).join(bonus_lines)}\n⏰ Ends in {days_left} day(s)\nUse `~eventclaim` for rewards!",
+                inline=False
+            )
+    else:
+        embed.add_field(name="No Active Events", value="Check back later for special events!", inline=False)
     
-    for i, (uid, data) in enumerate(sorted_players):
-        user = bot.get_user(int(uid))
-        name = user.display_name if user else f"User {uid}"
-        medal = medals[i] if i < 3 else f"**{i+1}.**"
-        grade = get_jjk_grade(data.get('level', 1))
-        lines.append(f"{medal} {name}\n└ {data.get('yen', 0):,} yen | Lv.{data.get('level', 1)} ({grade})")
+    upcoming = []
+    for event_key, event in JJK_EVENTS.items():
+        start = datetime.strptime(event["start"], "%Y-%m-%d").date()
+        if start > now:
+            upcoming.append((event_key, event, start))
     
-    embed.description = "\n".join(lines) if lines else "No players found"
+    if upcoming:
+        upcoming.sort(key=lambda x: x[2])
+        for event_key, event, start in upcoming[:3]:
+            days_until = (start - now).days
+            embed.add_field(
+                name=f"📅 {event['name']}",
+                value=f"Starts in {days_until} day(s)",
+                inline=True
+            )
+    
     await ctx.send(embed=embed)
+
+@bot.hybrid_command(name='eventclaim', aliases=['claimevent'])
+async def event_claim(ctx):
+    """Claim rewards from active events"""
+    player = get_jjk_player(ctx.author.id)
+    if not player:
+        await ctx.send("Use `~jjkstart` to begin your journey!")
+        return
+    
+    active = get_active_events()
+    if not active:
+        await ctx.send("❌ No active events right now!")
+        return
+    
+    claimed_events = player.get("event_claims", [])
+    claimed_any = False
+    
+    embed = discord.Embed(title="🎁 Event Rewards", color=0xFF69B4)
+    
+    for event_key, event in active:
+        if event_key in claimed_events:
+            embed.add_field(
+                name=event["name"],
+                value="✅ Already claimed!",
+                inline=False
+            )
+            continue
+        
+        reward = event.get("claim_reward", {})
+        yen = reward.get("yen", 0)
+        xp = reward.get("xp", 0)
+        
+        player["yen"] += yen
+        player["xp"] += xp
+        claimed_events.append(event_key)
+        claimed_any = True
+        
+        while player["xp"] >= xp_for_level(player["level"]):
+            player["xp"] -= xp_for_level(player["level"])
+            player["level"] += 1
+        
+        embed.add_field(
+            name=f"🎉 {event['name']}",
+            value=f"+💰 {yen:,} yen\n+✨ {xp} XP",
+            inline=False
+        )
+    
+    player["event_claims"] = claimed_events
+    save_jjk_data()
+    
+    if claimed_any:
+        await ctx.send(embed=embed)
+    else:
+        await ctx.send("❌ You've already claimed all active event rewards!")
 
 @bot.hybrid_command(name='clancreate', aliases=['createclan'])
 async def jjk_clan_create(ctx, *, clan_name: str):
@@ -2544,8 +2998,9 @@ class JJKGuideView(discord.ui.View):
         embed.add_field(name="📋 Missions", value="Mission board & dispatch", inline=True)
         embed.add_field(name="⚔️ Actions", value="Hunt, train, recover", inline=True)
         embed.add_field(name="🎒 Items", value="Shop & inventory", inline=True)
-        embed.add_field(name="🛒 Upgrades", value="Sorcerers, techniques, tools", inline=True)
-        embed.add_field(name="📖 Story", value="Story mode & clans", inline=True)
+        embed.add_field(name="🛒 Upgrades", value="Sorcerers, facilities, tools", inline=True)
+        embed.add_field(name="🤝 Social", value="Give yen, events, clans", inline=True)
+        embed.add_field(name="📖 Story", value="Story mode progression", inline=True)
         embed.set_footer(text="Click a button to view commands!")
         return embed
     
@@ -2635,16 +3090,22 @@ Techniques boost your combat power!
 `{self.prefix}domain` - View domain status
 `{self.prefix}upgradedomain` - Upgrade your domain
         """, inline=False)
+        embed.add_field(name="Facilities", value=f"""
+`{self.prefix}facilities` - View your facilities
+`{self.prefix}upgfacility <name>` - Upgrade a facility
+Facilities give passive bonuses!
+        """, inline=False)
         return embed
     
-    def get_story_embed(self):
-        embed = discord.Embed(title="📖 Story Mode & Clans", color=0x9B59B6)
-        embed.add_field(name="Story Mode", value=f"""
-`{self.prefix}story` - View your story progress
-`{self.prefix}chapter` - Start current chapter
-`{self.prefix}storyclaim` - Claim chapter rewards
-`{self.prefix}arcs` - View all arcs & rewards
-Complete arcs to unlock techniques & characters!
+    def get_social_embed(self):
+        embed = discord.Embed(title="🤝 Social & Events", color=0x9B59B6)
+        embed.add_field(name="Give Yen", value=f"""
+`{self.prefix}give <@user> <amount>` - Send yen to another player
+        """, inline=False)
+        embed.add_field(name="Events", value=f"""
+`{self.prefix}events` - View active/upcoming events
+`{self.prefix}eventclaim` - Claim event rewards
+Special bonuses during holidays!
         """, inline=False)
         embed.add_field(name="Clans", value=f"""
 `{self.prefix}clancreate <name>` - Create a clan (50,000 yen)
@@ -2653,6 +3114,25 @@ Complete arcs to unlock techniques & characters!
 `{self.prefix}claninfo` - View clan details
 `{self.prefix}clanlb` - Clan leaderboard
         """, inline=False)
+        return embed
+    
+    def get_story_embed(self):
+        embed = discord.Embed(title="📖 Story Mode", color=0x9B59B6)
+        embed.add_field(name="Story Mode", value=f"""
+`{self.prefix}story` - View your story progress
+`{self.prefix}chapter` - Start current chapter
+`{self.prefix}storyclaim` - Claim chapter rewards
+`{self.prefix}arcs` - View all arcs & rewards
+        """, inline=False)
+        embed.add_field(name="Story Arcs", value="""
+**Arc 1:** Fearsome Womb (Lv 1+)
+**Arc 2:** Cursed Training (Lv 5+)
+**Arc 3:** Kyoto Goodwill Event (Lv 10+)
+**Arc 4:** Origin of Obedience (Lv 18+)
+**Arc 5:** Shibuya Incident (Lv 30+)
+**Arc 6:** Culling Game (Lv 45+)
+        """, inline=False)
+        embed.set_footer(text="Complete arcs to unlock techniques & characters!")
         return embed
     
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
@@ -2685,7 +3165,11 @@ Complete arcs to unlock techniques & characters!
     async def upgrades_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         await interaction.response.edit_message(embed=self.get_upgrades_embed(), view=self)
     
-    @discord.ui.button(label="Story & Clans", style=discord.ButtonStyle.success, emoji="📖", row=2)
+    @discord.ui.button(label="Social", style=discord.ButtonStyle.primary, emoji="🤝", row=2)
+    async def social_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.edit_message(embed=self.get_social_embed(), view=self)
+    
+    @discord.ui.button(label="Story", style=discord.ButtonStyle.success, emoji="📖", row=2)
     async def story_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         await interaction.response.edit_message(embed=self.get_story_embed(), view=self)
 
@@ -3008,8 +3492,8 @@ async def claim_mission(ctx):
         await ctx.send(f"⏳ Mission not complete yet! **{mins}m {secs}s** remaining.")
         return
     
-    yen_reward = mission["yen"]
-    xp_reward = mission["xp"]
+    yen_reward = apply_yen_multipliers(mission["yen"], player)
+    xp_reward = apply_xp_multipliers(mission["xp"], player)
     risk = mission.get("risk", 0)
     
     xp_boost = player.get("boosts", {}).get("xp_mult", {})
@@ -3021,13 +3505,13 @@ async def claim_mission(ctx):
     
     injury_result = None
     if risk > 0:
-        injury_key = get_injury_from_risk(risk)
+        injury_key = get_injury_from_risk(risk, player)
         if injury_key:
             injury_result = apply_injury(player, injury_key)
     
     loot_item = None
     if random.random() < 0.05 + (0.02 * (["easy", "medium", "hard", "extreme"].index(mission.get("difficulty", "easy")))):
-        loot_item = roll_rare_loot(1.0)
+        loot_item = roll_rare_loot(1.0, player)
         if loot_item:
             player["collections"][loot_item] = player.get("collections", {}).get(loot_item, 0) + 1
     
@@ -3226,8 +3710,8 @@ async def dispatch_claim(ctx):
     for d in completed:
         yen_var = random.uniform(0.8, 1.3)
         xp_var = random.uniform(0.9, 1.2)
-        yen = int(d["base_yen"] * yen_var)
-        xp = int(d["base_xp"] * xp_var)
+        yen = apply_yen_multipliers(int(d["base_yen"] * yen_var), player)
+        xp = apply_xp_multipliers(int(d["base_xp"] * xp_var), player)
         
         success_boost = player.get("boosts", {}).get("success_boost", {})
         effective_risk = d["risk"]
@@ -3237,15 +3721,17 @@ async def dispatch_claim(ctx):
             if success_boost["uses"] <= 0:
                 del player["boosts"]["success_boost"]
         
-        if random.random() < effective_risk:
-            injury_key = get_injury_from_risk(effective_risk)
+        injury_reduction = get_facility_bonus(player, "injury_reduction")
+        adjusted_risk = max(0, effective_risk - injury_reduction)
+        if random.random() < adjusted_risk:
+            injury_key = get_injury_from_risk(adjusted_risk, player)
             if injury_key:
                 injury_result = apply_injury(player, injury_key)
                 if injury_result:
                     injuries.append(f"{JJK_SORCERERS.get(d['sorcerer'], {}).get('name', d['sorcerer'])}: {injury_result['name']}")
         
         if random.random() < d["rare_loot_chance"]:
-            loot_item = roll_rare_loot(1.5)
+            loot_item = roll_rare_loot(1.5, player)
             if loot_item:
                 player["collections"][loot_item] = player.get("collections", {}).get(loot_item, 0) + 1
                 loot.append(RARE_LOOT.get(loot_item, {}).get("name", loot_item))
@@ -3747,13 +4233,13 @@ async def story_claim(ctx):
         return
     
     risk = 0.05 + (story["difficulty"] * 0.05)
-    injury_key = get_injury_from_risk(risk)
+    injury_key = get_injury_from_risk(risk, player)
     injury_result = None
     if injury_key:
         injury_result = apply_injury(player, injury_key)
     
-    yen_reward = story["yen"]
-    xp_reward = story["xp"]
+    yen_reward = apply_yen_multipliers(story["yen"], player)
+    xp_reward = apply_xp_multipliers(story["xp"], player)
     
     xp_boost = player.get("boosts", {}).get("xp_mult", {})
     if xp_boost.get("uses", 0) > 0:
