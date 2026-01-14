@@ -837,13 +837,14 @@ def get_jjk_player(user_id):
         return None
     return ensure_player_fields(jjk_players[uid])
 
-def create_jjk_player(user_id):
+def create_jjk_player(user_id, school_name=None):
     """Create a new JJK player"""
     uid = str(user_id)
     jjk_players[uid] = {
         "yen": 500,
         "xp": 0,
         "level": 1,
+        "school_name": school_name,
         "sorcerers": ["yuji"],
         "techniques": [],
         "tools": [],
@@ -874,6 +875,7 @@ def create_jjk_player(user_id):
 def ensure_player_fields(player):
     """Ensure all new fields exist on a player (for migration)"""
     defaults = {
+        "school_name": None,
         "inventory": {},
         "injuries": {},
         "active_mission": None,
@@ -1978,17 +1980,22 @@ async def warn_user(ctx, member: discord.Member, *, reason: str = "No reason pro
 # =====================
 
 @bot.hybrid_command(name='jjkstart', aliases=['jstart'])
-async def jjk_start(ctx):
-    """Start your Jujutsu Sorcerer journey"""
+async def jjk_start(ctx, *, school_name: Optional[str] = None):
+    """Start your Jujutsu Sorcerer journey. Optionally provide a school name."""
     uid = str(ctx.author.id)
     if uid in jjk_players:
         await ctx.send("You already have a Jujutsu School! Use `~school` to view it.")
         return
     
-    player = create_jjk_player(ctx.author.id)
+    if school_name and len(school_name) > 50:
+        await ctx.send("School name must be 50 characters or less!")
+        return
+    
+    final_school_name = f"{school_name}'s Jujutsu School" if school_name else f"{ctx.author.display_name}'s Jujutsu School"
+    player = create_jjk_player(ctx.author.id, final_school_name)
     embed = discord.Embed(
         title="🔮 Welcome to Jujutsu High!",
-        description=f"**{ctx.author.display_name}**, you've enrolled as a Jujutsu Sorcerer!\n\nYou start as a **Grade 4** sorcerer with **Yuji Itadori** on your team.",
+        description=f"**{ctx.author.display_name}**, you've enrolled as a Jujutsu Sorcerer!\n\nYour school: **{final_school_name}**\nYou start as a **Grade 4** sorcerer with **Yuji Itadori** on your team.",
         color=0x9B59B6
     )
     embed.add_field(name="💴 Starting Yen", value="500", inline=True)
@@ -1996,6 +2003,29 @@ async def jjk_start(ctx):
     embed.add_field(name="⚔️ First Steps", value="`~hunt` - Exorcise curses for yen\n`~sorcerers` - View available sorcerers\n`~school` - View your stats", inline=False)
     embed.set_footer(text="Rise through the ranks and become a Special Grade!")
     await ctx.send(embed=embed)
+
+@bot.hybrid_command(name='setschoolname', aliases=['renameschool', 'schoolname'])
+async def jjk_set_school_name(ctx, *, name: str):
+    """Change your Jujutsu School name (costs 1,000 yen)"""
+    player = get_jjk_player(ctx.author.id)
+    if not player:
+        await ctx.send("Use `~jjkstart` to begin your journey!")
+        return
+    
+    if len(name) > 50:
+        await ctx.send("School name must be 50 characters or less!")
+        return
+    
+    cost = 1000
+    if player['yen'] < cost:
+        await ctx.send(f"You need **{cost:,} yen** to rename your school! You have **{player['yen']:,} yen**.")
+        return
+    
+    player['yen'] -= cost
+    player['school_name'] = f"{name}'s Jujutsu School"
+    save_jjk_data()
+    
+    await ctx.send(f"🏫 Your school has been renamed to **{player['school_name']}**! (-{cost:,} yen)")
 
 @bot.hybrid_command(name='school', aliases=['jjk', 'jschool'])
 async def jjk_school(ctx, member: Optional[discord.Member] = None):
@@ -2013,9 +2043,10 @@ async def jjk_school(ctx, member: Optional[discord.Member] = None):
     income = calculate_jjk_income(player)
     domain = JJK_DOMAINS[player.get('domain', 0)]
     xp_needed = xp_for_level(player['level'])
+    school_name = player.get('school_name', f"{target.display_name}'s School")
     
     embed = discord.Embed(
-        title=f"🏫 {target.display_name}'s Jujutsu School",
+        title=f"🏫 {school_name}",
         color=0x9B59B6
     )
     embed.set_thumbnail(url=target.display_avatar.url)
