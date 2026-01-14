@@ -4,6 +4,11 @@
 Kursein is a streamlined Discord bot with a Tokyo Ghoul, Rocket League, and Jujutsu Kaisen theme. The bot features Rocket League integration, DISBOARD bump reminders, stream notifications, moderation tools, and a full JJK-themed idle RPG economy game.
 
 ## Recent Changes (January 2026)
+- **Facilities System**: Build 5 facilities (Dormitory, Training Grounds, Cursed Archives, Barrier Ward, Curse Workshop) for passive bonuses
+- **Holiday Events**: Bot Launch event (Jan 14-21) and Birthday event (Jan 17-18) with income/XP multipliers and claimable rewards
+- **Give Command**: Transfer yen between players with ~give
+- **Paginated Leaderboard**: Button-based navigation for jjklb
+- **Button-Based Navigation**: ~guide and ~jjkguide now use Discord buttons for category navigation
 - **Mission Board System**: Choice-based missions with difficulty tiers, risk/reward tradeoffs
 - **Dispatch System**: Send sorcerers on idle missions (30min-12hr), claim rewards later
 - **Injury System**: High-risk missions can cause injuries that block actions until healed
@@ -12,7 +17,7 @@ Kursein is a streamlined Discord bot with a Tokyo Ghoul, Rocket League, and Juju
 - **Rare Loot Collections**: 12 rare items across 8 collections with set bonuses
 - **Story Mode**: 6 story arcs with 22 chapters following the JJK storyline
 - **More Characters**: 21 sorcerers including villains like Sukuna, Toji, Choso, Naoya
-- **JJK Economy System**: Full Jujutsu Kaisen themed economy game (59+ commands)
+- **JJK Economy System**: Full Jujutsu Kaisen themed economy game (64+ commands)
 
 ## Features
 
@@ -88,6 +93,20 @@ Run your own Jujutsu School, exorcise curses, and become a Special Grade sorcere
 
 **Leaderboards:**
 - `~jjklb` - Top sorcerers by yen
+
+**Facilities (NEW!):**
+- `~facilities` - View your facilities and bonuses
+- `~build <facility>` - Build a facility
+- 5 Facilities: Dormitory (income +20%), Training Grounds (XP +20%), Cursed Archives (passive 500 yen/hr), Barrier Ward (injury -10%), Curse Workshop (loot +10%)
+
+**Events (NEW!):**
+- `~events` - View active holiday events
+- `~eventclaim` - Claim event rewards
+- Bot Launch Event (Jan 14-21): +50% income/XP, claimable reward
+- Birthday Event (Jan 17-18): +25% income/XP, claimable reward
+
+**Give/Trade:**
+- `~give <@user> <amount>` - Transfer yen to another player
 
 ### Rocket League Integration
 - `~setrlprofile <platform> <username>` - Link Tracker.gg profile
