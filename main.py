@@ -2603,59 +2603,137 @@ async def jjk_guide(ctx):
     
     await ctx.send(embed=embed)
 
+class GuideView(discord.ui.View):
+    def __init__(self, prefix, author_id):
+        super().__init__(timeout=120)
+        self.prefix = prefix
+        self.author_id = author_id
+        self.current_page = "home"
+    
+    def get_home_embed(self):
+        embed = discord.Embed(
+            title="📚 Kursein Bot Guide",
+            description="Select a category below to view commands!",
+            color=0x5865F2
+        )
+        embed.add_field(name="🚀 Rocket League", value="RL stats, ranks, profiles", inline=True)
+        embed.add_field(name="🔧 RL Admin", value="Rank verification tools", inline=True)
+        embed.add_field(name="💤 AFK & Server", value="AFK status, server stats", inline=True)
+        embed.add_field(name="🔨 Moderation", value="Warn, modlogs", inline=True)
+        embed.add_field(name="🔔 Bump & Streams", value="Reminders, streamers", inline=True)
+        embed.add_field(name="🔮 JJK Economy", value="Full idle RPG game", inline=True)
+        embed.set_footer(text="Click a button to view commands")
+        return embed
+    
+    def get_rl_embed(self):
+        embed = discord.Embed(title="🚀 Rocket League Commands", color=0x5865F2)
+        embed.add_field(name="Commands", value=f"""
+`{self.prefix}setrlprofile <platform> <user>` - Link Tracker.gg (required)
+`{self.prefix}setrank <rank>` - Submit rank for verification
+`{self.prefix}rllb` - View server rank leaderboard
+`{self.prefix}stats [@user]` - View RL stats from Tracker.gg
+`{self.prefix}profile [@user]` - View user's RL profile
+        """, inline=False)
+        return embed
+    
+    def get_admin_embed(self):
+        embed = discord.Embed(title="🔧 RL Admin Commands", color=0x5865F2)
+        embed.add_field(name="Commands", value=f"""
+`{self.prefix}pendingranks` - View pending rank verifications
+`{self.prefix}approverank <@user>` - Approve a rank submission
+`{self.prefix}denyrank <@user> [reason]` - Deny rank with reason
+`{self.prefix}adminsetprofile <@user/ID> <rank> <url>` - Set rank directly
+`{self.prefix}setrankrole <tier> @role` - Configure auto-assign role
+`{self.prefix}rankroles` - View configured rank roles
+`{self.prefix}resetranks` - Reset all ranks for new season
+        """, inline=False)
+        return embed
+    
+    def get_afk_embed(self):
+        embed = discord.Embed(title="💤 AFK & Server Commands", color=0x5865F2)
+        embed.add_field(name="AFK System", value=f"""
+`{self.prefix}afk [reason]` - Set your AFK status
+Auto-clears when you send a message
+        """, inline=False)
+        embed.add_field(name="Server Info", value=f"""
+`{self.prefix}serverstats` - View server statistics
+`{self.prefix}botinfo` - Bot info and stats
+        """, inline=False)
+        return embed
+    
+    def get_mod_embed(self):
+        embed = discord.Embed(title="🔨 Moderation Commands", color=0x5865F2)
+        embed.add_field(name="Commands", value=f"""
+`{self.prefix}warn <@user> [reason]` - Warn a user (logs to updates channel)
+Auto-logs ban/unban events
+        """, inline=False)
+        return embed
+    
+    def get_bump_embed(self):
+        embed = discord.Embed(title="🔔 Bump & Streams", color=0x5865F2)
+        embed.add_field(name="Bump Reminders", value=f"""
+`{self.prefix}bumpinfo` - View bump reminder status
+Auto-detects /bump and reminds after 2 hours
+        """, inline=False)
+        embed.add_field(name="Stream Notifications", value=f"""
+`{self.prefix}list` - View monitored streamers
+        """, inline=False)
+        return embed
+    
+    def get_jjk_embed(self):
+        embed = discord.Embed(title="🔮 JJK Economy System", color=0x9B59B6)
+        embed.add_field(name="Getting Started", value=f"""
+`{self.prefix}jjkstart` - Begin your sorcerer journey
+`{self.prefix}jjkguide` - View FULL JJK command list (60+ commands!)
+`{self.prefix}school` - View your school stats
+`{self.prefix}balance` - Check yen balance
+        """, inline=False)
+        embed.add_field(name="Quick Overview", value="""
+Run your own Jujutsu School, hire sorcerers, exorcise curses, complete missions, follow the story, and become a Special Grade!
+        """, inline=False)
+        embed.set_footer(text="Use ~jjkguide for the full JJK command list!")
+        return embed
+    
+    async def interaction_check(self, interaction: discord.Interaction) -> bool:
+        if interaction.user.id != self.author_id:
+            await interaction.response.send_message("This menu isn't for you!", ephemeral=True)
+            return False
+        return True
+    
+    @discord.ui.button(label="Home", style=discord.ButtonStyle.secondary, emoji="🏠", row=0)
+    async def home_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.edit_message(embed=self.get_home_embed(), view=self)
+    
+    @discord.ui.button(label="Rocket League", style=discord.ButtonStyle.primary, emoji="🚀", row=0)
+    async def rl_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.edit_message(embed=self.get_rl_embed(), view=self)
+    
+    @discord.ui.button(label="RL Admin", style=discord.ButtonStyle.primary, emoji="🔧", row=0)
+    async def admin_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.edit_message(embed=self.get_admin_embed(), view=self)
+    
+    @discord.ui.button(label="AFK & Server", style=discord.ButtonStyle.primary, emoji="💤", row=1)
+    async def afk_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.edit_message(embed=self.get_afk_embed(), view=self)
+    
+    @discord.ui.button(label="Moderation", style=discord.ButtonStyle.primary, emoji="🔨", row=1)
+    async def mod_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.edit_message(embed=self.get_mod_embed(), view=self)
+    
+    @discord.ui.button(label="Bump & Streams", style=discord.ButtonStyle.primary, emoji="🔔", row=1)
+    async def bump_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.edit_message(embed=self.get_bump_embed(), view=self)
+    
+    @discord.ui.button(label="JJK Economy", style=discord.ButtonStyle.success, emoji="🔮", row=2)
+    async def jjk_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.edit_message(embed=self.get_jjk_embed(), view=self)
+
 @bot.hybrid_command(name='guide')
 async def guide_command(ctx):
     """Show all available commands"""
     prefix = get_prefix_from_ctx(ctx)
-    
-    embed = discord.Embed(
-        title="📚 Kursein Bot Guide",
-        description="Tokyo Ghoul + Rocket League themed bot",
-        color=0x5865F2
-    )
-    
-    embed.add_field(name="🚀 Rocket League", value=f"""
-`{prefix}setrlprofile <platform> <user>` - Link Tracker (required)
-`{prefix}setrank <rank>` - Submit rank for verification
-`{prefix}rllb` - Rank leaderboard
-`{prefix}stats [@user]` - View RL stats
-`{prefix}profile [@user]` - View profile
-    """, inline=False)
-    
-    embed.add_field(name="🔧 RL Admin", value=f"""
-`{prefix}pendingranks` - View pending verifications
-`{prefix}approverank <@user>` - Approve rank
-`{prefix}denyrank <@user> [reason]` - Deny rank
-`{prefix}adminsetprofile <@user/ID> <rank> <url>` - Set rank directly
-`{prefix}setrankrole <tier> @role` - Configure auto-role
-`{prefix}rankroles` - View role config
-`{prefix}resetranks` - Reset all ranks
-    """, inline=False)
-    
-    embed.add_field(name="💤 AFK System", value=f"""
-`{prefix}afk [reason]` - Set AFK status
-    """, inline=False)
-    
-    embed.add_field(name="📊 Server", value=f"""
-`{prefix}serverstats` - Server statistics
-`{prefix}botinfo` - Bot stats & info
-    """, inline=False)
-    
-    embed.add_field(name="🔨 Moderation", value=f"""
-`{prefix}warn <@user> [reason]` - Warn a user
-    """, inline=False)
-    
-    embed.add_field(name="🔔 Other", value=f"""
-`{prefix}bumpinfo` - Bump reminder status
-`{prefix}list` - View monitored streamers
-    """, inline=False)
-    
-    embed.add_field(name="🔮 JJK Economy", value=f"""
-`{prefix}jjkguide` - Full JJK command list
-`{prefix}jjkstart` - Start your sorcerer journey
-    """, inline=False)
-    
-    await ctx.send(embed=embed)
+    view = GuideView(prefix, ctx.author.id)
+    await ctx.send(embed=view.get_home_embed(), view=view)
 
 # =====================
 # MISSION BOARD COMMANDS
