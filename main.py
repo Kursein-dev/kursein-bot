@@ -20,20 +20,14 @@ load_dotenv()
 # Bot Version: 4.0.0 - JJK Focused
 
 # File paths
-REMINDERS_FILE = "reminders.json"
 PREFIXES_FILE = "prefixes.json"
-BUMP_CONFIG_FILE = "bump_config.json"
 AFK_FILE = "afk_users.json"
 JJK_DATA_FILE = "jjk_data.json"
 JJK_CLANS_FILE = "jjk_clans.json"
 DEFAULT_PREFIX = "~"
 
-DISBOARD_BOT_ID = 302050872383242240
 ERROR_CHANNEL_ID = 1435009092782522449
-BUMP_CHANNEL_ID = 1418819741471997982
-BUMP_ROLE_ID = 1436421726727700542
 LOG_CHANNEL_ID = 1435009184285589554  # Join/leave logs
-ADMIN_ROLE_ID = 1410509859685662781   # Ping for new accounts
 
 # Admin/Staff IDs
 OWNER_ID = 343055455263916045
@@ -45,9 +39,7 @@ SPECIAL_GRANTS = {
 }
 
 # In-memory data
-reminders = []
 prefixes = {}
-bump_config = {}
 afk_users = {}
 
 # JJK Economy Data
@@ -697,25 +689,6 @@ def check_level_up(player):
 # DATA PERSISTENCE
 # =====================
 
-def load_reminders():
-    global reminders
-    if db.is_db_available():
-        reminders = db.load_data('reminders', [])
-    elif os.path.exists(REMINDERS_FILE):
-        try:
-            with open(REMINDERS_FILE, 'r') as f:
-                reminders = json.load(f)
-        except:
-            reminders = []
-
-def save_reminders():
-    try:
-        if db.is_db_available():
-            db.save_data('reminders', reminders)
-        with open(REMINDERS_FILE, 'w') as f:
-            json.dump(reminders, f, indent=2)
-    except Exception as e:
-        print(f"Error saving reminders: {e}")
 
 def load_prefixes():
     global prefixes
@@ -737,25 +710,6 @@ def save_prefixes():
     except Exception as e:
         print(f"Error saving prefixes: {e}")
 
-def load_bump_config():
-    global bump_config
-    if db.is_db_available():
-        bump_config = db.load_data('bump_config', {})
-    elif os.path.exists(BUMP_CONFIG_FILE):
-        try:
-            with open(BUMP_CONFIG_FILE, 'r') as f:
-                bump_config = json.load(f)
-        except:
-            bump_config = {}
-
-def save_bump_config():
-    try:
-        if db.is_db_available():
-            db.save_data('bump_config', bump_config)
-        with open(BUMP_CONFIG_FILE, 'w') as f:
-            json.dump(bump_config, f, indent=2)
-    except Exception as e:
-        print(f"Error saving bump config: {e}")
 
 def load_afk_users():
     global afk_users
@@ -916,15 +870,9 @@ async def on_ready():
         except Exception as e:
             print(f"[DB] Database initialization failed: {e}")
     
-    load_reminders()
     load_prefixes()
-    load_bump_config()
     load_afk_users()
     load_jjk_data()
-    
-    if not check_reminders.is_running():
-        check_reminders.start()
-        print("Started reminder checker task")
     
     print("Starting slash command sync...")
     try:
@@ -968,22 +916,6 @@ async def on_message(message):
     # Process commands
     await bot.process_commands(message)
     
-    # Bump detection (DISBOARD bot)
-    if message.author.id == DISBOARD_BOT_ID and message.embeds:
-        embed = message.embeds[0]
-        if embed.description and "Bump done" in embed.description:
-            remind_at = datetime.now() + timedelta(hours=2)
-            bump_reminder = {
-                "type": "bump",
-                "guild_id": message.guild.id,
-                "channel_id": BUMP_CHANNEL_ID,
-                "role_id": BUMP_ROLE_ID,
-                "remind_at": remind_at.isoformat(),
-                "completed": False
-            }
-            reminders.append(bump_reminder)
-            save_reminders()
-            print(f"Bump detected in {message.guild.name}. Reminder set for 2 hours.")
 
 @bot.event
 async def on_command_error(ctx, error):
@@ -1059,74 +991,6 @@ async def on_member_remove(member):
     
     await channel.send(embed=embed)
 
-# =====================
-# BACKGROUND TASKS
-# =====================
-
-@tasks.loop(minutes=1)
-async def check_reminders():
-    now = datetime.now()
-    completed = []
-    
-    for reminder in reminders:
-        if reminder.get('completed'):
-            continue
-        
-        try:
-            remind_at = datetime.fromisoformat(reminder['remind_at'])
-            if now >= remind_at:
-                if reminder.get('type') == 'bump':
-                    channel = bot.get_channel(BUMP_CHANNEL_ID)
-                    if channel:
-                        mention = f"<@&{BUMP_ROLE_ID}>"
-                        embed = discord.Embed(
-                            title="🔔 Time to Bump!",
-                            description=f"{mention}\n\nThe 2-hour cooldown is over! Use `/bump` to bump the server on DISBOARD.",
-                            color=0x00FF00
-                        )
-                        await channel.send(mention, embed=embed)
-                
-                reminder['completed'] = True
-                completed.append(reminder)
-        except Exception as e:
-            print(f"Error processing reminder: {e}")
-    
-    if completed:
-        for r in completed:
-            if r in reminders:
-                reminders.remove(r)
-        save_reminders()
-
-@check_reminders.before_loop
-async def before_check_reminders():
-    await bot.wait_until_ready()
-
-# =====================
-# COMMANDS - BUMP REMINDERS
-# =====================
-
-@bot.hybrid_command(name='bumpinfo')
-async def bump_info(ctx):
-    """View bump reminder status"""
-    channel = bot.get_channel(BUMP_CHANNEL_ID)
-    pending_reminders = [r for r in reminders if not r.get('completed')]
-    
-    embed = discord.Embed(title="🔔 Bump Reminder Info", color=0x00FF00)
-    embed.add_field(name="Channel", value=channel.mention if channel else f"<#{BUMP_CHANNEL_ID}>", inline=True)
-    embed.add_field(name="Ping Role", value=f"<@&{BUMP_ROLE_ID}>", inline=True)
-    embed.add_field(name="Pending Reminders", value=str(len(pending_reminders)), inline=True)
-    
-    if pending_reminders:
-        next_reminder = min(pending_reminders, key=lambda r: r.get('remind_at', ''))
-        try:
-            remind_at = datetime.fromisoformat(next_reminder['remind_at'])
-            remaining = remind_at - datetime.now()
-            mins = int(remaining.total_seconds() // 60)
-            embed.add_field(name="Next Reminder", value=f"In {mins} minutes", inline=False)
-        except:
-            pass
-    
-    await ctx.send(embed=embed)
 
 # =====================
 # COMMANDS - UTILITY
@@ -1241,78 +1105,6 @@ async def server_stats(ctx):
     
     await ctx.send(embed=embed)
 
-# =====================
-# MOD LOGGING EVENTS
-# =====================
-
-@bot.event
-async def on_member_ban(guild, user):
-    """Log when a member is banned"""
-    channel = bot.get_channel(LOG_CHANNEL_ID)
-    if not channel:
-        return
-    
-    embed = discord.Embed(
-        title="🔨 Member Banned",
-        description=f"**User:** {user} ({user.id})",
-        color=0xFF0000
-    )
-    embed.set_thumbnail(url=user.display_avatar.url)
-    embed.timestamp = datetime.now(timezone.utc)
-    
-    try:
-        async for entry in guild.audit_logs(action=discord.AuditLogAction.ban, limit=1):
-            if entry.target.id == user.id:
-                embed.add_field(name="Banned by", value=entry.user.mention, inline=True)
-                if entry.reason:
-                    embed.add_field(name="Reason", value=entry.reason, inline=False)
-                break
-    except:
-        pass
-    
-    await channel.send(embed=embed)
-
-@bot.event
-async def on_member_unban(guild, user):
-    """Log when a member is unbanned"""
-    channel = bot.get_channel(LOG_CHANNEL_ID)
-    if not channel:
-        return
-    
-    embed = discord.Embed(
-        title="🔓 Member Unbanned",
-        description=f"**User:** {user} ({user.id})",
-        color=0x00FF00
-    )
-    embed.set_thumbnail(url=user.display_avatar.url)
-    embed.timestamp = datetime.now(timezone.utc)
-    await channel.send(embed=embed)
-
-@bot.hybrid_command(name='warn')
-@commands.has_permissions(kick_members=True)
-async def warn_user(ctx, member: discord.Member, *, reason: str = "No reason provided"):
-    """Warn a user and log it"""
-    channel = bot.get_channel(LOG_CHANNEL_ID)
-    
-    embed = discord.Embed(
-        title="⚠️ Member Warned",
-        color=0xFFFF00
-    )
-    embed.add_field(name="User", value=f"{member.mention} ({member})", inline=True)
-    embed.add_field(name="Warned by", value=ctx.author.mention, inline=True)
-    embed.add_field(name="Reason", value=reason, inline=False)
-    embed.set_thumbnail(url=member.display_avatar.url)
-    embed.timestamp = datetime.now(timezone.utc)
-    
-    if channel:
-        await channel.send(embed=embed)
-    
-    try:
-        await member.send(f"⚠️ You were warned in **{ctx.guild.name}**\nReason: {reason}")
-    except:
-        pass
-    
-    await ctx.send(f"⚠️ Warned {member.mention}: {reason}")
 
 # =====================
 # JJK ECONOMY COMMANDS
@@ -1985,43 +1777,6 @@ async def jjk_upgrade_domain(ctx):
     
     await ctx.send(embed=embed)
 
-@bot.hybrid_command(name='jjklb', aliases=['jjkleaderboard', 'jlb'])
-async def jjk_leaderboard(ctx):
-    """View the JJK leaderboard with pages"""
-    if not jjk_players:
-        await ctx.send("No players yet! Be the first with `~jjkstart`")
-        return
-    
-    sorted_players = sorted(jjk_players.items(), key=lambda x: x[1].get('yen', 0), reverse=True)
-    
-    per_page = 10
-    pages = []
-    medals = ["🥇", "🥈", "🥉"]
-    
-    for page_num in range(0, len(sorted_players), per_page):
-        page_players = sorted_players[page_num:page_num + per_page]
-        embed = discord.Embed(
-            title="🏆 Jujutsu Sorcerer Leaderboard",
-            description="Top sorcerers by yen",
-            color=0xFFD700
-        )
-        lines = []
-        for i, (uid, data) in enumerate(page_players):
-            rank = page_num + i
-            user = bot.get_user(int(uid))
-            name = user.display_name if user else f"User {uid}"
-            medal = medals[rank] if rank < 3 else f"**{rank+1}.**"
-            grade = get_jjk_grade(data.get('level', 1))
-            lines.append(f"{medal} {name}\n└ {data.get('yen', 0):,} yen | Lv.{data.get('level', 1)} ({grade})")
-        embed.description = "\n".join(lines) if lines else "No players found"
-        pages.append(embed)
-    
-    if len(pages) == 1:
-        await ctx.send(embed=pages[0])
-    else:
-        view = EmbedPaginator(pages, ctx.author.id)
-        await ctx.send(embed=view.get_current_embed(), view=view)
-
 @bot.hybrid_command(name='give', aliases=['pay', 'transfer', 'sendyen'])
 async def give_yen(ctx, member: discord.Member, amount: int):
     """Give yen to another player"""
@@ -2455,35 +2210,6 @@ async def jjk_clan_info(ctx, *, clan_name: Optional[str] = None):
     
     await ctx.send(embed=embed)
 
-@bot.hybrid_command(name='clanlb', aliases=['clanleaderboard'])
-async def jjk_clan_lb(ctx):
-    """View clan leaderboard"""
-    if not jjk_clans:
-        await ctx.send("No clans exist yet! Create one with `~clancreate <name>`")
-        return
-    
-    # Calculate total wealth for each clan
-    clan_wealth = []
-    for key, clan in jjk_clans.items():
-        total = sum(jjk_players.get(m, {}).get('yen', 0) for m in clan['members'])
-        clan_wealth.append((clan['name'], len(clan['members']), total))
-    
-    clan_wealth.sort(key=lambda x: x[2], reverse=True)
-    
-    embed = discord.Embed(
-        title="🏯 Clan Leaderboard",
-        color=0xFFD700
-    )
-    
-    lines = []
-    medals = ["🥇", "🥈", "🥉"]
-    for i, (name, members, wealth) in enumerate(clan_wealth[:10]):
-        medal = medals[i] if i < 3 else f"**{i+1}.**"
-        lines.append(f"{medal} **{name}**\n└ {wealth:,} yen | {members} members")
-    
-    embed.description = "\n".join(lines)
-    await ctx.send(embed=embed)
-
 class JJKGuideView(discord.ui.View):
     def __init__(self, prefix, author_id):
         super().__init__(timeout=180)
@@ -2492,17 +2218,20 @@ class JJKGuideView(discord.ui.View):
     
     def get_home_embed(self):
         embed = discord.Embed(
-            title="🔮 Jujutsu Kaisen Economy Guide",
-            description="Become the strongest sorcerer! Select a category below.",
+            title="🔮 Kursein Bot - JJK Idle RPG Guide",
+            description="Become the strongest sorcerer! Select a category below.\n**122 Sorcerers** from 14 anime series available!",
             color=0x9B59B6
         )
-        embed.add_field(name="📝 Getting Started", value="Begin your journey", inline=True)
-        embed.add_field(name="📋 Missions", value="Mission board & dispatch", inline=True)
-        embed.add_field(name="⚔️ Actions", value="Hunt, train, recover", inline=True)
+        embed.add_field(name="📝 Start", value="Begin journey", inline=True)
+        embed.add_field(name="📋 Missions", value="Board & dispatch", inline=True)
+        embed.add_field(name="⚔️ Actions", value="Hunt, train, heal", inline=True)
         embed.add_field(name="🎒 Items", value="Shop & inventory", inline=True)
-        embed.add_field(name="🛒 Upgrades", value="Sorcerers, facilities, tools", inline=True)
-        embed.add_field(name="🤝 Social", value="Give yen, events, clans", inline=True)
-        embed.add_field(name="📖 Story", value="Story mode progression", inline=True)
+        embed.add_field(name="🛒 Upgrades", value="Sorcerers, tools", inline=True)
+        embed.add_field(name="🤝 Social", value="Clans, events", inline=True)
+        embed.add_field(name="📖 Story", value="6 story arcs", inline=True)
+        embed.add_field(name="🗡️ PvP", value="Ranked battles", inline=True)
+        embed.add_field(name="🎯 Side Missions", value="10 objectives", inline=True)
+        embed.add_field(name="🔧 Utility", value="AFK, stats, info", inline=True)
         embed.set_footer(text="Click a button to view commands!")
         return embed
     
@@ -2512,7 +2241,8 @@ class JJKGuideView(discord.ui.View):
 `{self.prefix}jjkstart` - Create your sorcerer profile
 `{self.prefix}school` - View your school stats
 `{self.prefix}balance` - Check your yen balance
-`{self.prefix}jjklb` - View the leaderboard
+`{self.prefix}cooldowns` - View all cooldown timers
+`{self.prefix}lb` - View leaderboards (with tabs!)
         """, inline=False)
         embed.add_field(name="Understanding Grades", value="""
 Grade 4 → Grade 3 → Grade 2 → Grade 1 → Semi-1st → **Special Grade**
@@ -2637,6 +2367,57 @@ Special bonuses during holidays!
         embed.set_footer(text="Complete arcs to unlock techniques & characters!")
         return embed
     
+    def get_pvp_embed(self):
+        embed = discord.Embed(title="🗡️ PvP Battle System", color=0xFF6B6B)
+        embed.add_field(name="Battle Commands", value=f"""
+`{self.prefix}pvp @user` - Challenge another sorcerer
+`{self.prefix}pvpstats` - View your PvP stats & rank
+        """, inline=False)
+        embed.add_field(name="ELO Ranking System", value="""
+**Unranked** → **Bronze** (800) → **Silver** (1000)
+→ **Gold** (1200) → **Platinum** (1400)
+→ **Diamond** (1600) → **Special Grade** (1800+)
+        """, inline=False)
+        embed.add_field(name="Combat Power", value="""
+Your power is based on: Level, Sorcerers, Techniques, Tools, Domain
+5 minute cooldown between battles!
+        """, inline=False)
+        return embed
+    
+    def get_sidemissions_embed(self):
+        embed = discord.Embed(title="🎯 Side Missions", color=0x2ECC71)
+        embed.add_field(name="Commands", value=f"""
+`{self.prefix}sidemissions` - View available side objectives
+`{self.prefix}claimside <id>` - Claim completed mission rewards
+        """, inline=False)
+        embed.add_field(name="Available Missions", value="""
+• **Training Dummy** - Train 10 times
+• **Curse Collector** - Hunt 25 curses
+• **Training Montage** - Train 50 times
+• **Wealthy Sorcerer** - Earn 100,000 yen
+• **Squad Builder** - Hire 5 sorcerers
+• **Technique Student** - Learn 3 techniques
+• **Domain Initiate** - Upgrade domain twice
+• **Dedication** - Complete 10 missions
+• **First Blood** - Win 1 PvP battle
+• **PvP Veteran** - Win 10 PvP battles
+        """, inline=False)
+        embed.set_footer(text="Progress tracked automatically!")
+        return embed
+    
+    def get_utility_embed(self):
+        embed = discord.Embed(title="🔧 Utility Commands", color=0x5865F2)
+        embed.add_field(name="AFK System", value=f"""
+`{self.prefix}afk [reason]` - Set AFK status
+Auto-clears when you send a message
+        """, inline=False)
+        embed.add_field(name="Information", value=f"""
+`{self.prefix}profile [@user]` - View JJK profile
+`{self.prefix}serverstats` - Server statistics
+`{self.prefix}botinfo` - Bot info and stats
+        """, inline=False)
+        return embed
+    
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
         if interaction.user.id != self.author_id:
             await interaction.response.send_message("This menu isn't for you!", ephemeral=True)
@@ -2655,7 +2436,7 @@ Special bonuses during holidays!
     async def missions_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         await interaction.response.edit_message(embed=self.get_missions_embed(), view=self)
     
-    @discord.ui.button(label="Actions", style=discord.ButtonStyle.primary, emoji="⚔️", row=1)
+    @discord.ui.button(label="Actions", style=discord.ButtonStyle.primary, emoji="⚔️", row=0)
     async def actions_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         await interaction.response.edit_message(embed=self.get_actions_embed(), view=self)
     
@@ -2667,116 +2448,31 @@ Special bonuses during holidays!
     async def upgrades_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         await interaction.response.edit_message(embed=self.get_upgrades_embed(), view=self)
     
-    @discord.ui.button(label="Social", style=discord.ButtonStyle.primary, emoji="🤝", row=2)
+    @discord.ui.button(label="Social", style=discord.ButtonStyle.primary, emoji="🤝", row=1)
     async def social_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         await interaction.response.edit_message(embed=self.get_social_embed(), view=self)
     
-    @discord.ui.button(label="Story", style=discord.ButtonStyle.success, emoji="📖", row=2)
+    @discord.ui.button(label="Story", style=discord.ButtonStyle.success, emoji="📖", row=1)
     async def story_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         await interaction.response.edit_message(embed=self.get_story_embed(), view=self)
+    
+    @discord.ui.button(label="PvP", style=discord.ButtonStyle.danger, emoji="🗡️", row=2)
+    async def pvp_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.edit_message(embed=self.get_pvp_embed(), view=self)
+    
+    @discord.ui.button(label="Side Missions", style=discord.ButtonStyle.success, emoji="🎯", row=2)
+    async def sidemissions_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.edit_message(embed=self.get_sidemissions_embed(), view=self)
+    
+    @discord.ui.button(label="Utility", style=discord.ButtonStyle.secondary, emoji="🔧", row=2)
+    async def utility_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.edit_message(embed=self.get_utility_embed(), view=self)
 
-@bot.hybrid_command(name='jjkguide', aliases=['jguide'])
-async def jjk_guide(ctx):
-    """View all JJK commands"""
+@bot.hybrid_command(name='guide', aliases=['help', 'commands', 'jjkguide', 'jguide'])
+async def guide_command(ctx):
+    """Show all JJK commands with interactive navigation"""
     prefix = get_prefix_from_ctx(ctx)
     view = JJKGuideView(prefix, ctx.author.id)
-    await ctx.send(embed=view.get_home_embed(), view=view)
-
-class GuideView(discord.ui.View):
-    def __init__(self, prefix, author_id):
-        super().__init__(timeout=120)
-        self.prefix = prefix
-        self.author_id = author_id
-    
-    def get_home_embed(self):
-        embed = discord.Embed(
-            title="📚 Kursein Bot Guide",
-            description="Select a category below to view commands!",
-            color=0x9B59B6
-        )
-        embed.add_field(name="🔮 JJK Economy", value="Full idle RPG game", inline=True)
-        embed.add_field(name="💤 AFK & Server", value="AFK status, server stats", inline=True)
-        embed.add_field(name="🔨 Moderation", value="Warn, modlogs", inline=True)
-        embed.add_field(name="🔔 Bump & Streams", value="Reminders, streamers", inline=True)
-        embed.set_footer(text="Click a button to view commands")
-        return embed
-    
-    def get_afk_embed(self):
-        embed = discord.Embed(title="💤 AFK & Server Commands", color=0x5865F2)
-        embed.add_field(name="AFK System", value=f"""
-`{self.prefix}afk [reason]` - Set your AFK status
-Auto-clears when you send a message
-        """, inline=False)
-        embed.add_field(name="Server Info", value=f"""
-`{self.prefix}serverstats` - View server statistics
-`{self.prefix}botinfo` - Bot info and stats
-        """, inline=False)
-        return embed
-    
-    def get_mod_embed(self):
-        embed = discord.Embed(title="🔨 Moderation Commands", color=0x5865F2)
-        embed.add_field(name="Commands", value=f"""
-`{self.prefix}warn <@user> [reason]` - Warn a user (logs to updates channel)
-Auto-logs ban/unban events
-        """, inline=False)
-        return embed
-    
-    def get_bump_embed(self):
-        embed = discord.Embed(title="🔔 Bump & Streams", color=0x5865F2)
-        embed.add_field(name="Bump Reminders", value=f"""
-`{self.prefix}bumpinfo` - View bump reminder status
-Auto-detects /bump and reminds after 2 hours
-        """, inline=False)
-        embed.add_field(name="Stream Notifications", value=f"""
-`{self.prefix}list` - View monitored streamers
-        """, inline=False)
-        return embed
-    
-    def get_jjk_embed(self):
-        embed = discord.Embed(title="🔮 JJK Economy System", color=0x9B59B6)
-        embed.add_field(name="Getting Started", value=f"""
-`{self.prefix}jjkstart` - Begin your sorcerer journey
-`{self.prefix}jjkguide` - View FULL JJK command list (60+ commands!)
-`{self.prefix}school` - View your school stats
-`{self.prefix}balance` - Check yen balance
-        """, inline=False)
-        embed.add_field(name="Quick Overview", value="""
-Run your own Jujutsu School, hire sorcerers, exorcise curses, complete missions, follow the story, and become a Special Grade!
-        """, inline=False)
-        embed.set_footer(text="Use ~jjkguide for the full JJK command list!")
-        return embed
-    
-    async def interaction_check(self, interaction: discord.Interaction) -> bool:
-        if interaction.user.id != self.author_id:
-            await interaction.response.send_message("This menu isn't for you!", ephemeral=True)
-            return False
-        return True
-    
-    @discord.ui.button(label="Home", style=discord.ButtonStyle.secondary, emoji="🏠", row=0)
-    async def home_button(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await interaction.response.edit_message(embed=self.get_home_embed(), view=self)
-    
-    @discord.ui.button(label="JJK Economy", style=discord.ButtonStyle.success, emoji="🔮", row=0)
-    async def jjk_button(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await interaction.response.edit_message(embed=self.get_jjk_embed(), view=self)
-    
-    @discord.ui.button(label="AFK & Server", style=discord.ButtonStyle.primary, emoji="💤", row=0)
-    async def afk_button(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await interaction.response.edit_message(embed=self.get_afk_embed(), view=self)
-    
-    @discord.ui.button(label="Moderation", style=discord.ButtonStyle.primary, emoji="🔨", row=1)
-    async def mod_button(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await interaction.response.edit_message(embed=self.get_mod_embed(), view=self)
-    
-    @discord.ui.button(label="Bump & Streams", style=discord.ButtonStyle.primary, emoji="🔔", row=1)
-    async def bump_button(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await interaction.response.edit_message(embed=self.get_bump_embed(), view=self)
-
-@bot.hybrid_command(name='guide')
-async def guide_command(ctx):
-    """Show all available commands"""
-    prefix = get_prefix_from_ctx(ctx)
-    view = GuideView(prefix, ctx.author.id)
     await ctx.send(embed=view.get_home_embed(), view=view)
 
 # =====================
@@ -4109,42 +3805,6 @@ async def jjk_pvp_stats(ctx, member: Optional[discord.Member] = None):
     
     await ctx.send(embed=embed)
 
-@bot.hybrid_command(name='pvplb', aliases=['pvpleaderboard', 'rankedlb'])
-async def jjk_pvp_leaderboard(ctx):
-    """View the PvP leaderboard"""
-    players_with_pvp = [(uid, p) for uid, p in jjk_players.items() if p.get('pvp_elo', 0) > 0 and p.get('pvp_wins', 0) + p.get('pvp_losses', 0) > 0]
-    sorted_players = sorted(players_with_pvp, key=lambda x: x[1].get('pvp_elo', 1000), reverse=True)[:15]
-    
-    if not sorted_players:
-        await ctx.send("No PvP battles have occurred yet! Use `~pvp @user` to challenge someone!")
-        return
-    
-    embed = discord.Embed(
-        title="⚔️ PvP Leaderboard",
-        description="Top sorcerers by ranked ELO",
-        color=0xFF6B6B
-    )
-    
-    lb_text = ""
-    medals = ["🥇", "🥈", "🥉"]
-    
-    for i, (uid, player) in enumerate(sorted_players):
-        medal = medals[i] if i < 3 else f"**{i+1}.**"
-        rank = get_pvp_rank(player.get('pvp_elo', 1000))
-        wins = player.get('pvp_wins', 0)
-        losses = player.get('pvp_losses', 0)
-        
-        try:
-            user = await bot.fetch_user(int(uid))
-            name = user.display_name[:15]
-        except:
-            name = f"Sorcerer #{uid[-4:]}"
-        
-        lb_text += f"{medal} {rank['emoji']} **{name}** - {player.get('pvp_elo', 1000)} ELO ({wins}W/{losses}L)\n"
-    
-    embed.description = lb_text
-    await ctx.send(embed=embed)
-
 # =====================
 # SIDE MISSIONS SYSTEM
 # =====================
@@ -4366,134 +4026,177 @@ async def jjk_claim_side(ctx, mission_id: str):
     await ctx.send(embed=embed)
 
 # =====================
-# ENHANCED LEADERBOARDS
+# UNIFIED LEADERBOARD WITH TABS
 # =====================
 
-@bot.hybrid_command(name='leaderboards', aliases=['lbs', 'rankings'])
-async def jjk_leaderboards(ctx):
-    """View all available leaderboards"""
-    embed = discord.Embed(
-        title="📊 Leaderboards",
-        description="View rankings across different categories!",
-        color=0xF39C12
-    )
+class LeaderboardView(discord.ui.View):
+    def __init__(self, author_id):
+        super().__init__(timeout=180)
+        self.author_id = author_id
+        self.current_tab = "yen"
     
-    embed.add_field(name="💴 `~jjklb`", value="Yen leaderboard", inline=True)
-    embed.add_field(name="📊 `~lvllb`", value="Level leaderboard", inline=True)
-    embed.add_field(name="👻 `~huntlb`", value="Curses exorcised", inline=True)
-    embed.add_field(name="⚔️ `~pvplb`", value="PvP ELO rankings", inline=True)
-    embed.add_field(name="🏯 `~clanlb`", value="Clan rankings", inline=True)
-    embed.add_field(name="📚 `~storylb`", value="Story progress", inline=True)
+    async def get_yen_embed(self):
+        sorted_players = sorted(jjk_players.items(), key=lambda x: x[1].get('yen', 0), reverse=True)[:10]
+        embed = discord.Embed(title="🏆 Leaderboard - Yen Rankings", color=0xFFD700)
+        if not sorted_players:
+            embed.description = "No players yet!"
+            return embed
+        lines = []
+        medals = ["🥇", "🥈", "🥉"]
+        for i, (uid, data) in enumerate(sorted_players):
+            medal = medals[i] if i < 3 else f"**{i+1}.**"
+            try:
+                user = await bot.fetch_user(int(uid))
+                name = f"<@{uid}>"
+            except:
+                name = f"Sorcerer #{uid[-4:]}"
+            grade = get_jjk_grade(data.get('level', 1))
+            lines.append(f"{medal} {name}\n└ {data.get('yen', 0):,} yen | Lv.{data.get('level', 1)} ({grade})")
+        embed.description = "\n".join(lines)
+        return embed
     
-    await ctx.send(embed=embed)
+    async def get_level_embed(self):
+        sorted_players = sorted(jjk_players.items(), key=lambda x: (x[1].get('level', 1), x[1].get('xp', 0)), reverse=True)[:10]
+        embed = discord.Embed(title="🏆 Leaderboard - Level Rankings", color=0x9B59B6)
+        if not sorted_players:
+            embed.description = "No players yet!"
+            return embed
+        lines = []
+        medals = ["🥇", "🥈", "🥉"]
+        for i, (uid, player) in enumerate(sorted_players):
+            medal = medals[i] if i < 3 else f"**{i+1}.**"
+            grade = get_jjk_grade(player['level'])
+            try:
+                name = f"<@{uid}>"
+            except:
+                name = f"Sorcerer #{uid[-4:]}"
+            lines.append(f"{medal} {name} - Lv.{player['level']} ({grade})")
+        embed.description = "\n".join(lines)
+        return embed
+    
+    async def get_hunt_embed(self):
+        sorted_players = sorted(jjk_players.items(), key=lambda x: x[1].get('curses_exorcised', 0), reverse=True)[:10]
+        embed = discord.Embed(title="🏆 Leaderboard - Curse Hunters", color=0xE74C3C)
+        if not sorted_players:
+            embed.description = "No players yet!"
+            return embed
+        lines = []
+        medals = ["🥇", "🥈", "🥉"]
+        for i, (uid, player) in enumerate(sorted_players):
+            medal = medals[i] if i < 3 else f"**{i+1}.**"
+            curses = player.get('curses_exorcised', 0)
+            try:
+                name = f"<@{uid}>"
+            except:
+                name = f"Sorcerer #{uid[-4:]}"
+            lines.append(f"{medal} {name} - {curses:,} curses")
+        embed.description = "\n".join(lines)
+        return embed
+    
+    async def get_pvp_embed(self):
+        sorted_players = sorted(jjk_players.items(), key=lambda x: x[1].get('pvp_stats', {}).get('elo', 1000), reverse=True)[:10]
+        embed = discord.Embed(title="🏆 Leaderboard - PvP Rankings", color=0xFF6B6B)
+        if not sorted_players:
+            embed.description = "No players yet!"
+            return embed
+        lines = []
+        medals = ["🥇", "🥈", "🥉"]
+        for i, (uid, player) in enumerate(sorted_players):
+            medal = medals[i] if i < 3 else f"**{i+1}.**"
+            pvp = player.get('pvp_stats', {})
+            elo = pvp.get('elo', 1000)
+            wins = pvp.get('wins', 0)
+            losses = pvp.get('losses', 0)
+            rank = get_pvp_rank(elo) if 'get_pvp_rank' in dir() else "Unranked"
+            try:
+                name = f"<@{uid}>"
+            except:
+                name = f"Sorcerer #{uid[-4:]}"
+            lines.append(f"{medal} {name}\n└ {elo} ELO | {wins}W-{losses}L")
+        embed.description = "\n".join(lines)
+        return embed
+    
+    async def get_story_embed(self):
+        def get_story_score(player):
+            progress = player.get("story_progress", {})
+            completed_arcs = len(progress.get("completed_arcs", []))
+            current_chapter = progress.get("current_chapter", 1)
+            return completed_arcs * 100 + current_chapter
+        sorted_players = sorted(jjk_players.items(), key=lambda x: get_story_score(x[1]), reverse=True)[:10]
+        embed = discord.Embed(title="🏆 Leaderboard - Story Progress", color=0x3498DB)
+        if not sorted_players:
+            embed.description = "No players yet!"
+            return embed
+        lines = []
+        medals = ["🥇", "🥈", "🥉"]
+        for i, (uid, player) in enumerate(sorted_players):
+            medal = medals[i] if i < 3 else f"**{i+1}.**"
+            progress = player.get("story_progress", {})
+            completed_arcs = len(progress.get("completed_arcs", []))
+            current_arc = progress.get("current_arc", "fearsome_womb")
+            arc_name = STORY_ARCS.get(current_arc, {}).get("name", "Unknown")[:15]
+            try:
+                name = f"<@{uid}>"
+            except:
+                name = f"Sorcerer #{uid[-4:]}"
+            lines.append(f"{medal} {name} - {completed_arcs} arcs | {arc_name}")
+        embed.description = "\n".join(lines)
+        return embed
+    
+    async def get_clan_embed(self):
+        if not jjk_clans:
+            embed = discord.Embed(title="🏆 Leaderboard - Clans", color=0xFFD700)
+            embed.description = "No clans exist yet!"
+            return embed
+        clan_wealth = []
+        for key, clan in jjk_clans.items():
+            total = sum(jjk_players.get(m, {}).get('yen', 0) for m in clan['members'])
+            clan_wealth.append((clan['name'], len(clan['members']), total))
+        clan_wealth.sort(key=lambda x: x[2], reverse=True)
+        embed = discord.Embed(title="🏆 Leaderboard - Clans", color=0xFFD700)
+        lines = []
+        medals = ["🥇", "🥈", "🥉"]
+        for i, (name, members, wealth) in enumerate(clan_wealth[:10]):
+            medal = medals[i] if i < 3 else f"**{i+1}.**"
+            lines.append(f"{medal} **{name}**\n└ {wealth:,} yen | {members} members")
+        embed.description = "\n".join(lines)
+        return embed
+    
+    async def interaction_check(self, interaction: discord.Interaction) -> bool:
+        if interaction.user.id != self.author_id:
+            await interaction.response.send_message("This menu isn't for you!", ephemeral=True)
+            return False
+        return True
+    
+    @discord.ui.button(label="Yen", style=discord.ButtonStyle.success, emoji="💴", row=0)
+    async def yen_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.edit_message(embed=await self.get_yen_embed(), view=self)
+    
+    @discord.ui.button(label="Level", style=discord.ButtonStyle.primary, emoji="📊", row=0)
+    async def level_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.edit_message(embed=await self.get_level_embed(), view=self)
+    
+    @discord.ui.button(label="Hunts", style=discord.ButtonStyle.primary, emoji="👻", row=0)
+    async def hunt_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.edit_message(embed=await self.get_hunt_embed(), view=self)
+    
+    @discord.ui.button(label="PvP", style=discord.ButtonStyle.danger, emoji="⚔️", row=1)
+    async def pvp_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.edit_message(embed=await self.get_pvp_embed(), view=self)
+    
+    @discord.ui.button(label="Story", style=discord.ButtonStyle.primary, emoji="📚", row=1)
+    async def story_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.edit_message(embed=await self.get_story_embed(), view=self)
+    
+    @discord.ui.button(label="Clans", style=discord.ButtonStyle.secondary, emoji="🏯", row=1)
+    async def clan_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.edit_message(embed=await self.get_clan_embed(), view=self)
 
-@bot.hybrid_command(name='lvllb', aliases=['levellb', 'xplb'])
-async def jjk_level_leaderboard(ctx):
-    """View the level leaderboard"""
-    sorted_players = sorted(jjk_players.items(), key=lambda x: (x[1].get('level', 1), x[1].get('xp', 0)), reverse=True)[:15]
-    
-    if not sorted_players:
-        await ctx.send("No players found!")
-        return
-    
-    embed = discord.Embed(
-        title="📊 Level Leaderboard",
-        description="Top sorcerers by level",
-        color=0x9B59B6
-    )
-    
-    lb_text = ""
-    medals = ["🥇", "🥈", "🥉"]
-    
-    for i, (uid, player) in enumerate(sorted_players):
-        medal = medals[i] if i < 3 else f"**{i+1}.**"
-        grade = get_jjk_grade(player['level'])
-        
-        try:
-            user = await bot.fetch_user(int(uid))
-            name = user.display_name[:15]
-        except:
-            name = f"Sorcerer #{uid[-4:]}"
-        
-        lb_text += f"{medal} **{name}** - Lv.{player['level']} ({grade})\n"
-    
-    embed.description = lb_text
-    await ctx.send(embed=embed)
-
-@bot.hybrid_command(name='huntlb', aliases=['curseslb', 'exorciselb'])
-async def jjk_hunt_leaderboard(ctx):
-    """View the curses exorcised leaderboard"""
-    sorted_players = sorted(jjk_players.items(), key=lambda x: x[1].get('curses_exorcised', 0), reverse=True)[:15]
-    
-    if not sorted_players:
-        await ctx.send("No players found!")
-        return
-    
-    embed = discord.Embed(
-        title="👻 Curses Exorcised Leaderboard",
-        description="Top curse hunters",
-        color=0xE74C3C
-    )
-    
-    lb_text = ""
-    medals = ["🥇", "🥈", "🥉"]
-    
-    for i, (uid, player) in enumerate(sorted_players):
-        medal = medals[i] if i < 3 else f"**{i+1}.**"
-        curses = player.get('curses_exorcised', 0)
-        
-        try:
-            user = await bot.fetch_user(int(uid))
-            name = user.display_name[:15]
-        except:
-            name = f"Sorcerer #{uid[-4:]}"
-        
-        lb_text += f"{medal} **{name}** - {curses:,} curses\n"
-    
-    embed.description = lb_text
-    await ctx.send(embed=embed)
-
-@bot.hybrid_command(name='storylb', aliases=['progresslb', 'arcslb'])
-async def jjk_story_leaderboard(ctx):
-    """View story progress leaderboard"""
-    def get_story_score(player):
-        progress = player.get("story_progress", {})
-        completed_arcs = len(progress.get("completed_arcs", []))
-        current_chapter = progress.get("current_chapter", 1)
-        return completed_arcs * 100 + current_chapter
-    
-    sorted_players = sorted(jjk_players.items(), key=lambda x: get_story_score(x[1]), reverse=True)[:15]
-    
-    if not sorted_players:
-        await ctx.send("No players found!")
-        return
-    
-    embed = discord.Embed(
-        title="📚 Story Progress Leaderboard",
-        description="Top story completers",
-        color=0x3498DB
-    )
-    
-    lb_text = ""
-    medals = ["🥇", "🥈", "🥉"]
-    
-    for i, (uid, player) in enumerate(sorted_players):
-        medal = medals[i] if i < 3 else f"**{i+1}.**"
-        progress = player.get("story_progress", {})
-        completed_arcs = len(progress.get("completed_arcs", []))
-        current_arc = progress.get("current_arc", "fearsome_womb")
-        arc_name = STORY_ARCS.get(current_arc, {}).get("name", "Unknown")[:20]
-        
-        try:
-            user = await bot.fetch_user(int(uid))
-            name = user.display_name[:15]
-        except:
-            name = f"Sorcerer #{uid[-4:]}"
-        
-        lb_text += f"{medal} **{name}** - {completed_arcs} arcs | {arc_name}\n"
-    
-    embed.description = lb_text
-    await ctx.send(embed=embed)
+@bot.hybrid_command(name='leaderboard', aliases=['lb', 'leaderboards', 'lbs', 'rankings', 'jjklb', 'lvllb', 'huntlb', 'pvplb', 'storylb', 'clanlb'])
+async def unified_leaderboard(ctx):
+    """View all leaderboards with interactive tabs"""
+    view = LeaderboardView(ctx.author.id)
+    await ctx.send(embed=await view.get_yen_embed(), view=view)
 
 # Run the bot
 if __name__ == "__main__":

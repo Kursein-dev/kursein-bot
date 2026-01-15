@@ -1,13 +1,14 @@
 # Discord Kursein Bot - JJK Idle RPG
 
 ## Overview
-Kursein v4.0 is a JJK-focused Discord bot featuring a full idle RPG economy game with cross-series collaborations (Solo Leveling, Persona, Tokyo Ghoul, Attack on Titan, Demon Slayer, Chainsaw Man, One Piece, Dandadan, SAO, Love and Deepspace). The bot also includes DISBOARD bump reminders, moderation tools, and server utilities.
+Kursein v4.0 is a JJK-focused Discord bot featuring a full idle RPG economy game with cross-series collaborations (Solo Leveling, Persona, Tokyo Ghoul, Attack on Titan, Demon Slayer, Chainsaw Man, One Piece, Dandadan, SAO, Love and Deepspace, Seven Deadly Sins, My Hero Academia, Bleach, Naruto, Hunter x Hunter). The bot now focuses purely on the JJK RPG experience with server utilities.
 
 ## Recent Changes (January 2026)
-- **v4.0 Refactor**: Removed Rocket League and Twitch stream features to focus on JJK RPG
+- **v4.0 Refactor**: Removed Rocket League, Twitch stream, bump reminders, and moderation features to focus purely on JJK RPG
+- **Unified Guide**: Single `~guide` command with interactive button navigation for all features
+- **Unified Leaderboard**: Single `~lb` command with tabbed navigation (Yen, Level, Hunt, PvP, Story, Clan)
 - **PvP Battle System**: Challenge other players with ~pvp @user, ELO-based ranked matchmaking (Bronze to Special Grade)
 - **Side Missions**: 10 side objectives with tracking and rewards (~sidemissions, ~claimside)
-- **Enhanced Leaderboards**: Multiple leaderboard categories (~jjklb, ~lvllb, ~huntlb, ~pvplb, ~storylb)
 - **Cooldown Timer**: View all cooldowns at once with ~cooldowns
 - **122 Sorcerers**: 34 JJK core + 1 exclusive (Saya) + 87 collab characters from 14 series
 - **Facilities System**: Build 5 facilities for passive bonuses
@@ -28,12 +29,12 @@ Run your own Jujutsu School, exorcise curses, and become a Special Grade sorcere
 - `~school` - View your school stats
 - `~balance` - Check yen balance
 - `~cooldowns` - View all cooldown timers
-- `~jjkguide` - Full command list
+- `~guide` - Full interactive command guide with button navigation
 
 **PvP Battle System (NEW!):**
 - `~pvp @user` - Challenge another sorcerer to battle
 - `~pvpstats` - View your PvP stats and rank
-- `~pvplb` - PvP leaderboard
+- `~lb` then click PvP tab - PvP leaderboard (or use legacy alias `~pvplb`)
 - ELO-based ranking: Unranked -> Bronze -> Silver -> Gold -> Platinum -> Diamond -> Special Grade
 - Combat power based on level, sorcerers, techniques, tools, and domain
 - 5 minute cooldown between battles
@@ -106,14 +107,10 @@ Run your own Jujutsu School, exorcise curses, and become a Special Grade sorcere
 - `~claninfo` - View clan details
 - `~clanlb` - Clan leaderboard
 
-**Leaderboards:**
-- `~leaderboards` - View all leaderboard categories
-- `~jjklb` - Top sorcerers by yen
-- `~lvllb` - Top sorcerers by level
-- `~huntlb` - Top curse hunters
-- `~pvplb` - Top PvP players by ELO
-- `~storylb` - Story progress leaderboard
-- `~clanlb` - Clan leaderboard
+**Leaderboards (Unified with Tabs):**
+- `~lb` / `~leaderboard` - View all leaderboards with interactive tab buttons
+- Tabs: Yen, Level, Hunt, PvP, Story, Clan
+- Player names are now pingable mentions!
 
 **Facilities:**
 - `~facilities` - View your facilities and bonuses
@@ -137,14 +134,6 @@ Run your own Jujutsu School, exorcise curses, and become a Special Grade sorcere
 ### Server Stats
 - `~serverstats` - View member count, online users, channels, age, owner
 
-### Moderation
-- `~warn <@user> [reason]` - Warn a user (logs to updates channel)
-- Auto-logs ban/unban events to updates channel
-
-### DISBOARD Bump Reminders
-- `~bumpinfo` - View bump reminder status
-- Automatically detects `/bump` and reminds after 2-hour cooldown
-
 ### Utility Commands
 - `~guide` - View all commands
 - `~botinfo` - Bot stats
@@ -158,14 +147,13 @@ Run your own Jujutsu School, exorcise curses, and become a Special Grade sorcere
 
 ### Data Storage
 Primary storage in PostgreSQL with JSONB columns:
-- `reminders` - Bump reminders
 - `prefixes` - Server prefixes
 - `afk_users` - AFK status
 - `jjk_players` - JJK economy player data (includes inventory, injuries, missions, collections, story progress, PvP stats, side mission progress)
 - `jjk_clans` - JJK clan data
 
 ### JJK Game Data
-**Sorcerers (119 total):**
+**Sorcerers (122 total):**
 - JJK Core (34): Yuji, Megumi, Nobara, Maki, Panda, Inumaki, Todo, Yuta, Gojo, Nanami, Mei Mei, Kusakabe, Miwa, Momo, Mechamaru, Kamo, Mai, Naoya, Choso, Toji, Sukuna, Kenjaku, Mahito, Jogo, Hanami, Dagon, Kashimo, Hakari, Higuruma, Ryu, Uro, Uraume, Yorozu, Charles
 - Exclusive (1): Saya (Noctflare technique)
 - Solo Leveling (6): Sung Jinwoo, Cha Hae-In, Goto Ryuji, Beru, Iron, Thomas Andre
@@ -204,11 +192,6 @@ Primary storage in PostgreSQL with JSONB columns:
 ### Hardcoded IDs
 - LOG_CHANNEL_ID: 1435009184285589554
 - ADMIN_ROLE_ID: 1410509859685662781
-- BUMP_CHANNEL_ID: 1418819741471997982
-- BUMP_ROLE_ID: 1436421726727700542
-
-### Background Tasks
-- **Reminder Checker** (1 min) - Sends bump reminders
 
 ## Required Environment Variables
 
