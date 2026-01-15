@@ -157,10 +157,13 @@ JJK_SORCERERS = {
     "sinon": {"name": "Sinon", "cost": 120000, "income": 340, "emoji": "🎯", "grade": "1st Grade", "unlock": 35, "collab": "SAO"},
     "leafa": {"name": "Leafa", "cost": 100000, "income": 300, "emoji": "🧚", "grade": "1st Grade", "unlock": 33, "collab": "SAO"},
     "eugeo": {"name": "Eugeo", "cost": 140000, "income": 360, "emoji": "❄️", "grade": "Special Grade", "unlock": 37, "collab": "SAO"},
-    # ========== LOVE AND DEEPSPACE (3 characters) ==========
+    # ========== LOVE AND DEEPSPACE (6 characters) ==========
     "zayne": {"name": "Zayne", "cost": 140000, "income": 360, "emoji": "❄️", "grade": "1st Grade", "unlock": 36, "collab": "Love and Deepspace"},
     "rafayel": {"name": "Rafayel", "cost": 145000, "income": 370, "emoji": "🎨", "grade": "1st Grade", "unlock": 37, "collab": "Love and Deepspace"},
     "xavier_lds": {"name": "Xavier", "cost": 155000, "income": 390, "emoji": "⭐", "grade": "Special Grade", "unlock": 39, "collab": "Love and Deepspace"},
+    "sylus": {"name": "Sylus", "cost": 350000, "income": 720, "emoji": "🖤", "grade": "Special Grade", "unlock": 48, "collab": "Love and Deepspace"},
+    "caleb": {"name": "Caleb", "cost": 120000, "income": 340, "emoji": "🔥", "grade": "1st Grade", "unlock": 35, "collab": "Love and Deepspace"},
+    "mc_lds": {"name": "MC (Deepspace Hunter)", "cost": 100000, "income": 300, "emoji": "💫", "grade": "1st Grade", "unlock": 33, "collab": "Love and Deepspace"},
     # ========== SEVEN DEADLY SINS (7 characters) ==========
     "meliodas": {"name": "Meliodas", "cost": 400000, "income": 820, "emoji": "👿", "grade": "Special Grade", "unlock": 50, "collab": "Seven Deadly Sins"},
     "ban": {"name": "Ban", "cost": 280000, "income": 600, "emoji": "🦊", "grade": "Special Grade", "unlock": 46, "collab": "Seven Deadly Sins"},

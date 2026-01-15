@@ -9,7 +9,7 @@ Kursein v4.0 is a JJK-focused Discord bot featuring a full idle RPG economy game
 - **Side Missions**: 10 side objectives with tracking and rewards (~sidemissions, ~claimside)
 - **Enhanced Leaderboards**: Multiple leaderboard categories (~jjklb, ~lvllb, ~huntlb, ~pvplb, ~storylb)
 - **Cooldown Timer**: View all cooldowns at once with ~cooldowns
-- **119 Sorcerers**: 34 JJK core + 1 exclusive (Saya) + 84 collab characters from 14 series
+- **122 Sorcerers**: 34 JJK core + 1 exclusive (Saya) + 87 collab characters from 14 series
 - **Facilities System**: Build 5 facilities for passive bonuses
 - **Holiday Events**: Bot Launch event (Jan 14-21) and Birthday event (Jan 17-18)
 - **Mission Board System**: Choice-based missions with difficulty tiers, risk/reward tradeoffs
@@ -177,7 +177,7 @@ Primary storage in PostgreSQL with JSONB columns:
 - One Piece (8): Luffy, Zoro, Sanji, Nami, Robin, Law, Shanks, Ace
 - Dandadan (4): Okarun, Momo, Aira, Turbo Granny
 - SAO (5): Kirito, Asuna, Sinon, Leafa, Eugeo
-- Love and Deepspace (3): Zayne, Rafayel, Xavier
+- Love and Deepspace (6): Zayne, Rafayel, Xavier, Sylus, Caleb, MC (Deepspace Hunter)
 - Seven Deadly Sins (7): Meliodas, Ban, King, Diane, Gowther, Escanor, Merlin
 - My Hero Academia (10): Deku, Bakugo, Todoroki, All Might, Uraraka, Iida, Tokoyami, Kirishima, Endeavor, Hawks
 - Bleach (7): Ichigo, Rukia, Byakuya, Kenpachi, Aizen, Toshiro, Urahara
