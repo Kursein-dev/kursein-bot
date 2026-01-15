@@ -28,7 +28,15 @@
       "bot_launch"
     ],
     "last_collect": "2026-01-15T05:16:19.433049+00:00",
-    "active_mission": null,
+    "active_mission": {
+      "name": "Shibuya Incident Cleanup",
+      "difficulty": "extreme",
+      "yen": 20801,
+      "xp": 1441,
+      "risk": 0.5,
+      "end_time": "2026-01-15T07:11:51.257406+00:00",
+      "start_time": "2026-01-15T06:51:51.257406+00:00"
+    },
     "dispatch_slots": [],
     "mission_offers": [],
     "story_progress": {
@@ -40,7 +48,7 @@
     "curses_exorcised": 3,
     "protection_wards": 0,
     "missions_completed": 1,
-    "mission_offers_time": null,
+    "mission_offers_time": "2026-01-15T06:51:37.176235+00:00",
     "last_facility_collect": null
   },
   "570779072549093399": {
@@ -289,14 +297,14 @@
     "story_progress": {
       "current_arc": "culling_game",
       "active_story": {
-        "arc": "culling_game",
-        "chapter": 4,
-        "title": "Kashimo's Lightning",
-        "enemy": "Hajime Kashimo",
-        "difficulty": 9,
-        "yen": 30000,
         "xp": 6000,
-        "end_time": "2026-01-15T06:44:47.806261+00:00"
+        "arc": "culling_game",
+        "yen": 30000,
+        "enemy": "Hajime Kashimo",
+        "title": "Kashimo's Lightning",
+        "chapter": 4,
+        "end_time": "2026-01-15T06:44:47.806261+00:00",
+        "difficulty": 9
       },
       "completed_arcs": [
         "fearsome_womb",
@@ -539,14 +547,14 @@
     "story_progress": {
       "current_arc": "fearsome_womb",
       "active_story": {
-        "arc": "fearsome_womb",
-        "chapter": 1,
-        "title": "Entering the Detention Center",
-        "enemy": "Finger Bearer",
-        "difficulty": 1,
-        "yen": 500,
         "xp": 100,
-        "end_time": "2026-01-15T06:34:58.641728+00:00"
+        "arc": "fearsome_womb",
+        "yen": 500,
+        "enemy": "Finger Bearer",
+        "title": "Entering the Detention Center",
+        "chapter": 1,
+        "end_time": "2026-01-15T06:34:58.641728+00:00",
+        "difficulty": 1
       },
       "completed_arcs": [],
       "current_chapter": 1

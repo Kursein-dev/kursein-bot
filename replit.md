@@ -1,24 +1,20 @@
-# Discord Kursein Bot - Tokyo Ghoul + Rocket League + JJK Theme
+# Discord Kursein Bot - JJK Idle RPG
 
 ## Overview
-Kursein is a streamlined Discord bot with a Tokyo Ghoul, Rocket League, and Jujutsu Kaisen theme. The bot features Rocket League integration, DISBOARD bump reminders, stream notifications, moderation tools, and a full JJK-themed idle RPG economy game with cross-series collaborations.
+Kursein v4.0 is a JJK-focused Discord bot featuring a full idle RPG economy game with cross-series collaborations (Solo Leveling, Persona, Tokyo Ghoul, Attack on Titan, Demon Slayer, Chainsaw Man, One Piece, Dandadan, SAO, Love and Deepspace). The bot also includes DISBOARD bump reminders, moderation tools, and server utilities.
 
 ## Recent Changes (January 2026)
+- **v4.0 Refactor**: Removed Rocket League and Twitch stream features to focus on JJK RPG
 - **PvP Battle System**: Challenge other players with ~pvp @user, ELO-based ranked matchmaking (Bronze to Special Grade)
 - **Side Missions**: 10 side objectives with tracking and rewards (~sidemissions, ~claimside)
 - **Enhanced Leaderboards**: Multiple leaderboard categories (~jjklb, ~lvllb, ~huntlb, ~pvplb, ~storylb)
 - **Cooldown Timer**: View all cooldowns at once with ~cooldowns
-- **21 Collab Characters**: Attack on Titan, Demon Slayer, Chainsaw Man, One Piece, Dandadan, SAO, Love and Deepspace
-- **Facilities System**: Build 5 facilities (Dormitory, Training Grounds, Cursed Archives, Barrier Ward, Curse Workshop) for passive bonuses
-- **Holiday Events**: Bot Launch event (Jan 14-21) and Birthday event (Jan 17-18) with income/XP multipliers and claimable rewards
-- **Give Command**: Transfer yen between players with ~give
-- **Paginated Leaderboard**: Button-based navigation for jjklb
-- **Button-Based Navigation**: ~guide and ~jjkguide now use Discord buttons for category navigation
+- **52 Sorcerers**: 21 JJK core + 1 exclusive (Saya) + 30 collab characters from 10 series
+- **Facilities System**: Build 5 facilities for passive bonuses
+- **Holiday Events**: Bot Launch event (Jan 14-21) and Birthday event (Jan 17-18)
 - **Mission Board System**: Choice-based missions with difficulty tiers, risk/reward tradeoffs
 - **Dispatch System**: Send sorcerers on idle missions (30min-12hr), claim rewards later
-- **Injury System**: High-risk missions can cause injuries that block actions until healed
 - **Item Shop & Inventory**: Healing items, XP boosts, protection wards, success boosters
-- **Recovery Actions**: ~eat (6h cd) and ~rest (12h cd) for healing and XP
 - **Rare Loot Collections**: 12 rare items across 8 collections with set bonuses
 - **Story Mode**: 6 story arcs with 22 chapters following the JJK storyline
 
@@ -133,22 +129,6 @@ Run your own Jujutsu School, exorcise curses, and become a Special Grade sorcere
 **Give/Trade:**
 - `~give <@user> <amount>` - Transfer yen to another player
 
-### Rocket League Integration
-- `~setrlprofile <platform> <username>` - Link Tracker.gg profile
-- `~setrank <rank>` - Submit rank for admin verification
-- `~rllb` - View server rank leaderboard
-- `~stats [@user]` - Fetch live RL stats
-- `~profile [@user]` - View user profile
-
-### Rank Admin Commands
-- `~pendingranks` - View pending rank verifications
-- `~approverank <@user>` - Approve rank (auto-assigns role)
-- `~denyrank <@user> [reason]` - Deny rank with reason
-- `~adminsetprofile <@user/ID> <rank> <url>` - Set rank directly
-- `~setrankrole <tier> @role` - Configure auto-assign roles
-- `~rankroles` - View configured rank roles
-- `~resetranks` - Reset all ranks for new season
-
 ### AFK System
 - `~afk [reason]` - Set AFK status
 - Auto-clears when you send a message
@@ -165,10 +145,6 @@ Run your own Jujutsu School, exorcise curses, and become a Special Grade sorcere
 - `~bumpinfo` - View bump reminder status
 - Automatically detects `/bump` and reminds after 2-hour cooldown
 
-### Stream Notifications
-- `~list` - View monitored streamers
-- Hardcoded: kursein, hikarai_, warinspanish209, loafylmaoo
-
 ### Utility Commands
 - `~guide` - View all commands
 - `~botinfo` - Bot stats
@@ -179,18 +155,12 @@ Run your own Jujutsu School, exorcise curses, and become a Special Grade sorcere
 - **Python 3.11** with discord.py 2.6.4
 - **PostgreSQL** (Neon-backed) for persistent storage
 - **JSON files** as automatic backups
-- **Tracker.gg API** for Rocket League stats
-- **Twitch Helix API** for stream detection
 
 ### Data Storage
 Primary storage in PostgreSQL with JSONB columns:
 - `reminders` - Bump reminders
 - `prefixes` - Server prefixes
-- `rl_ranks` - Rocket League ranks
-- `rl_profiles` - Linked Tracker.gg profiles
 - `afk_users` - AFK status
-- `pending_ranks` - Pending rank verifications
-- `rank_roles` - Tier to role ID mapping
 - `jjk_players` - JJK economy player data (includes inventory, injuries, missions, collections, story progress, PvP stats, side mission progress)
 - `jjk_clans` - JJK clan data
 
@@ -231,21 +201,14 @@ Primary storage in PostgreSQL with JSONB columns:
 - ADMIN_ROLE_ID: 1410509859685662781
 - BUMP_CHANNEL_ID: 1418819741471997982
 - BUMP_ROLE_ID: 1436421726727700542
-- STREAM_CHANNEL_ID: 1442613254546526298
 
 ### Background Tasks
 - **Reminder Checker** (1 min) - Sends bump reminders
-- **Stream Checker** (2 min) - Monitors Twitch
 
 ## Required Environment Variables
 
 ### Secrets (Required)
 - `DISCORD_BOT_TOKEN` - Discord bot token
-- `TRACKER_API_KEY` - Tracker.gg API key
-
-### Secrets (Optional)
-- `TWITCH_CLIENT_ID` - Twitch Developer App Client ID
-- `TWITCH_CLIENT_SECRET` - Twitch Developer App Client Secret
 
 ## File Structure
 ```
@@ -260,6 +223,5 @@ Primary storage in PostgreSQL with JSONB columns:
 ## User Preferences
 - Bot supports both prefix commands (`~`) and slash commands (`/`)
 - Default prefix: `~`
-- Tokyo Ghoul + Rocket League + JJK theme
-- Ranks accept both "1" and "I" format (Diamond 1 = Diamond I)
+- Tokyo Ghoul + JJK theme
 - NO gambling/casino mechanics - focus on choice-based idle RPG gameplay

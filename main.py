@@ -17,35 +17,23 @@ import db
 
 load_dotenv()
 
-# Bot Version: 3.1.0 - Streamlined (Tokyo Ghoul + Rocket League theme)
+# Bot Version: 4.0.0 - JJK Focused
 
 # File paths
 REMINDERS_FILE = "reminders.json"
 PREFIXES_FILE = "prefixes.json"
 BUMP_CONFIG_FILE = "bump_config.json"
-RL_RANKS_FILE = "rl_ranks.json"
-RL_PROFILES_FILE = "rl_profiles.json"
-STREAMS_CONFIG_FILE = "streams_config.json"
 AFK_FILE = "afk_users.json"
-PENDING_RANKS_FILE = "pending_ranks.json"
 JJK_DATA_FILE = "jjk_data.json"
 JJK_CLANS_FILE = "jjk_clans.json"
 DEFAULT_PREFIX = "~"
 
 DISBOARD_BOT_ID = 302050872383242240
 ERROR_CHANNEL_ID = 1435009092782522449
-STREAM_CHANNEL_ID = 1442613254546526298
 BUMP_CHANNEL_ID = 1418819741471997982
 BUMP_ROLE_ID = 1436421726727700542
 LOG_CHANNEL_ID = 1435009184285589554  # Join/leave logs
 ADMIN_ROLE_ID = 1410509859685662781   # Ping for new accounts
-
-HARDCODED_STREAMERS = [
-    {'platform': 'twitch', 'username': 'kursein', 'live': False},
-    {'platform': 'twitch', 'username': 'hikarai_', 'live': False},
-    {'platform': 'twitch', 'username': 'warinspanish209', 'live': False},
-    {'platform': 'twitch', 'username': 'loafylmaoo', 'live': False},
-]
 
 # Admin/Staff IDs
 OWNER_ID = 343055455263916045
@@ -60,14 +48,7 @@ SPECIAL_GRANTS = {
 reminders = []
 prefixes = {}
 bump_config = {}
-rl_ranks = {}
-rl_profiles = {}
-streams_config = {}
 afk_users = {}
-pending_ranks = {}
-
-# Rank to Role mapping (loaded from DB)
-rank_roles = {}
 
 # JJK Economy Data
 jjk_players = {}  # user_id -> player data
@@ -625,58 +606,6 @@ def check_level_up(player):
         levels_gained += 1
     return levels_gained
 
-def get_rank_tier(rank_id):
-    """Get the tier name from a rank ID"""
-    if rank_id == 0: return None
-    if rank_id <= 3: return 'bronze'
-    if rank_id <= 6: return 'silver'
-    if rank_id <= 9: return 'gold'
-    if rank_id <= 12: return 'platinum'
-    if rank_id <= 15: return 'diamond'
-    if rank_id <= 18: return 'champion'
-    if rank_id <= 21: return 'grand_champion'
-    if rank_id == 22: return 'ssl'
-    return None
-
-# Twitch API tokens
-twitch_access_token = None
-twitch_token_expiry = None
-
-# Rocket League Ranks
-def normalize_rank_input(rank_input):
-    """Convert number suffixes to roman numerals (e.g., Diamond 1 -> Diamond I)"""
-    replacements = {'1': 'I', '2': 'II', '3': 'III'}
-    result = rank_input
-    for num, roman in replacements.items():
-        result = re.sub(rf'\b{num}\b', roman, result)
-    return result
-
-RL_RANKS = {
-    0: {"name": "Unranked", "emoji": "⚪", "color": 0x808080},
-    1: {"name": "Bronze I", "emoji": "<:Bronze1:1438556246990127246>", "color": 0xCD7F32},
-    2: {"name": "Bronze II", "emoji": "<:Bronze2:1438564385978323024>", "color": 0xCD7F32},
-    3: {"name": "Bronze III", "emoji": "<:Bronze3:1438556325339594903>", "color": 0xCD7F32},
-    4: {"name": "Silver I", "emoji": "<:Silver1:1438556374979186800>", "color": 0xC0C0C0},
-    5: {"name": "Silver II", "emoji": "<:Silver2:1438564703876943914>", "color": 0xC0C0C0},
-    6: {"name": "Silver III", "emoji": "<:Silver3:1438556422718623836>", "color": 0xC0C0C0},
-    7: {"name": "Gold I", "emoji": "<:Gold1:1438556470001008641>", "color": 0xFFD700},
-    8: {"name": "Gold II", "emoji": "<:Gold2:1438556611302916096>", "color": 0xFFD700},
-    9: {"name": "Gold III", "emoji": "<:Gold3:1438556538133286972>", "color": 0xFFD700},
-    10: {"name": "Platinum I", "emoji": "<:Platinum1:1438556692362039307>", "color": 0x00BFFF},
-    11: {"name": "Platinum II", "emoji": "<:Platinum2:1438556763728248833>", "color": 0x00BFFF},
-    12: {"name": "Platinum III", "emoji": "<:Platinum3:1438556855831105689>", "color": 0x00BFFF},
-    13: {"name": "Diamond I", "emoji": "<:Diamond1:1438556935095062680>", "color": 0x6A5ACD},
-    14: {"name": "Diamond II", "emoji": "<:Diamond2:1438556980506525776>", "color": 0x6A5ACD},
-    15: {"name": "Diamond III", "emoji": "<:Diamond3:1438557028783100088>", "color": 0x6A5ACD},
-    16: {"name": "Champion I", "emoji": "<:Champion1:1438557083451523102>", "color": 0x9B59B6},
-    17: {"name": "Champion II", "emoji": "<:Champion2:1438557142276898876>", "color": 0x9B59B6},
-    18: {"name": "Champion III", "emoji": "<:Champion3:1438557199545798686>", "color": 0x9B59B6},
-    19: {"name": "Grand Champion I", "emoji": "<:GrandChampion1:1438557252507140117>", "color": 0xDC143C},
-    20: {"name": "Grand Champion II", "emoji": "<:GrandChampion2:1438557312817041590>", "color": 0xDC143C},
-    21: {"name": "Grand Champion III", "emoji": "<:GrandChampion3:1438557361483550821>", "color": 0xDC143C},
-    22: {"name": "Supersonic Legend", "emoji": "<:SupersonicLegend:1438557403892416563>", "color": 0xFF1493}
-}
-
 # =====================
 # DATA PERSISTENCE
 # =====================
@@ -741,68 +670,6 @@ def save_bump_config():
     except Exception as e:
         print(f"Error saving bump config: {e}")
 
-def load_rl_ranks():
-    global rl_ranks
-    if db.is_db_available():
-        rl_ranks = db.load_data('rl_ranks', {})
-    elif os.path.exists(RL_RANKS_FILE):
-        try:
-            with open(RL_RANKS_FILE, 'r') as f:
-                rl_ranks = json.load(f)
-        except:
-            rl_ranks = {}
-
-def save_rl_ranks():
-    try:
-        if db.is_db_available():
-            db.save_data('rl_ranks', rl_ranks)
-        with open(RL_RANKS_FILE, 'w') as f:
-            json.dump(rl_ranks, f, indent=2)
-    except Exception as e:
-        print(f"Error saving RL ranks: {e}")
-
-def load_rl_profiles():
-    global rl_profiles
-    if db.is_db_available():
-        rl_profiles = db.load_data('rl_profiles', {})
-    elif os.path.exists(RL_PROFILES_FILE):
-        try:
-            with open(RL_PROFILES_FILE, 'r') as f:
-                rl_profiles = json.load(f)
-        except:
-            rl_profiles = {}
-
-def save_rl_profiles():
-    try:
-        if db.is_db_available():
-            db.save_data('rl_profiles', rl_profiles)
-        with open(RL_PROFILES_FILE, 'w') as f:
-            json.dump(rl_profiles, f, indent=2)
-    except Exception as e:
-        print(f"Error saving RL profiles: {e}")
-
-def load_streams_config():
-    global streams_config
-    if db.is_db_available():
-        streams_config = db.load_data('streams_config', {})
-        if streams_config:
-            print(f"[STREAMS] Loaded config from database: {len(streams_config)} guilds")
-    elif os.path.exists(STREAMS_CONFIG_FILE):
-        try:
-            with open(STREAMS_CONFIG_FILE, 'r') as f:
-                streams_config = json.load(f)
-        except:
-            streams_config = {}
-
-def save_streams_config():
-    try:
-        if db.is_db_available():
-            db.save_data('streams_config', streams_config)
-        with open(STREAMS_CONFIG_FILE, 'w') as f:
-            json.dump(streams_config, f, indent=2)
-    except Exception as e:
-        print(f"Error saving streams config: {e}")
-
 def load_afk_users():
     global afk_users
     if db.is_db_available():
@@ -822,38 +689,6 @@ def save_afk_users():
             json.dump(afk_users, f, indent=2)
     except Exception as e:
         print(f"Error saving AFK users: {e}")
-
-def load_pending_ranks():
-    global pending_ranks
-    if db.is_db_available():
-        pending_ranks = db.load_data('pending_ranks', {})
-    elif os.path.exists(PENDING_RANKS_FILE):
-        try:
-            with open(PENDING_RANKS_FILE, 'r') as f:
-                pending_ranks = json.load(f)
-        except:
-            pending_ranks = {}
-
-def save_pending_ranks():
-    try:
-        if db.is_db_available():
-            db.save_data('pending_ranks', pending_ranks)
-        with open(PENDING_RANKS_FILE, 'w') as f:
-            json.dump(pending_ranks, f, indent=2)
-    except Exception as e:
-        print(f"Error saving pending ranks: {e}")
-
-def load_rank_roles():
-    global rank_roles
-    if db.is_db_available():
-        rank_roles = db.load_data('rank_roles', {})
-
-def save_rank_roles():
-    try:
-        if db.is_db_available():
-            db.save_data('rank_roles', rank_roles)
-    except Exception as e:
-        print(f"Error saving rank roles: {e}")
 
 def load_jjk_data():
     global jjk_players, jjk_clans
@@ -962,116 +797,6 @@ def ensure_player_fields(player):
 
 import random
 
-async def assign_rank_role(member, rank_id):
-    """Assign the appropriate rank role and remove old rank roles"""
-    if not rank_roles:
-        return
-    
-    tier = get_rank_tier(rank_id)
-    if not tier:
-        return
-    
-    new_role_id = rank_roles.get(tier)
-    if not new_role_id:
-        return
-    
-    # Get all configured rank role IDs
-    all_rank_role_ids = set(v for v in rank_roles.values() if v)
-    
-    # Remove any existing rank roles
-    roles_to_remove = [r for r in member.roles if r.id in all_rank_role_ids]
-    for role in roles_to_remove:
-        try:
-            await member.remove_roles(role)
-        except:
-            pass
-    
-    # Add the new rank role
-    new_role = member.guild.get_role(int(new_role_id))
-    if new_role:
-        try:
-            await member.add_roles(new_role)
-        except Exception as e:
-            print(f"[ROLES] Error adding role: {e}")
-
-# =====================
-# TWITCH API
-# =====================
-
-async def get_twitch_access_token():
-    global twitch_access_token, twitch_token_expiry
-    
-    client_id = os.getenv('TWITCH_CLIENT_ID')
-    client_secret = os.getenv('TWITCH_CLIENT_SECRET')
-    
-    if not client_id or not client_secret:
-        print("[TWITCH] Missing TWITCH_CLIENT_ID or TWITCH_CLIENT_SECRET")
-        return None
-    
-    try:
-        async with aiohttp.ClientSession() as session:
-            data = {
-                'client_id': client_id,
-                'client_secret': client_secret,
-                'grant_type': 'client_credentials'
-            }
-            async with session.post('https://id.twitch.tv/oauth2/token', data=data, timeout=aiohttp.ClientTimeout(total=5)) as resp:
-                if resp.status == 200:
-                    result = await resp.json()
-                    twitch_access_token = result.get('access_token')
-                    twitch_token_expiry = datetime.now(timezone.utc) + timedelta(seconds=result.get('expires_in', 3600))
-                    print(f"[TWITCH] Got new access token")
-                    return twitch_access_token
-                else:
-                    print(f"[TWITCH] Failed to get token: {resp.status}")
-                    return None
-    except Exception as e:
-        print(f"[TWITCH] Error getting access token: {e}")
-        return None
-
-async def get_twitch_stream_data(username: str):
-    global twitch_access_token, twitch_token_expiry
-    
-    client_id = os.getenv('TWITCH_CLIENT_ID')
-    
-    if not twitch_access_token or (twitch_token_expiry and datetime.now(timezone.utc) >= twitch_token_expiry):
-        twitch_access_token = await get_twitch_access_token()
-    
-    if not twitch_access_token or not client_id:
-        return None
-    
-    try:
-        async with aiohttp.ClientSession() as session:
-            headers = {
-                'Client-ID': client_id,
-                'Authorization': f'Bearer {twitch_access_token}'
-            }
-            async with session.get(f'https://api.twitch.tv/helix/users?login={username}', headers=headers, timeout=aiohttp.ClientTimeout(total=5)) as resp:
-                if resp.status != 200:
-                    return None
-                users = await resp.json()
-                if not users.get('data'):
-                    return None
-                user_id = users['data'][0]['id']
-            
-            async with session.get(f'https://api.twitch.tv/helix/streams?user_id={user_id}', headers=headers, timeout=aiohttp.ClientTimeout(total=5)) as resp:
-                if resp.status != 200:
-                    return None
-                streams = await resp.json()
-                if streams.get('data'):
-                    stream = streams['data'][0]
-                    return {
-                        'is_live': True,
-                        'title': stream.get('title', 'No title'),
-                        'game_name': stream.get('game_name', 'Unknown'),
-                        'viewer_count': stream.get('viewer_count', 0),
-                        'thumbnail_url': stream.get('thumbnail_url', '').replace('{width}', '1280').replace('{height}', '720')
-                    }
-                return {'is_live': False}
-    except Exception as e:
-        print(f"[TWITCH] Error getting stream data: {e}")
-        return None
-
 # =====================
 # BOT SETUP
 # =====================
@@ -1107,21 +832,12 @@ async def on_ready():
     load_reminders()
     load_prefixes()
     load_bump_config()
-    load_rl_ranks()
-    load_rl_profiles()
-    load_streams_config()
     load_afk_users()
-    load_pending_ranks()
-    load_rank_roles()
     load_jjk_data()
     
     if not check_reminders.is_running():
         check_reminders.start()
         print("Started reminder checker task")
-    
-    if not check_streams.is_running():
-        check_streams.start()
-        print("Started stream checker task")
     
     print("Starting slash command sync...")
     try:
@@ -1298,66 +1014,6 @@ async def check_reminders():
 async def before_check_reminders():
     await bot.wait_until_ready()
 
-@tasks.loop(minutes=2)
-async def check_streams():
-    headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-        'Accept': 'text/html,application/xhtml+xml',
-    }
-    
-    channel = bot.get_channel(STREAM_CHANNEL_ID)
-    if not channel:
-        return
-    
-    for streamer in HARDCODED_STREAMERS:
-        username = streamer['username']
-        is_live = False
-        stream_data = {}
-        
-        try:
-            stream_data = await get_twitch_stream_data(username)
-            if stream_data:
-                is_live = stream_data.get('is_live', False)
-            else:
-                async with aiohttp.ClientSession() as session:
-                    async with session.get(f'https://www.twitch.tv/{username}', headers=headers, timeout=aiohttp.ClientTimeout(total=10)) as resp:
-                        if resp.status == 200:
-                            text = await resp.text()
-                            is_live = '"isLiveBroadcast":true' in text or '"isLive":true' in text
-        except Exception as e:
-            print(f"[STREAMS] Error checking {username}: {e}")
-            continue
-        
-        if is_live and not streamer.get('live'):
-            try:
-                title = stream_data.get('title', 'No title') if stream_data else 'No title'
-                game = stream_data.get('game_name', 'Unknown') if stream_data else 'Unknown'
-                viewers = stream_data.get('viewer_count', 0) if stream_data else 0
-                
-                message = f"""━━━━━━━━━━━━━━━━━━━━━━━━━━
-[ LIVE ] TWITCH STREAM ALERT
-━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-Streamer: **{username}**
-Title   : {title}
-Game    : **{game}**
-Viewers : **{viewers:,}** watching
-
-Watch Here:
-https://twitch.tv/{username}
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━"""
-                
-                await channel.send(message)
-            except Exception as e:
-                print(f"[STREAMS] Error sending notification: {e}")
-        
-        streamer['live'] = is_live
-
-@check_streams.before_loop
-async def before_check_streams():
-    await bot.wait_until_ready()
-
 # =====================
 # COMMANDS - BUMP REMINDERS
 # =====================
@@ -1386,333 +1042,12 @@ async def bump_info(ctx):
     await ctx.send(embed=embed)
 
 # =====================
-# COMMANDS - STREAM NOTIFICATIONS
-# =====================
-
-@bot.hybrid_command(name='list')
-async def stream_list(ctx):
-    """View monitored streamers"""
-    lines = []
-    for s in HARDCODED_STREAMERS:
-        status = '🔴' if s.get('live') else '⚫'
-        url = f"https://twitch.tv/{s['username']}"
-        lines.append(f"{status} **[{s['username']}]({url})**")
-    
-    embed = discord.Embed(
-        title="📺 Monitored Streamers",
-        description="\n".join(lines),
-        color=0x9146FF
-    )
-    embed.set_footer(text="Notifications go to #stream-notifications")
-    await ctx.send(embed=embed)
-
-# =====================
-# COMMANDS - ROCKET LEAGUE
-# =====================
-
-@bot.hybrid_command(name='resetranks')
-@commands.has_permissions(administrator=True)
-async def reset_ranks(ctx):
-    """Reset all RL ranks for new season and ping users"""
-    global rl_ranks
-    
-    if not rl_ranks:
-        await ctx.send("❌ No ranks to reset.")
-        return
-    
-    # Get list of users to ping
-    user_ids = list(rl_ranks.keys())
-    mentions = [f"<@{uid}>" for uid in user_ids]
-    
-    # Clear all ranks
-    rl_ranks = {}
-    save_rl_ranks()
-    
-    embed = discord.Embed(
-        title="🚀 Season 21 Rank Reset!",
-        description=f"All Rocket League ranks have been reset for the new season!\n\n"
-                    f"**To update your rank:**\n"
-                    f"1. Link your tracker: `~setrlprofile <platform> <username>`\n"
-                    f"2. Set your rank: `~setrank <rank>`\n\n"
-                    f"An admin will verify your rank using your tracker profile.",
-        color=0xFF4500
-    )
-    embed.add_field(name="Players Reset", value=str(len(user_ids)), inline=True)
-    
-    # Send ping and embed
-    await ctx.send(" ".join(mentions), embed=embed)
-
-@bot.hybrid_command(name='adminsetprofile')
-@commands.has_permissions(administrator=True)
-async def admin_set_profile(ctx, user_input: str, rank_input: str, *, url: str):
-    """(Admin) Set a user's rank and tracker URL - Usage: ~adminsetprofile <@user or ID> <rank> <url>"""
-    # Parse user from mention or ID
-    user_id = re.sub(r'[<@!>]', '', user_input)
-    
-    try:
-        target = await bot.fetch_user(int(user_id))
-    except:
-        await ctx.send("❌ Invalid user mention or ID")
-        return
-    
-    # Parse the tracker URL
-    url_pattern = r'https?://rocketleague\.tracker\.(gg|network)/rocket-league/profile/([^/]+)/([^/\s]+)'
-    url_match = re.search(url_pattern, url)
-    
-    if url_match:
-        platform = url_match.group(2).lower()
-        username = url_match.group(3).split('/')[0]
-        tracker_url = f"https://rocketleague.tracker.gg/rocket-league/profile/{platform}/{quote(username)}"
-    else:
-        await ctx.send("❌ Invalid tracker URL. Use a rocketleague.tracker.gg URL")
-        return
-    
-    # Parse rank (normalize 1/2/3 to I/II/III)
-    rank_input_normalized = normalize_rank_input(rank_input).lower().strip()
-    division = None
-    div_match = re.search(r'\b(?:div(?:ision)?\.?\s*|d)([1-4])\b', rank_input_normalized)
-    if div_match:
-        division = int(div_match.group(1))
-        rank_input_normalized = re.sub(r'\b(?:div(?:ision)?\.?\s*|d)[1-4]\b', '', rank_input_normalized).strip()
-    
-    matched_rank = None
-    for rank_id, rank_data in RL_RANKS.items():
-        if rank_data['name'].lower() == rank_input_normalized:
-            matched_rank = rank_id
-            break
-    if matched_rank is None:
-        for rank_id, rank_data in RL_RANKS.items():
-            if rank_input_normalized in rank_data['name'].lower():
-                matched_rank = rank_id
-                break
-    
-    if matched_rank is None:
-        rank_list = "\n".join([f"{data['emoji']} {data['name']}" for data in RL_RANKS.values()])
-        await ctx.send(f"❌ Invalid rank.\n\nAvailable ranks:\n{rank_list}")
-        return
-    
-    if matched_rank == 22:
-        division = None
-    elif division is None:
-        division = 1
-    
-    # Save profile and rank
-    rl_profiles[str(target.id)] = {'username': username, 'platform': platform, 'url': tracker_url}
-    save_rl_profiles()
-    
-    rl_ranks[str(target.id)] = {'rank': matched_rank, 'division': division}
-    save_rl_ranks()
-    
-    # Auto-assign rank role
-    member = ctx.guild.get_member(int(target.id))
-    if member:
-        await assign_rank_role(member, matched_rank)
-    
-    rank_data = RL_RANKS[matched_rank]
-    div_text = f" Div {division}" if division else ""
-    
-    embed = discord.Embed(
-        title="✅ Profile Set by Admin",
-        description=f"**User:** {target.mention}\n"
-                    f"**Rank:** {rank_data['emoji']} {rank_data['name']}{div_text}\n"
-                    f"**Tracker:** [Link]({tracker_url})",
-        color=0x00FF00
-    )
-    await ctx.send(embed=embed)
-
-@bot.hybrid_command(name='setrank', aliases=['rlrank'])
-async def set_rl_rank(ctx, *, rank_input: str):
-    """Set your Rocket League rank with division (e.g. Diamond 1 Div 3)"""
-    user_id = str(ctx.author.id)
-    
-    # Check if user has linked their tracker
-    if user_id not in rl_profiles:
-        prefix = get_prefix_from_ctx(ctx)
-        await ctx.send(f"❌ Please link your Rocket League tracker first!\n"
-                       f"Use: `{prefix}setrlprofile <url>` or `{prefix}setrlprofile <platform> <username>`")
-        return
-    
-    # Normalize 1/2/3 to I/II/III
-    rank_input_normalized = normalize_rank_input(rank_input).lower().strip()
-    
-    # Parse division from input (div 1, div 2, div 3, div 4, d1, d2, d3, d4)
-    division = None
-    div_match = re.search(r'\b(?:div(?:ision)?\.?\s*|d)([1-4])\b', rank_input_normalized)
-    if div_match:
-        division = int(div_match.group(1))
-        # Remove division from rank input for matching
-        rank_input_normalized = re.sub(r'\b(?:div(?:ision)?\.?\s*|d)[1-4]\b', '', rank_input_normalized).strip()
-    
-    matched_rank = None
-    for rank_id, rank_data in RL_RANKS.items():
-        if rank_data['name'].lower() == rank_input_normalized:
-            matched_rank = rank_id
-            break
-    
-    if matched_rank is None:
-        for rank_id, rank_data in RL_RANKS.items():
-            if rank_input_normalized in rank_data['name'].lower():
-                matched_rank = rank_id
-                break
-    
-    if matched_rank is None:
-        rank_list = "\n".join([f"{data['emoji']} {data['name']}" for data in RL_RANKS.values()])
-        await ctx.send(f"❌ Invalid rank. Example: `~setrank Diamond 1 Div 3`\n\nAvailable ranks:\n{rank_list}")
-        return
-    
-    # SSL doesn't have divisions
-    if matched_rank == 22:
-        division = None
-    elif division is None:
-        division = 1  # Default to Div 1 if not specified
-    
-    rank_data = RL_RANKS[matched_rank]
-    profile = rl_profiles[user_id]
-    tracker_url = profile.get('url') or f"https://rocketleague.tracker.gg/rocket-league/profile/{profile['platform']}/{quote(profile['username'])}"
-    
-    # Add to pending queue for admin verification
-    pending_ranks[user_id] = {
-        'rank': matched_rank,
-        'division': division,
-        'tracker_url': tracker_url,
-        'submitted': datetime.now(timezone.utc).isoformat()
-    }
-    save_pending_ranks()
-    
-    div_text = f" Div {division}" if division else ""
-    embed = discord.Embed(
-        title="🚀 Rank Submitted for Verification!",
-        description=f"{rank_data['emoji']} **{rank_data['name']}{div_text}**\n\n"
-                    f"⏳ An admin will verify using your tracker:\n{tracker_url}",
-        color=0xFFA500
-    )
-    embed.set_footer(text="You'll be notified when approved")
-    await ctx.send(embed=embed)
-
-@bot.hybrid_command(name='rllb', aliases=['rlleaderboard'])
-async def rl_leaderboard(ctx):
-    """Show Rocket League rank leaderboard"""
-    if not rl_ranks:
-        await ctx.send("No players have set their RL rank yet!")
-        return
-    
-    def get_rank_sort_value(item):
-        user_id, rank_info = item
-        if isinstance(rank_info, dict):
-            return (rank_info.get('rank', 0), rank_info.get('division', 0))
-        return (rank_info, 0)  # Legacy format
-    
-    sorted_ranks = sorted(rl_ranks.items(), key=get_rank_sort_value, reverse=True)[:10]
-    
-    lines = []
-    for i, (user_id, rank_info) in enumerate(sorted_ranks, 1):
-        user = bot.get_user(int(user_id))
-        name = user.display_name if user else f"User {user_id}"
-        
-        if isinstance(rank_info, dict):
-            rank_val = rank_info.get('rank', 0)
-            division = rank_info.get('division')
-        else:
-            rank_val = rank_info  # Legacy format
-            division = None
-        
-        rank_data = RL_RANKS.get(rank_val, RL_RANKS[0])
-        div_text = f" Div {division}" if division else ""
-        lines.append(f"`{i}.` {rank_data['emoji']} **{name}** - {rank_data['name']}{div_text}")
-    
-    embed = discord.Embed(
-        title="🏆 Rocket League Leaderboard",
-        description="\n".join(lines),
-        color=0x00BFFF
-    )
-    await ctx.send(embed=embed)
-
-@bot.hybrid_command(name='setrlprofile', aliases=['linkrl'])
-async def set_rl_profile(ctx, *, profile_input: str):
-    """Link your Rocket League Tracker profile (URL or platform + username)"""
-    profile_input = profile_input.strip()
-    
-    # Check if it's a URL
-    url_pattern = r'https?://rocketleague\.tracker\.(gg|network)/rocket-league/profile/([^/]+)/([^/]+)'
-    url_match = re.match(url_pattern, profile_input)
-    
-    if url_match:
-        platform = url_match.group(2).lower()
-        username = url_match.group(3).split('/')[0]  # Remove /overview if present
-    else:
-        # Try platform + username format
-        parts = profile_input.split(maxsplit=1)
-        if len(parts) < 2:
-            await ctx.send("❌ **Usage:**\n"
-                          "`~setrlprofile <url>` - Paste your tracker URL\n"
-                          "`~setrlprofile <platform> <username>` - epic/steam/psn/xbl + username")
-            return
-        platform = parts[0].lower()
-        username = parts[1]
-    
-    valid_platforms = ['epic', 'steam', 'psn', 'xbl', 'switch']
-    if platform not in valid_platforms:
-        await ctx.send(f"❌ Invalid platform. Use: {', '.join(valid_platforms)}")
-        return
-    
-    tracker_url = f"https://rocketleague.tracker.gg/rocket-league/profile/{platform}/{quote(username)}"
-    rl_profiles[str(ctx.author.id)] = {'username': username, 'platform': platform, 'url': tracker_url}
-    save_rl_profiles()
-    
-    await ctx.send(f"✅ Linked **{username}** on **{platform.upper()}**\n{tracker_url}")
-
-@bot.hybrid_command(name='stats', aliases=['rlstats', 'rlprofile'])
-async def rl_stats(ctx, member: Optional[discord.Member] = None):
-    """View Rocket League stats from Tracker.gg"""
-    target = member or ctx.author
-    profile = rl_profiles.get(str(target.id))
-    
-    if not profile:
-        await ctx.send(f"❌ No RL profile linked. Use `{get_prefix_from_ctx(ctx)}setrlprofile <platform> <username>`")
-        return
-    
-    api_key = os.getenv('TRACKER_API_KEY')
-    if not api_key:
-        await ctx.send("❌ Tracker API not configured")
-        return
-    
-    try:
-        async with aiohttp.ClientSession() as session:
-            url = f"https://api.tracker.gg/api/v2/rocket-league/standard/profile/{profile['platform']}/{quote(profile['username'])}"
-            headers = {'TRN-Api-Key': api_key}
-            
-            async with session.get(url, headers=headers) as resp:
-                if resp.status != 200:
-                    await ctx.send("❌ Could not fetch stats")
-                    return
-                
-                data = await resp.json()
-                segments = data.get('data', {}).get('segments', [])
-                
-                embed = discord.Embed(
-                    title=f"🚀 {profile['username']}'s RL Stats",
-                    color=0x00BFFF
-                )
-                
-                for segment in segments[:3]:
-                    if segment.get('type') == 'playlist':
-                        playlist = segment.get('metadata', {}).get('name', 'Unknown')
-                        stats = segment.get('stats', {})
-                        rank = stats.get('tier', {}).get('metadata', {}).get('name', 'Unranked')
-                        mmr = stats.get('rating', {}).get('value', 0)
-                        embed.add_field(name=playlist, value=f"{rank}\nMMR: {mmr}", inline=True)
-                
-                await ctx.send(embed=embed)
-    except Exception as e:
-        await ctx.send(f"❌ Error fetching stats: {e}")
-
-# =====================
 # COMMANDS - UTILITY
 # =====================
 
 @bot.hybrid_command(name='profile')
 async def profile_command(ctx, member: Optional[discord.Member] = None):
-    """View a user's profile"""
+    """View a user's profile with JJK stats"""
     target = member or ctx.author
     user_id = str(target.id)
     
@@ -1722,65 +1057,45 @@ async def profile_command(ctx, member: Optional[discord.Member] = None):
     )
     embed.set_thumbnail(url=target.display_avatar.url)
     
-    rank_info = rl_ranks.get(user_id, {'rank': 0, 'division': None})
-    if isinstance(rank_info, dict):
-        rank_val = rank_info.get('rank', 0)
-        division = rank_info.get('division')
+    # JJK Stats if player exists
+    player = jjk_players.get(user_id)
+    if player:
+        grade = player.get('grade', 'Grade 4')
+        level = player.get('level', 1)
+        yen = player.get('yen', 0)
+        embed.add_field(name="Sorcerer Grade", value=grade, inline=True)
+        embed.add_field(name="Level", value=str(level), inline=True)
+        embed.add_field(name="Yen", value=f"{yen:,}", inline=True)
     else:
-        rank_val = rank_info  # Legacy format
-        division = None
-    rank_data = RL_RANKS.get(rank_val, RL_RANKS[0])
-    div_text = f" Div {division}" if division else ""
-    embed.add_field(name="🚀 RL Rank", value=f"{rank_data['emoji']} {rank_data['name']}{div_text}", inline=True)
-    
-    # Platform info
-    profile = rl_profiles.get(user_id)
-    if profile:
-        platform_icons = {
-            'epic': '🎮 Epic Games',
-            'steam': '🎮 Steam',
-            'psn': '🎮 PlayStation',
-            'xbl': '🎮 Xbox',
-            'switch': '🎮 Nintendo Switch'
-        }
-        platform_display = platform_icons.get(profile['platform'], f"🎮 {profile['platform'].upper()}")
-        embed.add_field(name="Platform", value=platform_display, inline=True)
-        
-        tracker_url = profile.get('url') or f"https://rocketleague.tracker.gg/rocket-league/profile/{profile['platform']}/{quote(profile['username'])}"
-        embed.add_field(name="🔗 Tracker", value=f"[{profile['username']}]({tracker_url})", inline=True)
-    else:
-        embed.add_field(name="Platform", value="Not linked", inline=True)
+        embed.add_field(name="JJK Status", value="Not a sorcerer yet\nUse `~jjkstart`", inline=True)
     
     if target.joined_at:
-        embed.add_field(name="📅 Joined", value=target.joined_at.strftime("%b %d, %Y"), inline=True)
-    
-    user_bumps = sum(1 for r in reminders if r.get('completed', False))
-    embed.add_field(name="🔔 Server Bumps", value=str(user_bumps), inline=True)
+        embed.add_field(name="Joined", value=target.joined_at.strftime("%b %d, %Y"), inline=True)
     
     await ctx.send(embed=embed)
 
 @bot.hybrid_command(name='botinfo', aliases=['info', 'about'])
 async def bot_info(ctx):
     """Show bot information and stats"""
-    # Calculate stats
     server_count = len(bot.guilds)
     member_count = sum(g.member_count or 0 for g in bot.guilds)
     command_count = len(bot.commands)
+    jjk_player_count = len(jjk_players)
     
-    # Get owner
     owner = await bot.fetch_user(OWNER_ID)
     owner_text = owner.mention if owner else f"<@{OWNER_ID}>"
     
     embed = discord.Embed(color=0x5865F2)
-    embed.set_author(name="Bot Online", icon_url=bot.user.display_avatar.url if bot.user else None)
-    embed.description = "Kursein v3.2 - Rebuilt from the ground up!"
+    embed.set_author(name="Kursein Bot", icon_url=bot.user.display_avatar.url if bot.user else None)
+    embed.description = "Kursein v4.0 - JJK Focused Idle RPG!"
     
     embed.add_field(name="Commands", value=str(command_count), inline=True)
     embed.add_field(name="Servers", value=str(server_count), inline=True)
     embed.add_field(name="Members", value=f"{member_count:,}", inline=True)
+    embed.add_field(name="Sorcerers", value=f"{jjk_player_count:,}", inline=True)
     embed.add_field(name="Owner", value=owner_text, inline=True)
     
-    embed.set_footer(text="Tokyo Ghoul + Rocket League Theme")
+    embed.set_footer(text="Jujutsu Kaisen Idle RPG")
     
     await ctx.send(embed=embed)
 
@@ -1797,133 +1112,7 @@ async def set_afk(ctx, *, reason: str = "AFK"):
         'since': datetime.now(timezone.utc).isoformat()
     }
     save_afk_users()
-    await ctx.send(f"💤 {ctx.author.display_name} is now AFK: **{reason}**")
-
-# =====================
-# COMMANDS - RANK VERIFICATION
-# =====================
-
-@bot.hybrid_command(name='pendingranks', aliases=['rankqueue'])
-@commands.has_permissions(administrator=True)
-async def pending_ranks_list(ctx):
-    """View pending rank verifications"""
-    if not pending_ranks:
-        await ctx.send("✅ No pending rank verifications!")
-        return
-    
-    lines = []
-    for user_id, data in list(pending_ranks.items())[:10]:
-        user = bot.get_user(int(user_id))
-        name = user.display_name if user else f"User {user_id}"
-        rank_data = RL_RANKS.get(data['rank'], RL_RANKS[0])
-        div_text = f" Div {data.get('division', 1)}" if data.get('division') else ""
-        tracker = data.get('tracker_url', 'No URL')
-        lines.append(f"**{name}** - {rank_data['emoji']} {rank_data['name']}{div_text}\n└ [Tracker]({tracker})")
-    
-    embed = discord.Embed(
-        title="⏳ Pending Rank Verifications",
-        description="\n\n".join(lines),
-        color=0xFFA500
-    )
-    embed.set_footer(text=f"Use ~approverank <@user> or ~denyrank <@user>")
-    await ctx.send(embed=embed)
-
-@bot.hybrid_command(name='approverank')
-@commands.has_permissions(administrator=True)
-async def approve_rank(ctx, user_input: str):
-    """Approve a pending rank verification"""
-    user_id = re.sub(r'[<@!>]', '', user_input)
-    
-    if user_id not in pending_ranks:
-        await ctx.send("❌ No pending rank for this user")
-        return
-    
-    data = pending_ranks[user_id]
-    rl_ranks[user_id] = {'rank': data['rank'], 'division': data.get('division', 1)}
-    save_rl_ranks()
-    
-    del pending_ranks[user_id]
-    save_pending_ranks()
-    
-    rank_data = RL_RANKS.get(data['rank'], RL_RANKS[0])
-    div_text = f" Div {data.get('division', 1)}" if data.get('division') else ""
-    
-    # Auto-assign rank role
-    member = ctx.guild.get_member(int(user_id))
-    if member:
-        await assign_rank_role(member, data['rank'])
-    
-    try:
-        user = await bot.fetch_user(int(user_id))
-        await user.send(f"✅ Your rank **{rank_data['name']}{div_text}** has been approved!")
-    except:
-        pass
-    
-    await ctx.send(f"✅ Approved {rank_data['emoji']} **{rank_data['name']}{div_text}** for <@{user_id}>")
-
-@bot.hybrid_command(name='setrankrole')
-@commands.has_permissions(administrator=True)
-async def set_rank_role(ctx, tier: str, role: discord.Role):
-    """Set a role for a rank tier - Usage: ~setrankrole diamond @Diamond"""
-    valid_tiers = ['bronze', 'silver', 'gold', 'platinum', 'diamond', 'champion', 'grand_champion', 'ssl']
-    tier_lower = tier.lower().replace(' ', '_')
-    
-    if tier_lower not in valid_tiers:
-        await ctx.send(f"❌ Invalid tier. Use: {', '.join(valid_tiers)}")
-        return
-    
-    rank_roles[tier_lower] = role.id
-    save_rank_roles()
-    await ctx.send(f"✅ {tier.title()} ranks will now receive {role.mention}")
-
-@bot.hybrid_command(name='rankroles')
-@commands.has_permissions(administrator=True)
-async def view_rank_roles(ctx):
-    """View configured rank roles"""
-    if not rank_roles:
-        await ctx.send("❌ No rank roles configured. Use `~setrankrole <tier> @role`")
-        return
-    
-    lines = []
-    tiers = ['bronze', 'silver', 'gold', 'platinum', 'diamond', 'champion', 'grand_champion', 'ssl']
-    for tier in tiers:
-        role_id = rank_roles.get(tier)
-        if role_id:
-            role = ctx.guild.get_role(int(role_id))
-            lines.append(f"**{tier.replace('_', ' ').title()}**: {role.mention if role else 'Role not found'}")
-        else:
-            lines.append(f"**{tier.replace('_', ' ').title()}**: Not set")
-    
-    embed = discord.Embed(
-        title="🎮 Rank Role Configuration",
-        description="\n".join(lines),
-        color=0x5865F2
-    )
-    await ctx.send(embed=embed)
-
-@bot.hybrid_command(name='denyrank')
-@commands.has_permissions(administrator=True)
-async def deny_rank(ctx, user_input: str, *, reason: str = "No reason provided"):
-    """Deny a pending rank verification"""
-    user_id = re.sub(r'[<@!>]', '', user_input)
-    
-    if user_id not in pending_ranks:
-        await ctx.send("❌ No pending rank for this user")
-        return
-    
-    data = pending_ranks[user_id]
-    rank_data = RL_RANKS.get(data['rank'], RL_RANKS[0])
-    
-    del pending_ranks[user_id]
-    save_pending_ranks()
-    
-    try:
-        user = await bot.fetch_user(int(user_id))
-        await user.send(f"❌ Your rank request for **{rank_data['name']}** was denied.\nReason: {reason}")
-    except:
-        pass
-    
-    await ctx.send(f"❌ Denied rank request from <@{user_id}>\nReason: {reason}")
+    await ctx.send(f"{ctx.author.display_name} is now AFK: **{reason}**")
 
 # =====================
 # COMMANDS - SERVER STATS
