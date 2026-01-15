@@ -2994,20 +2994,35 @@ async def dispatch_list(ctx):
     await ctx.send(embed=embed)
 
 @bot.hybrid_command(name='dispatch', aliases=['send'])
-async def dispatch_sorcerer(ctx, sorcerer: str, mission_id: str):
+async def dispatch_sorcerer(ctx, *, args: str):
     """Send a sorcerer on a dispatch mission"""
     player = get_jjk_player(ctx.author.id)
     if not player:
         await ctx.send("Use `~jjkstart` to begin your journey!")
         return
     
-    sorcerer_key = sorcerer.lower()
-    if sorcerer_key not in player.get("sorcerers", []):
-        await ctx.send(f"❌ You don't have **{sorcerer}**! Use `~sorcerers` to see who you have.")
+    parts = args.strip().split()
+    if len(parts) < 2:
+        await ctx.send("❌ Usage: `~dispatch <sorcerer name> <mission_id>`\nExample: `~dispatch Cha Hae-In patrol_city`")
+        return
+    
+    mission_id = parts[-1]
+    sorcerer_input = " ".join(parts[:-1]).lower()
+    
+    sorcerer_key = None
+    for key in player.get("sorcerers", []):
+        sorcerer_data = JJK_SORCERERS.get(key, {})
+        sorcerer_name = sorcerer_data.get("name", "").lower()
+        if key == sorcerer_input or sorcerer_name == sorcerer_input or sorcerer_input.replace(" ", "_") == key or sorcerer_input.replace("-", "_").replace(" ", "_") == key:
+            sorcerer_key = key
+            break
+    
+    if not sorcerer_key:
+        await ctx.send(f"❌ You don't have **{sorcerer_input}**! Use `~sorcerers` to see who you have.")
         return
     
     if any(d.get("sorcerer") == sorcerer_key for d in player.get("dispatch_slots", [])):
-        await ctx.send(f"❌ **{JJK_SORCERERS.get(sorcerer_key, {}).get('name', sorcerer)}** is already on a mission!")
+        await ctx.send(f"❌ **{JJK_SORCERERS.get(sorcerer_key, {}).get('name', sorcerer_key)}** is already on a mission!")
         return
     
     mission = None
