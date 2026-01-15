@@ -57,6 +57,7 @@ jjk_cooldowns = {}  # user_id -> {action: timestamp}
 
 # JJK Game Constants
 JJK_SORCERERS = {
+    # ========== JJK CORE (34 characters) ==========
     "yuji": {"name": "Yuji Itadori", "cost": 0, "income": 10, "emoji": "👊", "grade": "1st Grade", "unlock": 0},
     "megumi": {"name": "Megumi Fushiguro", "cost": 5000, "income": 25, "emoji": "🐕", "grade": "1st Grade", "unlock": 5},
     "nobara": {"name": "Nobara Kugisaki", "cost": 5000, "income": 25, "emoji": "🔨", "grade": "3rd Grade", "unlock": 5},
@@ -78,46 +79,129 @@ JJK_SORCERERS = {
     "choso": {"name": "Choso", "cost": 75000, "income": 220, "emoji": "🩸", "grade": "Special Grade", "unlock": 32},
     "toji": {"name": "Toji Fushiguro", "cost": 250000, "income": 500, "emoji": "🗡️", "grade": "Special Grade (No CE)", "unlock": 45},
     "sukuna": {"name": "Ryomen Sukuna", "cost": 1000000, "income": 2000, "emoji": "👹", "grade": "King of Curses", "unlock": 60},
-    # SPECIAL - Saya (Exclusive)
+    "kenjaku": {"name": "Kenjaku", "cost": 850000, "income": 1700, "emoji": "🧠", "grade": "Special Grade", "unlock": 58},
+    "mahito": {"name": "Mahito", "cost": 180000, "income": 400, "emoji": "👋", "grade": "Special Grade", "unlock": 40},
+    "jogo": {"name": "Jogo", "cost": 200000, "income": 450, "emoji": "🌋", "grade": "Special Grade", "unlock": 42},
+    "hanami": {"name": "Hanami", "cost": 150000, "income": 380, "emoji": "🌿", "grade": "Special Grade", "unlock": 38},
+    "dagon": {"name": "Dagon", "cost": 170000, "income": 420, "emoji": "🐙", "grade": "Special Grade", "unlock": 40},
+    "kashimo": {"name": "Hajime Kashimo", "cost": 320000, "income": 650, "emoji": "⚡", "grade": "Special Grade", "unlock": 48},
+    "hakari": {"name": "Kinji Hakari", "cost": 280000, "income": 600, "emoji": "🎰", "grade": "Special Grade", "unlock": 46},
+    "higuruma": {"name": "Hiromi Higuruma", "cost": 220000, "income": 500, "emoji": "⚖️", "grade": "1st Grade", "unlock": 44},
+    "ryu": {"name": "Ryu Ishigori", "cost": 250000, "income": 550, "emoji": "💪", "grade": "Special Grade", "unlock": 45},
+    "uro": {"name": "Uro Takako", "cost": 200000, "income": 480, "emoji": "🌀", "grade": "Special Grade", "unlock": 42},
+    "uraume": {"name": "Uraume", "cost": 300000, "income": 620, "emoji": "❄️", "grade": "Special Grade", "unlock": 47},
+    "yorozu": {"name": "Yorozu", "cost": 280000, "income": 580, "emoji": "🦋", "grade": "Special Grade", "unlock": 46},
+    "charles": {"name": "Charles Bernard", "cost": 120000, "income": 340, "emoji": "✏️", "grade": "1st Grade", "unlock": 35},
+    # ========== EXCLUSIVE (1 character) ==========
     "saya": {"name": "Saya", "cost": 750000, "income": 1500, "emoji": "🔥", "grade": "Special Grade", "unlock": 55, "collab": "Exclusive", "technique": "Noctflare"},
-    # COLLAB - Solo Leveling
+    # ========== SOLO LEVELING (6 characters) ==========
     "sung_jinwoo": {"name": "Sung Jinwoo", "cost": 800000, "income": 1800, "emoji": "👤", "grade": "Special Grade", "unlock": 55, "collab": "Solo Leveling"},
     "cha_haein": {"name": "Cha Hae-In", "cost": 120000, "income": 350, "emoji": "⚔️", "grade": "1st Grade", "unlock": 35, "collab": "Solo Leveling"},
     "goto_ryuji": {"name": "Goto Ryuji", "cost": 80000, "income": 250, "emoji": "🗡️", "grade": "1st Grade", "unlock": 30, "collab": "Solo Leveling"},
-    # COLLAB - Persona
+    "beru": {"name": "Beru", "cost": 350000, "income": 720, "emoji": "🐜", "grade": "Special Grade", "unlock": 48, "collab": "Solo Leveling"},
+    "iron": {"name": "Iron", "cost": 180000, "income": 420, "emoji": "🛡️", "grade": "1st Grade", "unlock": 40, "collab": "Solo Leveling"},
+    "thomas_andre": {"name": "Thomas Andre", "cost": 400000, "income": 820, "emoji": "🇺🇸", "grade": "Special Grade", "unlock": 50, "collab": "Solo Leveling"},
+    # ========== PERSONA (5 characters) ==========
     "joker": {"name": "Joker (Ren Amamiya)", "cost": 150000, "income": 400, "emoji": "🃏", "grade": "Special Grade", "unlock": 40, "collab": "Persona 5"},
-    "makoto": {"name": "Makoto Niijima", "cost": 60000, "income": 180, "emoji": "👊", "grade": "1st Grade", "unlock": 25, "collab": "Persona 5"},
+    "makoto_p5": {"name": "Makoto Niijima", "cost": 60000, "income": 180, "emoji": "👊", "grade": "1st Grade", "unlock": 25, "collab": "Persona 5"},
     "yu_narukami": {"name": "Yu Narukami", "cost": 130000, "income": 380, "emoji": "⚡", "grade": "Special Grade", "unlock": 38, "collab": "Persona 4"},
-    # COLLAB - Tokyo Ghoul
+    "ann": {"name": "Ann Takamaki", "cost": 55000, "income": 160, "emoji": "🔥", "grade": "1st Grade", "unlock": 24, "collab": "Persona 5"},
+    "ryuji": {"name": "Ryuji Sakamoto", "cost": 50000, "income": 150, "emoji": "💀", "grade": "1st Grade", "unlock": 22, "collab": "Persona 5"},
+    # ========== TOKYO GHOUL (6 characters) ==========
     "kaneki": {"name": "Ken Kaneki", "cost": 200000, "income": 450, "emoji": "🦴", "grade": "Special Grade", "unlock": 42, "collab": "Tokyo Ghoul"},
     "touka": {"name": "Touka Kirishima", "cost": 70000, "income": 200, "emoji": "🦋", "grade": "1st Grade", "unlock": 28, "collab": "Tokyo Ghoul"},
     "arima": {"name": "Kishou Arima", "cost": 350000, "income": 700, "emoji": "👓", "grade": "Special Grade", "unlock": 48, "collab": "Tokyo Ghoul"},
-    # COLLAB - Attack on Titan
+    "tsukiyama": {"name": "Shuu Tsukiyama", "cost": 90000, "income": 260, "emoji": "🌹", "grade": "1st Grade", "unlock": 32, "collab": "Tokyo Ghoul"},
+    "ayato": {"name": "Ayato Kirishima", "cost": 85000, "income": 240, "emoji": "🖤", "grade": "1st Grade", "unlock": 30, "collab": "Tokyo Ghoul"},
+    "eto": {"name": "Eto Yoshimura", "cost": 280000, "income": 600, "emoji": "📚", "grade": "Special Grade", "unlock": 46, "collab": "Tokyo Ghoul"},
+    # ========== ATTACK ON TITAN (6 characters) ==========
     "eren": {"name": "Eren Yeager", "cost": 300000, "income": 600, "emoji": "⚔️", "grade": "Special Grade", "unlock": 45, "collab": "Attack on Titan"},
     "mikasa": {"name": "Mikasa Ackerman", "cost": 180000, "income": 420, "emoji": "🗡️", "grade": "Special Grade", "unlock": 40, "collab": "Attack on Titan"},
     "levi": {"name": "Levi Ackerman", "cost": 400000, "income": 800, "emoji": "⚔️", "grade": "Special Grade", "unlock": 52, "collab": "Attack on Titan"},
-    # COLLAB - Demon Slayer
+    "erwin": {"name": "Erwin Smith", "cost": 220000, "income": 500, "emoji": "🦅", "grade": "Special Grade", "unlock": 44, "collab": "Attack on Titan"},
+    "hange": {"name": "Hange Zoe", "cost": 150000, "income": 380, "emoji": "🔬", "grade": "1st Grade", "unlock": 38, "collab": "Attack on Titan"},
+    "annie": {"name": "Annie Leonhart", "cost": 200000, "income": 460, "emoji": "💎", "grade": "Special Grade", "unlock": 42, "collab": "Attack on Titan"},
+    # ========== DEMON SLAYER (8 characters) ==========
     "tanjiro": {"name": "Tanjiro Kamado", "cost": 150000, "income": 380, "emoji": "🔥", "grade": "Special Grade", "unlock": 38, "collab": "Demon Slayer"},
     "nezuko": {"name": "Nezuko Kamado", "cost": 100000, "income": 280, "emoji": "🌸", "grade": "1st Grade", "unlock": 32, "collab": "Demon Slayer"},
     "zenitsu": {"name": "Zenitsu Agatsuma", "cost": 85000, "income": 240, "emoji": "⚡", "grade": "1st Grade", "unlock": 30, "collab": "Demon Slayer"},
-    # COLLAB - Chainsaw Man
+    "inosuke": {"name": "Inosuke Hashibira", "cost": 80000, "income": 230, "emoji": "🐗", "grade": "1st Grade", "unlock": 29, "collab": "Demon Slayer"},
+    "rengoku": {"name": "Kyojuro Rengoku", "cost": 280000, "income": 600, "emoji": "🔥", "grade": "Special Grade", "unlock": 46, "collab": "Demon Slayer"},
+    "mitsuri": {"name": "Mitsuri Kanroji", "cost": 180000, "income": 420, "emoji": "💗", "grade": "Special Grade", "unlock": 40, "collab": "Demon Slayer"},
+    "muichiro": {"name": "Muichiro Tokito", "cost": 200000, "income": 460, "emoji": "🌫️", "grade": "Special Grade", "unlock": 42, "collab": "Demon Slayer"},
+    "shinobu": {"name": "Shinobu Kocho", "cost": 220000, "income": 500, "emoji": "🦋", "grade": "Special Grade", "unlock": 44, "collab": "Demon Slayer"},
+    # ========== CHAINSAW MAN (6 characters) ==========
     "denji": {"name": "Denji (Chainsaw Man)", "cost": 220000, "income": 500, "emoji": "🪚", "grade": "Special Grade", "unlock": 44, "collab": "Chainsaw Man"},
     "power": {"name": "Power", "cost": 90000, "income": 260, "emoji": "🩸", "grade": "1st Grade", "unlock": 33, "collab": "Chainsaw Man"},
     "makima_csm": {"name": "Makima", "cost": 600000, "income": 1200, "emoji": "🎯", "grade": "Special Grade", "unlock": 55, "collab": "Chainsaw Man"},
-    # COLLAB - One Piece
+    "aki": {"name": "Aki Hayakawa", "cost": 150000, "income": 380, "emoji": "🦊", "grade": "1st Grade", "unlock": 38, "collab": "Chainsaw Man"},
+    "kobeni": {"name": "Kobeni Higashiyama", "cost": 70000, "income": 200, "emoji": "😰", "grade": "2nd Grade", "unlock": 28, "collab": "Chainsaw Man"},
+    "angel_devil": {"name": "Angel Devil", "cost": 120000, "income": 340, "emoji": "😇", "grade": "1st Grade", "unlock": 35, "collab": "Chainsaw Man"},
+    # ========== ONE PIECE (8 characters) ==========
     "luffy": {"name": "Monkey D. Luffy", "cost": 450000, "income": 900, "emoji": "🏴‍☠️", "grade": "Special Grade", "unlock": 50, "collab": "One Piece"},
     "zoro_op": {"name": "Roronoa Zoro", "cost": 280000, "income": 580, "emoji": "⚔️", "grade": "Special Grade", "unlock": 46, "collab": "One Piece"},
     "sanji": {"name": "Sanji", "cost": 200000, "income": 480, "emoji": "🔥", "grade": "Special Grade", "unlock": 42, "collab": "One Piece"},
-    # COLLAB - Dandadan
+    "nami": {"name": "Nami", "cost": 100000, "income": 300, "emoji": "🍊", "grade": "1st Grade", "unlock": 33, "collab": "One Piece"},
+    "robin": {"name": "Nico Robin", "cost": 180000, "income": 420, "emoji": "🌸", "grade": "Special Grade", "unlock": 40, "collab": "One Piece"},
+    "law": {"name": "Trafalgar Law", "cost": 320000, "income": 660, "emoji": "💉", "grade": "Special Grade", "unlock": 48, "collab": "One Piece"},
+    "shanks": {"name": "Shanks", "cost": 700000, "income": 1400, "emoji": "🍷", "grade": "Special Grade", "unlock": 56, "collab": "One Piece"},
+    "ace": {"name": "Portgas D. Ace", "cost": 350000, "income": 720, "emoji": "🔥", "grade": "Special Grade", "unlock": 49, "collab": "One Piece"},
+    # ========== DANDADAN (4 characters) ==========
     "okarun": {"name": "Okarun (Ken Takakura)", "cost": 110000, "income": 320, "emoji": "👻", "grade": "1st Grade", "unlock": 35, "collab": "Dandadan"},
     "momo_dd": {"name": "Momo Ayase", "cost": 95000, "income": 270, "emoji": "🔮", "grade": "1st Grade", "unlock": 32, "collab": "Dandadan"},
-    # COLLAB - Sword Art Online
+    "aira": {"name": "Aira Shiratori", "cost": 85000, "income": 250, "emoji": "👽", "grade": "2nd Grade", "unlock": 30, "collab": "Dandadan"},
+    "turbo_granny": {"name": "Turbo Granny", "cost": 150000, "income": 380, "emoji": "👵", "grade": "Special Grade", "unlock": 38, "collab": "Dandadan"},
+    # ========== SWORD ART ONLINE (5 characters) ==========
     "kirito": {"name": "Kirito", "cost": 170000, "income": 400, "emoji": "⚔️", "grade": "Special Grade", "unlock": 40, "collab": "SAO"},
     "asuna": {"name": "Asuna", "cost": 160000, "income": 380, "emoji": "✨", "grade": "Special Grade", "unlock": 38, "collab": "SAO"},
-    # COLLAB - Love and Deepspace
+    "sinon": {"name": "Sinon", "cost": 120000, "income": 340, "emoji": "🎯", "grade": "1st Grade", "unlock": 35, "collab": "SAO"},
+    "leafa": {"name": "Leafa", "cost": 100000, "income": 300, "emoji": "🧚", "grade": "1st Grade", "unlock": 33, "collab": "SAO"},
+    "eugeo": {"name": "Eugeo", "cost": 140000, "income": 360, "emoji": "❄️", "grade": "Special Grade", "unlock": 37, "collab": "SAO"},
+    # ========== LOVE AND DEEPSPACE (3 characters) ==========
     "zayne": {"name": "Zayne", "cost": 140000, "income": 360, "emoji": "❄️", "grade": "1st Grade", "unlock": 36, "collab": "Love and Deepspace"},
     "rafayel": {"name": "Rafayel", "cost": 145000, "income": 370, "emoji": "🎨", "grade": "1st Grade", "unlock": 37, "collab": "Love and Deepspace"},
-    "xavier": {"name": "Xavier", "cost": 155000, "income": 390, "emoji": "⭐", "grade": "Special Grade", "unlock": 39, "collab": "Love and Deepspace"},
+    "xavier_lds": {"name": "Xavier", "cost": 155000, "income": 390, "emoji": "⭐", "grade": "Special Grade", "unlock": 39, "collab": "Love and Deepspace"},
+    # ========== SEVEN DEADLY SINS (7 characters) ==========
+    "meliodas": {"name": "Meliodas", "cost": 400000, "income": 820, "emoji": "👿", "grade": "Special Grade", "unlock": 50, "collab": "Seven Deadly Sins"},
+    "ban": {"name": "Ban", "cost": 280000, "income": 600, "emoji": "🦊", "grade": "Special Grade", "unlock": 46, "collab": "Seven Deadly Sins"},
+    "king_7ds": {"name": "King", "cost": 200000, "income": 460, "emoji": "🧸", "grade": "Special Grade", "unlock": 42, "collab": "Seven Deadly Sins"},
+    "diane": {"name": "Diane", "cost": 180000, "income": 420, "emoji": "🔨", "grade": "Special Grade", "unlock": 40, "collab": "Seven Deadly Sins"},
+    "gowther": {"name": "Gowther", "cost": 150000, "income": 380, "emoji": "📚", "grade": "1st Grade", "unlock": 38, "collab": "Seven Deadly Sins"},
+    "escanor": {"name": "Escanor", "cost": 500000, "income": 1000, "emoji": "☀️", "grade": "Special Grade", "unlock": 52, "collab": "Seven Deadly Sins"},
+    "merlin_7ds": {"name": "Merlin", "cost": 350000, "income": 720, "emoji": "🔮", "grade": "Special Grade", "unlock": 48, "collab": "Seven Deadly Sins"},
+    # ========== MY HERO ACADEMIA (10 characters) ==========
+    "deku": {"name": "Izuku Midoriya (Deku)", "cost": 250000, "income": 540, "emoji": "💚", "grade": "Special Grade", "unlock": 45, "collab": "My Hero Academia"},
+    "bakugo": {"name": "Katsuki Bakugo", "cost": 220000, "income": 500, "emoji": "💥", "grade": "Special Grade", "unlock": 44, "collab": "My Hero Academia"},
+    "todoroki": {"name": "Shoto Todoroki", "cost": 200000, "income": 480, "emoji": "🔥", "grade": "Special Grade", "unlock": 42, "collab": "My Hero Academia"},
+    "all_might": {"name": "All Might", "cost": 600000, "income": 1200, "emoji": "💪", "grade": "Special Grade", "unlock": 55, "collab": "My Hero Academia"},
+    "uraraka": {"name": "Ochaco Uraraka", "cost": 80000, "income": 240, "emoji": "🌸", "grade": "1st Grade", "unlock": 30, "collab": "My Hero Academia"},
+    "iida": {"name": "Tenya Iida", "cost": 85000, "income": 250, "emoji": "🏃", "grade": "1st Grade", "unlock": 31, "collab": "My Hero Academia"},
+    "tokoyami": {"name": "Fumikage Tokoyami", "cost": 120000, "income": 340, "emoji": "🦅", "grade": "1st Grade", "unlock": 35, "collab": "My Hero Academia"},
+    "kirishima": {"name": "Eijiro Kirishima", "cost": 100000, "income": 300, "emoji": "🪨", "grade": "1st Grade", "unlock": 33, "collab": "My Hero Academia"},
+    "endeavor": {"name": "Endeavor", "cost": 350000, "income": 720, "emoji": "🔥", "grade": "Special Grade", "unlock": 48, "collab": "My Hero Academia"},
+    "hawks": {"name": "Hawks", "cost": 300000, "income": 640, "emoji": "🪶", "grade": "Special Grade", "unlock": 47, "collab": "My Hero Academia"},
+    # ========== BLEACH (7 characters) ==========
+    "ichigo": {"name": "Ichigo Kurosaki", "cost": 350000, "income": 720, "emoji": "🍓", "grade": "Special Grade", "unlock": 48, "collab": "Bleach"},
+    "rukia": {"name": "Rukia Kuchiki", "cost": 150000, "income": 380, "emoji": "❄️", "grade": "1st Grade", "unlock": 38, "collab": "Bleach"},
+    "byakuya": {"name": "Byakuya Kuchiki", "cost": 280000, "income": 600, "emoji": "🌸", "grade": "Special Grade", "unlock": 46, "collab": "Bleach"},
+    "kenpachi": {"name": "Kenpachi Zaraki", "cost": 400000, "income": 820, "emoji": "⚔️", "grade": "Special Grade", "unlock": 50, "collab": "Bleach"},
+    "aizen": {"name": "Sosuke Aizen", "cost": 700000, "income": 1400, "emoji": "🦋", "grade": "Special Grade", "unlock": 56, "collab": "Bleach"},
+    "toshiro": {"name": "Toshiro Hitsugaya", "cost": 200000, "income": 460, "emoji": "❄️", "grade": "Special Grade", "unlock": 42, "collab": "Bleach"},
+    "urahara": {"name": "Kisuke Urahara", "cost": 320000, "income": 660, "emoji": "🎩", "grade": "Special Grade", "unlock": 48, "collab": "Bleach"},
+    # ========== NARUTO (7 characters) ==========
+    "naruto": {"name": "Naruto Uzumaki", "cost": 450000, "income": 900, "emoji": "🍥", "grade": "Special Grade", "unlock": 50, "collab": "Naruto"},
+    "sasuke": {"name": "Sasuke Uchiha", "cost": 400000, "income": 820, "emoji": "⚡", "grade": "Special Grade", "unlock": 50, "collab": "Naruto"},
+    "kakashi": {"name": "Kakashi Hatake", "cost": 300000, "income": 640, "emoji": "📖", "grade": "Special Grade", "unlock": 47, "collab": "Naruto"},
+    "itachi": {"name": "Itachi Uchiha", "cost": 500000, "income": 1000, "emoji": "🌙", "grade": "Special Grade", "unlock": 52, "collab": "Naruto"},
+    "minato": {"name": "Minato Namikaze", "cost": 550000, "income": 1100, "emoji": "⚡", "grade": "Special Grade", "unlock": 54, "collab": "Naruto"},
+    "jiraiya": {"name": "Jiraiya", "cost": 320000, "income": 660, "emoji": "🐸", "grade": "Special Grade", "unlock": 48, "collab": "Naruto"},
+    "madara": {"name": "Madara Uchiha", "cost": 800000, "income": 1600, "emoji": "👁️", "grade": "Special Grade", "unlock": 58, "collab": "Naruto"},
+    # ========== HUNTER X HUNTER (5 characters) ==========
+    "gon": {"name": "Gon Freecss", "cost": 180000, "income": 420, "emoji": "🎣", "grade": "Special Grade", "unlock": 40, "collab": "Hunter x Hunter"},
+    "killua": {"name": "Killua Zoldyck", "cost": 220000, "income": 500, "emoji": "⚡", "grade": "Special Grade", "unlock": 44, "collab": "Hunter x Hunter"},
+    "kurapika": {"name": "Kurapika", "cost": 250000, "income": 540, "emoji": "🔴", "grade": "Special Grade", "unlock": 45, "collab": "Hunter x Hunter"},
+    "hisoka": {"name": "Hisoka Morow", "cost": 350000, "income": 720, "emoji": "🃏", "grade": "Special Grade", "unlock": 48, "collab": "Hunter x Hunter"},
+    "netero": {"name": "Isaac Netero", "cost": 600000, "income": 1200, "emoji": "🙏", "grade": "Special Grade", "unlock": 55, "collab": "Hunter x Hunter"},
 }
 
 JJK_TECHNIQUES = {

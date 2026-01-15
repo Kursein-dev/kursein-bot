@@ -9,7 +9,7 @@ Kursein v4.0 is a JJK-focused Discord bot featuring a full idle RPG economy game
 - **Side Missions**: 10 side objectives with tracking and rewards (~sidemissions, ~claimside)
 - **Enhanced Leaderboards**: Multiple leaderboard categories (~jjklb, ~lvllb, ~huntlb, ~pvplb, ~storylb)
 - **Cooldown Timer**: View all cooldowns at once with ~cooldowns
-- **52 Sorcerers**: 21 JJK core + 1 exclusive (Saya) + 30 collab characters from 10 series
+- **119 Sorcerers**: 34 JJK core + 1 exclusive (Saya) + 84 collab characters from 14 series
 - **Facilities System**: Build 5 facilities for passive bonuses
 - **Holiday Events**: Bot Launch event (Jan 14-21) and Birthday event (Jan 17-18)
 - **Mission Board System**: Choice-based missions with difficulty tiers, risk/reward tradeoffs
@@ -165,19 +165,24 @@ Primary storage in PostgreSQL with JSONB columns:
 - `jjk_clans` - JJK clan data
 
 ### JJK Game Data
-**Sorcerers (52 total):**
-- JJK Core (21): Yuji, Megumi, Nobara, Maki, Panda, Inumaki, Todo, Yuta, Gojo, Nanami, Mei Mei, Kusakabe, Miwa, Momo, Mechamaru, Kamo, Mai, Naoya, Choso, Toji, Sukuna
+**Sorcerers (119 total):**
+- JJK Core (34): Yuji, Megumi, Nobara, Maki, Panda, Inumaki, Todo, Yuta, Gojo, Nanami, Mei Mei, Kusakabe, Miwa, Momo, Mechamaru, Kamo, Mai, Naoya, Choso, Toji, Sukuna, Kenjaku, Mahito, Jogo, Hanami, Dagon, Kashimo, Hakari, Higuruma, Ryu, Uro, Uraume, Yorozu, Charles
 - Exclusive (1): Saya (Noctflare technique)
-- Solo Leveling (3): Sung Jinwoo, Cha Hae-In, Goto Ryuji
-- Persona (3): Joker, Makoto, Yu Narukami
-- Tokyo Ghoul (3): Kaneki, Touka, Arima
-- Attack on Titan (3): Eren, Mikasa, Levi
-- Demon Slayer (3): Tanjiro, Nezuko, Zenitsu
-- Chainsaw Man (3): Denji, Power, Makima
-- One Piece (3): Luffy, Zoro, Sanji
-- Dandadan (2): Okarun, Momo
-- SAO (2): Kirito, Asuna
+- Solo Leveling (6): Sung Jinwoo, Cha Hae-In, Goto Ryuji, Beru, Iron, Thomas Andre
+- Persona (5): Joker, Makoto, Yu Narukami, Ann, Ryuji
+- Tokyo Ghoul (6): Kaneki, Touka, Arima, Tsukiyama, Ayato, Eto
+- Attack on Titan (6): Eren, Mikasa, Levi, Erwin, Hange, Annie
+- Demon Slayer (8): Tanjiro, Nezuko, Zenitsu, Inosuke, Rengoku, Mitsuri, Muichiro, Shinobu
+- Chainsaw Man (6): Denji, Power, Makima, Aki, Kobeni, Angel Devil
+- One Piece (8): Luffy, Zoro, Sanji, Nami, Robin, Law, Shanks, Ace
+- Dandadan (4): Okarun, Momo, Aira, Turbo Granny
+- SAO (5): Kirito, Asuna, Sinon, Leafa, Eugeo
 - Love and Deepspace (3): Zayne, Rafayel, Xavier
+- Seven Deadly Sins (7): Meliodas, Ban, King, Diane, Gowther, Escanor, Merlin
+- My Hero Academia (10): Deku, Bakugo, Todoroki, All Might, Uraraka, Iida, Tokoyami, Kirishima, Endeavor, Hawks
+- Bleach (7): Ichigo, Rukia, Byakuya, Kenpachi, Aizen, Toshiro, Urahara
+- Naruto (7): Naruto, Sasuke, Kakashi, Itachi, Minato, Jiraiya, Madara
+- Hunter x Hunter (5): Gon, Killua, Kurapika, Hisoka, Netero
 
 **Techniques (8):** Divergent Fist, Black Flash, Ten Shadows, Cursed Speech, Boogie Woogie, Reverse Cursed, Domain Amplification, Noctflare (exclusive)
 **Tools (5):** Slaughter Demon, Playful Cloud, Inverted Spear, Split Soul Katana, Prison Realm
