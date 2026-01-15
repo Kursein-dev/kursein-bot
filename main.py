@@ -889,6 +889,7 @@ async def on_ready():
         # Sync global commands only
         synced = await bot.tree.sync()
         print(f"Synced {len(synced)} slash command(s) globally")
+        print("Guild-specific commands cleared to prevent duplicates")
     except Exception as e:
         print(f"Error syncing commands: {e}")
 
