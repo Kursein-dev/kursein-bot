@@ -1,9 +1,14 @@
 # Discord Kursein Bot - Tokyo Ghoul + Rocket League + JJK Theme
 
 ## Overview
-Kursein is a streamlined Discord bot with a Tokyo Ghoul, Rocket League, and Jujutsu Kaisen theme. The bot features Rocket League integration, DISBOARD bump reminders, stream notifications, moderation tools, and a full JJK-themed idle RPG economy game.
+Kursein is a streamlined Discord bot with a Tokyo Ghoul, Rocket League, and Jujutsu Kaisen theme. The bot features Rocket League integration, DISBOARD bump reminders, stream notifications, moderation tools, and a full JJK-themed idle RPG economy game with cross-series collaborations.
 
 ## Recent Changes (January 2026)
+- **PvP Battle System**: Challenge other players with ~pvp @user, ELO-based ranked matchmaking (Bronze to Special Grade)
+- **Side Missions**: 10 side objectives with tracking and rewards (~sidemissions, ~claimside)
+- **Enhanced Leaderboards**: Multiple leaderboard categories (~jjklb, ~lvllb, ~huntlb, ~pvplb, ~storylb)
+- **Cooldown Timer**: View all cooldowns at once with ~cooldowns
+- **21 Collab Characters**: Attack on Titan, Demon Slayer, Chainsaw Man, One Piece, Dandadan, SAO, Love and Deepspace
 - **Facilities System**: Build 5 facilities (Dormitory, Training Grounds, Cursed Archives, Barrier Ward, Curse Workshop) for passive bonuses
 - **Holiday Events**: Bot Launch event (Jan 14-21) and Birthday event (Jan 17-18) with income/XP multipliers and claimable rewards
 - **Give Command**: Transfer yen between players with ~give
@@ -16,8 +21,6 @@ Kursein is a streamlined Discord bot with a Tokyo Ghoul, Rocket League, and Juju
 - **Recovery Actions**: ~eat (6h cd) and ~rest (12h cd) for healing and XP
 - **Rare Loot Collections**: 12 rare items across 8 collections with set bonuses
 - **Story Mode**: 6 story arcs with 22 chapters following the JJK storyline
-- **More Characters**: 21 sorcerers including villains like Sukuna, Toji, Choso, Naoya
-- **JJK Economy System**: Full Jujutsu Kaisen themed economy game (64+ commands)
 
 ## Features
 
@@ -28,9 +31,25 @@ Run your own Jujutsu School, exorcise curses, and become a Special Grade sorcere
 - `~jjkstart` - Begin your sorcerer journey
 - `~school` - View your school stats
 - `~balance` - Check yen balance
+- `~cooldowns` - View all cooldown timers
 - `~jjkguide` - Full command list
 
-**Story Mode (NEW!):**
+**PvP Battle System (NEW!):**
+- `~pvp @user` - Challenge another sorcerer to battle
+- `~pvpstats` - View your PvP stats and rank
+- `~pvplb` - PvP leaderboard
+- ELO-based ranking: Unranked -> Bronze -> Silver -> Gold -> Platinum -> Diamond -> Special Grade
+- Combat power based on level, sorcerers, techniques, tools, and domain
+- 5 minute cooldown between battles
+
+**Side Missions (NEW!):**
+- `~sidemissions` - View available side objectives
+- `~claimside <mission_id>` - Claim completed mission rewards
+- 10 missions: Training, Curse Hunting, Wealth, Squad Building, PvP achievements
+- Repeatable missions with cooldowns
+- Progress tracked automatically for hunt/train activities
+
+**Story Mode:**
 - `~story` - View your story progress
 - `~chapter` - Start your current story chapter
 - `~storyclaim` - Claim completed chapter rewards
@@ -79,7 +98,7 @@ Run your own Jujutsu School, exorcise curses, and become a Special Grade sorcere
 - `~collect` - Collect hourly income from sorcerers
 
 **Upgrades:**
-- `~sorcerers` / `~hire <name>` - Hire sorcerers (Yuji, Megumi, Nobara, Gojo, etc.)
+- `~sorcerers` / `~hire <name>` - Hire sorcerers (52 total including collabs!)
 - `~techniques` / `~learntechnique <name>` - Learn cursed techniques
 - `~tools` / `~buytool <name>` - Buy cursed tools
 - `~domain` / `~upgradedomain` - Upgrade domain expansion
@@ -92,18 +111,24 @@ Run your own Jujutsu School, exorcise curses, and become a Special Grade sorcere
 - `~clanlb` - Clan leaderboard
 
 **Leaderboards:**
+- `~leaderboards` - View all leaderboard categories
 - `~jjklb` - Top sorcerers by yen
+- `~lvllb` - Top sorcerers by level
+- `~huntlb` - Top curse hunters
+- `~pvplb` - Top PvP players by ELO
+- `~storylb` - Story progress leaderboard
+- `~clanlb` - Clan leaderboard
 
-**Facilities (NEW!):**
+**Facilities:**
 - `~facilities` - View your facilities and bonuses
 - `~build <facility>` - Build a facility
 - 5 Facilities: Dormitory (income +20%), Training Grounds (XP +20%), Cursed Archives (passive 500 yen/hr), Barrier Ward (injury -10%), Curse Workshop (loot +10%)
 
-**Events (NEW!):**
+**Events:**
 - `~events` - View active holiday events
 - `~eventclaim` - Claim event rewards
 - Bot Launch Event (Jan 14-21): +50% income/XP, claimable reward
-- Birthday Event (Jan 17-18): +25% income/XP, claimable reward
+- Birthday Event (Jan 17-18): +100% income/XP, claimable reward
 
 **Give/Trade:**
 - `~give <@user> <amount>` - Transfer yen to another player
@@ -166,15 +191,30 @@ Primary storage in PostgreSQL with JSONB columns:
 - `afk_users` - AFK status
 - `pending_ranks` - Pending rank verifications
 - `rank_roles` - Tier to role ID mapping
-- `jjk_players` - JJK economy player data (includes inventory, injuries, missions, collections, story progress)
+- `jjk_players` - JJK economy player data (includes inventory, injuries, missions, collections, story progress, PvP stats, side mission progress)
 - `jjk_clans` - JJK clan data
 
 ### JJK Game Data
-**Sorcerers (21):** Yuji, Megumi, Nobara, Maki, Panda, Inumaki, Todo, Yuta, Gojo, Nanami, Mei Mei, Kusakabe, Miwa, Momo, Mechamaru, Kamo, Mai, Naoya, Choso, Toji, Sukuna
-**Techniques (7):** Divergent Fist, Black Flash, Ten Shadows, Cursed Speech, Boogie Woogie, Reverse Cursed, Domain Amplification
+**Sorcerers (52 total):**
+- JJK Core (21): Yuji, Megumi, Nobara, Maki, Panda, Inumaki, Todo, Yuta, Gojo, Nanami, Mei Mei, Kusakabe, Miwa, Momo, Mechamaru, Kamo, Mai, Naoya, Choso, Toji, Sukuna
+- Exclusive (1): Saya (Noctflare technique)
+- Solo Leveling (3): Sung Jinwoo, Cha Hae-In, Goto Ryuji
+- Persona (3): Joker, Makoto, Yu Narukami
+- Tokyo Ghoul (3): Kaneki, Touka, Arima
+- Attack on Titan (3): Eren, Mikasa, Levi
+- Demon Slayer (3): Tanjiro, Nezuko, Zenitsu
+- Chainsaw Man (3): Denji, Power, Makima
+- One Piece (3): Luffy, Zoro, Sanji
+- Dandadan (2): Okarun, Momo
+- SAO (2): Kirito, Asuna
+- Love and Deepspace (3): Zayne, Rafayel, Xavier
+
+**Techniques (8):** Divergent Fist, Black Flash, Ten Shadows, Cursed Speech, Boogie Woogie, Reverse Cursed, Domain Amplification, Noctflare (exclusive)
 **Tools (5):** Slaughter Demon, Playful Cloud, Inverted Spear, Split Soul Katana, Prison Realm
 **Domains (5):** No Domain, Incomplete, Chimera Shadow Garden, Malevolent Shrine, Infinite Void
 **Grades:** Grade 4 -> Grade 3 -> Grade 2 -> Grade 1 -> Semi-1st -> Special Grade
+
+**PvP Ranks:** Unranked -> Bronze (800 ELO) -> Silver (1000) -> Gold (1200) -> Platinum (1400) -> Diamond (1600) -> Special Grade (1800)
 
 **Story Arcs (6):** Fearsome Womb, Cursed Training, Kyoto Goodwill Event, Origin of Obedience, Shibuya Incident, Culling Game
 **Story Chapters:** 22 total chapters across all arcs
@@ -184,6 +224,7 @@ Primary storage in PostgreSQL with JSONB columns:
 **Injuries (5):** Minor Bruise, Cursed Wound, Broken Arm, Cursed Poison, Domain Backlash
 **Rare Loot (12):** Sukuna's Finger, Death Painting Fragment, Infinity Cloth, Todo's Idol Photo, etc.
 **Collections (8):** King of Curses, Death Paintings, Limitless Legacy, Jujutsu Memories, Technique Archive, Zenin Legacy, Cursed Bonds, Disaster Curses
+**Side Missions (10):** Training Dummy, Curse Collector, Training Montage, Wealthy Sorcerer, Squad Builder, Technique Student, Domain Initiate, Dedication, First Blood, PvP Veteran
 
 ### Hardcoded IDs
 - LOG_CHANNEL_ID: 1435009184285589554
@@ -208,7 +249,7 @@ Primary storage in PostgreSQL with JSONB columns:
 
 ## File Structure
 ```
-├── main.py              # Main bot code (~3600 lines)
+├── main.py              # Main bot code (~5200 lines)
 ├── db.py                # Database operations
 ├── replit.md            # This documentation
 ├── jjk_data.json        # JJK player data backup

@@ -111,6 +111,32 @@ JJK_SORCERERS = {
     "kaneki": {"name": "Ken Kaneki", "cost": 200000, "income": 450, "emoji": "🦴", "grade": "Special Grade", "unlock": 42, "collab": "Tokyo Ghoul"},
     "touka": {"name": "Touka Kirishima", "cost": 70000, "income": 200, "emoji": "🦋", "grade": "1st Grade", "unlock": 28, "collab": "Tokyo Ghoul"},
     "arima": {"name": "Kishou Arima", "cost": 350000, "income": 700, "emoji": "👓", "grade": "Special Grade", "unlock": 48, "collab": "Tokyo Ghoul"},
+    # COLLAB - Attack on Titan
+    "eren": {"name": "Eren Yeager", "cost": 300000, "income": 600, "emoji": "⚔️", "grade": "Special Grade", "unlock": 45, "collab": "Attack on Titan"},
+    "mikasa": {"name": "Mikasa Ackerman", "cost": 180000, "income": 420, "emoji": "🗡️", "grade": "Special Grade", "unlock": 40, "collab": "Attack on Titan"},
+    "levi": {"name": "Levi Ackerman", "cost": 400000, "income": 800, "emoji": "⚔️", "grade": "Special Grade", "unlock": 52, "collab": "Attack on Titan"},
+    # COLLAB - Demon Slayer
+    "tanjiro": {"name": "Tanjiro Kamado", "cost": 150000, "income": 380, "emoji": "🔥", "grade": "Special Grade", "unlock": 38, "collab": "Demon Slayer"},
+    "nezuko": {"name": "Nezuko Kamado", "cost": 100000, "income": 280, "emoji": "🌸", "grade": "1st Grade", "unlock": 32, "collab": "Demon Slayer"},
+    "zenitsu": {"name": "Zenitsu Agatsuma", "cost": 85000, "income": 240, "emoji": "⚡", "grade": "1st Grade", "unlock": 30, "collab": "Demon Slayer"},
+    # COLLAB - Chainsaw Man
+    "denji": {"name": "Denji (Chainsaw Man)", "cost": 220000, "income": 500, "emoji": "🪚", "grade": "Special Grade", "unlock": 44, "collab": "Chainsaw Man"},
+    "power": {"name": "Power", "cost": 90000, "income": 260, "emoji": "🩸", "grade": "1st Grade", "unlock": 33, "collab": "Chainsaw Man"},
+    "makima_csm": {"name": "Makima", "cost": 600000, "income": 1200, "emoji": "🎯", "grade": "Special Grade", "unlock": 55, "collab": "Chainsaw Man"},
+    # COLLAB - One Piece
+    "luffy": {"name": "Monkey D. Luffy", "cost": 450000, "income": 900, "emoji": "🏴‍☠️", "grade": "Special Grade", "unlock": 50, "collab": "One Piece"},
+    "zoro_op": {"name": "Roronoa Zoro", "cost": 280000, "income": 580, "emoji": "⚔️", "grade": "Special Grade", "unlock": 46, "collab": "One Piece"},
+    "sanji": {"name": "Sanji", "cost": 200000, "income": 480, "emoji": "🔥", "grade": "Special Grade", "unlock": 42, "collab": "One Piece"},
+    # COLLAB - Dandadan
+    "okarun": {"name": "Okarun (Ken Takakura)", "cost": 110000, "income": 320, "emoji": "👻", "grade": "1st Grade", "unlock": 35, "collab": "Dandadan"},
+    "momo_dd": {"name": "Momo Ayase", "cost": 95000, "income": 270, "emoji": "🔮", "grade": "1st Grade", "unlock": 32, "collab": "Dandadan"},
+    # COLLAB - Sword Art Online
+    "kirito": {"name": "Kirito", "cost": 170000, "income": 400, "emoji": "⚔️", "grade": "Special Grade", "unlock": 40, "collab": "SAO"},
+    "asuna": {"name": "Asuna", "cost": 160000, "income": 380, "emoji": "✨", "grade": "Special Grade", "unlock": 38, "collab": "SAO"},
+    # COLLAB - Love and Deepspace
+    "zayne": {"name": "Zayne", "cost": 140000, "income": 360, "emoji": "❄️", "grade": "1st Grade", "unlock": 36, "collab": "Love and Deepspace"},
+    "rafayel": {"name": "Rafayel", "cost": 145000, "income": 370, "emoji": "🎨", "grade": "1st Grade", "unlock": 37, "collab": "Love and Deepspace"},
+    "xavier": {"name": "Xavier", "cost": 155000, "income": 390, "emoji": "⭐", "grade": "Special Grade", "unlock": 39, "collab": "Love and Deepspace"},
 }
 
 JJK_TECHNIQUES = {
@@ -589,6 +615,15 @@ def parse_iso_timestamp(ts_str):
 def xp_for_level(level):
     """XP needed for next level"""
     return 100 + (level * 50)
+
+def check_level_up(player):
+    """Check and process level ups, returns number of levels gained"""
+    levels_gained = 0
+    while player['xp'] >= xp_for_level(player['level']):
+        player['xp'] -= xp_for_level(player['level'])
+        player['level'] += 1
+        levels_gained += 1
+    return levels_gained
 
 def get_rank_tier(rank_id):
     """Get the tier name from a rank ID"""
@@ -2104,6 +2139,72 @@ async def jjk_balance(ctx, member: Optional[discord.Member] = None):
     
     await ctx.send(f"💴 **{target.display_name}** has **{player['yen']:,}** yen")
 
+@bot.hybrid_command(name='cooldowns', aliases=['cd', 'timers', 'cooldown'])
+async def jjk_cooldowns(ctx):
+    """View all your cooldown timers"""
+    player = get_jjk_player(ctx.author.id)
+    if not player:
+        await ctx.send("Use `~jjkstart` to begin your journey!")
+        return
+    
+    now = datetime.now(timezone.utc)
+    
+    def format_cd(last_time_str, cooldown_seconds):
+        if not last_time_str:
+            return "✅ Ready!"
+        last_time = parse_iso_timestamp(last_time_str)
+        if not last_time:
+            return "✅ Ready!"
+        elapsed = (now - last_time).total_seconds()
+        remaining = cooldown_seconds - elapsed
+        if remaining <= 0:
+            return "✅ Ready!"
+        if remaining >= 3600:
+            hours = int(remaining // 3600)
+            mins = int((remaining % 3600) // 60)
+            return f"⏳ {hours}h {mins}m"
+        elif remaining >= 60:
+            mins = int(remaining // 60)
+            secs = int(remaining % 60)
+            return f"⏳ {mins}m {secs}s"
+        else:
+            return f"⏳ {int(remaining)}s"
+    
+    embed = discord.Embed(
+        title="⏰ Cooldown Timers",
+        description="Your current action cooldowns",
+        color=0x3498DB
+    )
+    
+    embed.add_field(name="🗡️ Hunt", value=format_cd(player.get('last_hunt'), 30), inline=True)
+    embed.add_field(name="🎯 Train", value=format_cd(player.get('last_train'), 60), inline=True)
+    embed.add_field(name="📅 Daily", value=format_cd(player.get('last_daily'), 86400), inline=True)
+    embed.add_field(name="💰 Collect", value=format_cd(player.get('last_collect'), 3600), inline=True)
+    embed.add_field(name="🍙 Eat", value=format_cd(player.get('last_eat'), 21600), inline=True)
+    embed.add_field(name="😴 Rest", value=format_cd(player.get('last_rest'), 43200), inline=True)
+    
+    # Check for active mission
+    if player.get('active_mission'):
+        mission = player['active_mission']
+        end_time = parse_iso_timestamp(mission.get('end_time'))
+        if end_time:
+            remaining = (end_time - now).total_seconds()
+            if remaining > 0:
+                if remaining >= 60:
+                    embed.add_field(name="📋 Mission", value=f"⏳ {int(remaining // 60)}m {int(remaining % 60)}s", inline=True)
+                else:
+                    embed.add_field(name="📋 Mission", value=f"⏳ {int(remaining)}s", inline=True)
+            else:
+                embed.add_field(name="📋 Mission", value="✅ Complete! Use ~missionclaim", inline=True)
+    
+    # Check for dispatched sorcerers
+    dispatched = len([d for d in player.get('dispatch_slots', []) if d])
+    if dispatched > 0:
+        embed.add_field(name="🚀 Dispatched", value=f"{dispatched} sorcerer(s) out", inline=True)
+    
+    embed.set_footer(text="Use ~hunt, ~train, ~daily, ~collect, ~eat, ~rest")
+    await ctx.send(embed=embed)
+
 @bot.hybrid_command(name='hunt', aliases=['exorcise'])
 async def jjk_hunt(ctx):
     """Hunt and exorcise curses for yen and XP"""
@@ -2143,6 +2244,12 @@ async def jjk_hunt(ctx):
     player['xp'] += xp_earned
     player['curses_exorcised'] += 1
     player['last_hunt'] = now.isoformat()
+    
+    # Track side mission progress
+    try:
+        track_side_mission_progress(player, "hunt")
+    except:
+        pass
     
     # Level up check
     leveled = False
@@ -2189,6 +2296,12 @@ async def jjk_train(ctx):
     xp_earned = apply_xp_multipliers(base_xp, player)
     player['xp'] += xp_earned
     player['last_train'] = now.isoformat()
+    
+    # Track side mission progress
+    try:
+        track_side_mission_progress(player, "train")
+    except:
+        pass
     
     leveled = False
     while player['xp'] >= xp_for_level(player['level']):
@@ -4465,8 +4578,631 @@ async def arcs_cmd(ctx):
     await ctx.send(embed=embed)
 
 # =====================
-# UPDATED JJK GUIDE
+# PVP BATTLE SYSTEM
 # =====================
+
+PVP_RANKS = {
+    0: {"name": "Unranked", "min_elo": 0, "emoji": "⚪"},
+    1: {"name": "Bronze", "min_elo": 800, "emoji": "🥉"},
+    2: {"name": "Silver", "min_elo": 1000, "emoji": "🥈"},
+    3: {"name": "Gold", "min_elo": 1200, "emoji": "🥇"},
+    4: {"name": "Platinum", "min_elo": 1400, "emoji": "💎"},
+    5: {"name": "Diamond", "min_elo": 1600, "emoji": "💠"},
+    6: {"name": "Special Grade", "min_elo": 1800, "emoji": "👹"},
+}
+
+def get_pvp_rank(elo):
+    """Get PvP rank from ELO"""
+    for tier in reversed(range(7)):
+        if elo >= PVP_RANKS[tier]["min_elo"]:
+            return PVP_RANKS[tier]
+    return PVP_RANKS[0]
+
+def calculate_combat_power(player):
+    """Calculate player's combat power for battles"""
+    base = player['level'] * 100
+    sorcerer_bonus = len(player.get('sorcerers', [])) * 50
+    tech_mult = 1.0
+    for tech in player.get('techniques', []):
+        if tech in JJK_TECHNIQUES:
+            tech_mult *= JJK_TECHNIQUES[tech]['multiplier']
+    tool_bonus = sum(JJK_TOOLS[t]['bonus'] for t in player.get('tools', []) if t in JJK_TOOLS)
+    domain_mult = JJK_DOMAINS[player.get('domain', 0)]['multiplier']
+    return int((base + sorcerer_bonus + tool_bonus) * tech_mult * domain_mult)
+
+def calculate_elo_change(winner_elo, loser_elo, k=32):
+    """Calculate ELO changes after a match"""
+    expected_win = 1 / (1 + 10 ** ((loser_elo - winner_elo) / 400))
+    gain = int(k * (1 - expected_win))
+    loss = int(k * expected_win)
+    return max(gain, 10), max(loss, 5)
+
+@bot.hybrid_command(name='pvp', aliases=['battle', 'fight', 'duel'])
+async def jjk_pvp(ctx, opponent: discord.Member):
+    """Challenge another sorcerer to a PvP battle!"""
+    if opponent == ctx.author:
+        await ctx.send("You can't fight yourself!")
+        return
+    
+    if opponent.bot:
+        await ctx.send("You can't challenge bots!")
+        return
+    
+    player = get_jjk_player(ctx.author.id)
+    enemy = get_jjk_player(opponent.id)
+    
+    if not player:
+        await ctx.send("Use `~jjkstart` to begin your journey!")
+        return
+    
+    if not enemy:
+        await ctx.send(f"{opponent.display_name} hasn't started their journey yet!")
+        return
+    
+    if player['level'] < 5:
+        await ctx.send("You need to be at least **Level 5** to participate in PvP!")
+        return
+    
+    if enemy['level'] < 5:
+        await ctx.send(f"{opponent.display_name} needs to be at least **Level 5** to participate in PvP!")
+        return
+    
+    # Check cooldown (5 min between battles)
+    now = datetime.now(timezone.utc)
+    last_pvp = parse_iso_timestamp(player.get('last_pvp'))
+    if last_pvp:
+        elapsed = (now - last_pvp).total_seconds()
+        if elapsed < 300:
+            remaining = int(300 - elapsed)
+            mins = remaining // 60
+            secs = remaining % 60
+            await ctx.send(f"⏳ You're still recovering from your last battle! Wait **{mins}m {secs}s**.")
+            return
+    
+    # Initialize PvP stats if not present
+    if 'pvp_elo' not in player:
+        player['pvp_elo'] = 1000
+        player['pvp_wins'] = 0
+        player['pvp_losses'] = 0
+    if 'pvp_elo' not in enemy:
+        enemy['pvp_elo'] = 1000
+        enemy['pvp_wins'] = 0
+        enemy['pvp_losses'] = 0
+    
+    # Calculate combat power
+    player_power = calculate_combat_power(player)
+    enemy_power = calculate_combat_power(enemy)
+    
+    # Battle simulation with randomness
+    player_roll = random.randint(70, 130) / 100.0
+    enemy_roll = random.randint(70, 130) / 100.0
+    
+    player_score = int(player_power * player_roll)
+    enemy_score = int(enemy_power * enemy_roll)
+    
+    # Determine winner
+    if player_score > enemy_score:
+        winner, loser = player, enemy
+        winner_user, loser_user = ctx.author, opponent
+        winner_score, loser_score = player_score, enemy_score
+    elif enemy_score > player_score:
+        winner, loser = enemy, player
+        winner_user, loser_user = opponent, ctx.author
+        winner_score, loser_score = enemy_score, player_score
+    else:
+        # Tie - slight advantage to challenger
+        if random.random() > 0.5:
+            winner, loser = player, enemy
+            winner_user, loser_user = ctx.author, opponent
+        else:
+            winner, loser = enemy, player
+            winner_user, loser_user = opponent, ctx.author
+        winner_score, loser_score = player_score, enemy_score
+    
+    # Calculate ELO changes
+    elo_gain, elo_loss = calculate_elo_change(winner['pvp_elo'], loser['pvp_elo'])
+    
+    old_winner_rank = get_pvp_rank(winner['pvp_elo'])
+    old_loser_rank = get_pvp_rank(loser['pvp_elo'])
+    
+    winner['pvp_elo'] += elo_gain
+    winner['pvp_wins'] += 1
+    loser['pvp_elo'] = max(0, loser['pvp_elo'] - elo_loss)
+    loser['pvp_losses'] += 1
+    
+    new_winner_rank = get_pvp_rank(winner['pvp_elo'])
+    new_loser_rank = get_pvp_rank(loser['pvp_elo'])
+    
+    # Rewards for winner
+    yen_reward = 500 + (winner['level'] * 50)
+    xp_reward = 50 + (winner['level'] * 5)
+    winner['yen'] += yen_reward
+    winner['xp'] += xp_reward
+    check_level_up(winner)
+    
+    # Update cooldowns
+    player['last_pvp'] = now.isoformat()
+    enemy['last_pvp'] = now.isoformat()
+    
+    save_jjk_data()
+    
+    # Build result embed
+    embed = discord.Embed(
+        title="⚔️ PvP Battle Results",
+        color=0xFF6B6B
+    )
+    
+    embed.add_field(
+        name=f"{ctx.author.display_name}",
+        value=f"Power: {player_power:,}\nRoll: {player_score:,}\n{get_pvp_rank(player['pvp_elo'])['emoji']} {player['pvp_elo']} ELO",
+        inline=True
+    )
+    
+    embed.add_field(name="VS", value="⚔️", inline=True)
+    
+    embed.add_field(
+        name=f"{opponent.display_name}",
+        value=f"Power: {enemy_power:,}\nRoll: {enemy_score:,}\n{get_pvp_rank(enemy['pvp_elo'])['emoji']} {enemy['pvp_elo']} ELO",
+        inline=True
+    )
+    
+    result_text = f"🏆 **{winner_user.display_name}** wins!\n"
+    result_text += f"+{elo_gain} ELO | +{yen_reward:,} yen | +{xp_reward} XP\n"
+    result_text += f"\n😔 **{loser_user.display_name}** loses!\n-{elo_loss} ELO"
+    
+    embed.add_field(name="Result", value=result_text, inline=False)
+    
+    # Rank up/down notifications
+    if new_winner_rank['name'] != old_winner_rank['name']:
+        embed.add_field(
+            name="🎉 Rank Up!",
+            value=f"{winner_user.display_name}: {old_winner_rank['emoji']} → {new_winner_rank['emoji']} **{new_winner_rank['name']}**",
+            inline=False
+        )
+    
+    if new_loser_rank['name'] != old_loser_rank['name']:
+        embed.add_field(
+            name="📉 Rank Down",
+            value=f"{loser_user.display_name}: {old_loser_rank['emoji']} → {new_loser_rank['emoji']} **{new_loser_rank['name']}**",
+            inline=False
+        )
+    
+    await ctx.send(embed=embed)
+
+@bot.hybrid_command(name='pvpstats', aliases=['pvpprofile', 'ranked'])
+async def jjk_pvp_stats(ctx, member: Optional[discord.Member] = None):
+    """View PvP stats and rank"""
+    target = member or ctx.author
+    player = get_jjk_player(target.id)
+    
+    if not player:
+        await ctx.send("No profile found!")
+        return
+    
+    if 'pvp_elo' not in player:
+        player['pvp_elo'] = 1000
+        player['pvp_wins'] = 0
+        player['pvp_losses'] = 0
+    
+    rank = get_pvp_rank(player['pvp_elo'])
+    wins = player.get('pvp_wins', 0)
+    losses = player.get('pvp_losses', 0)
+    total = wins + losses
+    winrate = (wins / total * 100) if total > 0 else 0
+    combat_power = calculate_combat_power(player)
+    
+    embed = discord.Embed(
+        title=f"⚔️ {target.display_name}'s PvP Profile",
+        color=0xFF6B6B
+    )
+    embed.set_thumbnail(url=target.display_avatar.url)
+    
+    embed.add_field(name="Rank", value=f"{rank['emoji']} **{rank['name']}**", inline=True)
+    embed.add_field(name="ELO", value=f"**{player['pvp_elo']}**", inline=True)
+    embed.add_field(name="Combat Power", value=f"**{combat_power:,}**", inline=True)
+    embed.add_field(name="Wins", value=f"**{wins}** 🏆", inline=True)
+    embed.add_field(name="Losses", value=f"**{losses}** 💔", inline=True)
+    embed.add_field(name="Win Rate", value=f"**{winrate:.1f}%**", inline=True)
+    
+    # Next rank progress
+    for tier in range(7):
+        if player['pvp_elo'] < PVP_RANKS[tier]['min_elo']:
+            next_rank = PVP_RANKS[tier]
+            needed = next_rank['min_elo'] - player['pvp_elo']
+            embed.add_field(
+                name="Next Rank",
+                value=f"{next_rank['emoji']} {next_rank['name']} ({needed} ELO needed)",
+                inline=False
+            )
+            break
+    
+    await ctx.send(embed=embed)
+
+@bot.hybrid_command(name='pvplb', aliases=['pvpleaderboard', 'rankedlb'])
+async def jjk_pvp_leaderboard(ctx):
+    """View the PvP leaderboard"""
+    players_with_pvp = [(uid, p) for uid, p in jjk_players.items() if p.get('pvp_elo', 0) > 0 and p.get('pvp_wins', 0) + p.get('pvp_losses', 0) > 0]
+    sorted_players = sorted(players_with_pvp, key=lambda x: x[1].get('pvp_elo', 1000), reverse=True)[:15]
+    
+    if not sorted_players:
+        await ctx.send("No PvP battles have occurred yet! Use `~pvp @user` to challenge someone!")
+        return
+    
+    embed = discord.Embed(
+        title="⚔️ PvP Leaderboard",
+        description="Top sorcerers by ranked ELO",
+        color=0xFF6B6B
+    )
+    
+    lb_text = ""
+    medals = ["🥇", "🥈", "🥉"]
+    
+    for i, (uid, player) in enumerate(sorted_players):
+        medal = medals[i] if i < 3 else f"**{i+1}.**"
+        rank = get_pvp_rank(player.get('pvp_elo', 1000))
+        wins = player.get('pvp_wins', 0)
+        losses = player.get('pvp_losses', 0)
+        
+        try:
+            user = await bot.fetch_user(int(uid))
+            name = user.display_name[:15]
+        except:
+            name = f"Sorcerer #{uid[-4:]}"
+        
+        lb_text += f"{medal} {rank['emoji']} **{name}** - {player.get('pvp_elo', 1000)} ELO ({wins}W/{losses}L)\n"
+    
+    embed.description = lb_text
+    await ctx.send(embed=embed)
+
+# =====================
+# SIDE MISSIONS SYSTEM
+# =====================
+
+SIDE_MISSIONS = [
+    {"id": "training_dummy", "name": "Destroy Training Dummies", "desc": "Clear 10 training dummies for Maki", "requirement": {"type": "hunt_count", "count": 10}, "reward": {"yen": 2000, "xp": 200}, "repeatable": True, "cooldown_hours": 24},
+    {"id": "curse_collector", "name": "Curse Collector", "desc": "Exorcise 25 curses", "requirement": {"type": "hunt_count", "count": 25}, "reward": {"yen": 5000, "xp": 500}, "repeatable": True, "cooldown_hours": 48},
+    {"id": "training_arc", "name": "Training Montage", "desc": "Train 15 times", "requirement": {"type": "train_count", "count": 15}, "reward": {"yen": 3000, "xp": 600}, "repeatable": True, "cooldown_hours": 24},
+    {"id": "wealthy_sorcerer", "name": "Wealthy Sorcerer", "desc": "Accumulate 50,000 yen total", "requirement": {"type": "yen_threshold", "amount": 50000}, "reward": {"yen": 5000, "xp": 250}, "repeatable": False},
+    {"id": "squad_builder", "name": "Squad Builder", "desc": "Hire 5 sorcerers", "requirement": {"type": "sorcerer_count", "count": 5}, "reward": {"yen": 8000, "xp": 400}, "repeatable": False},
+    {"id": "technique_master", "name": "Technique Student", "desc": "Learn 3 techniques", "requirement": {"type": "technique_count", "count": 3}, "reward": {"yen": 10000, "xp": 800}, "repeatable": False},
+    {"id": "domain_init", "name": "Domain Initiate", "desc": "Develop an Incomplete Domain", "requirement": {"type": "domain_level", "level": 1}, "reward": {"yen": 15000, "xp": 1000}, "repeatable": False},
+    {"id": "daily_streak", "name": "Dedication", "desc": "Reach a 7-day daily streak", "requirement": {"type": "daily_streak", "count": 7}, "reward": {"yen": 7000, "xp": 700}, "repeatable": True, "cooldown_hours": 168},
+    {"id": "first_blood", "name": "First Blood", "desc": "Win your first PvP battle", "requirement": {"type": "pvp_wins", "count": 1}, "reward": {"yen": 3000, "xp": 300}, "repeatable": False},
+    {"id": "pvp_veteran", "name": "PvP Veteran", "desc": "Win 10 PvP battles", "requirement": {"type": "pvp_wins", "count": 10}, "reward": {"yen": 15000, "xp": 1500}, "repeatable": False},
+]
+
+def track_side_mission_progress(player, action_type):
+    """Track progress for side missions"""
+    if "side_mission_progress" not in player:
+        player["side_mission_progress"] = {}
+    
+    for mission in SIDE_MISSIONS:
+        req = mission["requirement"]
+        if req["type"] == f"{action_type}_count":
+            if mission["id"] not in player["side_mission_progress"]:
+                player["side_mission_progress"][mission["id"]] = {}
+            key = f"{action_type}s"
+            player["side_mission_progress"][mission["id"]][key] = player["side_mission_progress"][mission["id"]].get(key, 0) + 1
+
+def check_side_mission_progress(player, mission):
+    """Check if player meets mission requirements"""
+    req = mission["requirement"]
+    req_type = req["type"]
+    
+    if req_type == "hunt_count":
+        side_progress = player.get("side_mission_progress", {})
+        return side_progress.get(mission["id"], {}).get("hunts", 0) >= req["count"]
+    elif req_type == "train_count":
+        side_progress = player.get("side_mission_progress", {})
+        return side_progress.get(mission["id"], {}).get("trains", 0) >= req["count"]
+    elif req_type == "yen_threshold":
+        return player["yen"] >= req["amount"]
+    elif req_type == "sorcerer_count":
+        return len(player.get("sorcerers", [])) >= req["count"]
+    elif req_type == "technique_count":
+        return len(player.get("techniques", [])) >= req["count"]
+    elif req_type == "domain_level":
+        return player.get("domain", 0) >= req["level"]
+    elif req_type == "daily_streak":
+        return player.get("daily_streak", 0) >= req["count"]
+    elif req_type == "pvp_wins":
+        return player.get("pvp_wins", 0) >= req["count"]
+    
+    return False
+
+def get_side_mission_display_progress(player, mission):
+    """Get current progress for display"""
+    req = mission["requirement"]
+    req_type = req["type"]
+    
+    if req_type == "hunt_count":
+        side_progress = player.get("side_mission_progress", {})
+        current = side_progress.get(mission["id"], {}).get("hunts", 0)
+        return f"{current}/{req['count']} hunts"
+    elif req_type == "train_count":
+        side_progress = player.get("side_mission_progress", {})
+        current = side_progress.get(mission["id"], {}).get("trains", 0)
+        return f"{current}/{req['count']} trains"
+    elif req_type == "yen_threshold":
+        return f"{player['yen']:,}/{req['amount']:,} yen"
+    elif req_type == "sorcerer_count":
+        return f"{len(player.get('sorcerers', []))}/{req['count']} sorcerers"
+    elif req_type == "technique_count":
+        return f"{len(player.get('techniques', []))}/{req['count']} techniques"
+    elif req_type == "domain_level":
+        return f"Domain Lv{player.get('domain', 0)}/{req['level']}"
+    elif req_type == "daily_streak":
+        return f"{player.get('daily_streak', 0)}/{req['count']} day streak"
+    elif req_type == "pvp_wins":
+        return f"{player.get('pvp_wins', 0)}/{req['count']} wins"
+    
+    return "???"
+
+@bot.hybrid_command(name='sidemissions', aliases=['sidequests', 'quests', 'objectives'])
+async def jjk_side_missions(ctx):
+    """View available side missions"""
+    player = get_jjk_player(ctx.author.id)
+    if not player:
+        await ctx.send("Use `~jjkstart` to begin your journey!")
+        return
+    
+    completed_missions = player.get("completed_side_missions", [])
+    now = datetime.now(timezone.utc)
+    
+    embed = discord.Embed(
+        title="📋 Side Missions",
+        description="Complete objectives for bonus rewards!",
+        color=0x2ECC71
+    )
+    
+    available_count = 0
+    for mission in SIDE_MISSIONS:
+        # Check if already completed (for non-repeatable)
+        if mission["id"] in completed_missions and not mission.get("repeatable", False):
+            continue
+        
+        # Check cooldown for repeatable missions
+        if mission.get("repeatable"):
+            cooldown_key = f"side_cd_{mission['id']}"
+            last_complete = parse_iso_timestamp(player.get(cooldown_key))
+            if last_complete:
+                hours_passed = (now - last_complete).total_seconds() / 3600
+                if hours_passed < mission.get("cooldown_hours", 24):
+                    remaining = mission["cooldown_hours"] - hours_passed
+                    embed.add_field(
+                        name=f"⏳ {mission['name']}",
+                        value=f"Available in {int(remaining)}h",
+                        inline=True
+                    )
+                    continue
+        
+        # Check if completable
+        is_complete = check_side_mission_progress(player, mission)
+        progress = get_side_mission_display_progress(player, mission)
+        
+        status = "✅ READY TO CLAIM!" if is_complete else f"📊 {progress}"
+        reward_text = f"💰 {mission['reward']['yen']:,} | ✨ {mission['reward']['xp']}"
+        
+        embed.add_field(
+            name=f"{'🎯' if is_complete else '📌'} {mission['name']}",
+            value=f"{mission['desc']}\n{status}\n{reward_text}",
+            inline=True
+        )
+        available_count += 1
+    
+    if available_count == 0:
+        embed.description = "All side missions completed! Check back later."
+    
+    embed.set_footer(text="Use ~claimside <mission_id> to claim rewards")
+    await ctx.send(embed=embed)
+
+@bot.hybrid_command(name='claimside', aliases=['claimquest', 'claimobjective'])
+async def jjk_claim_side(ctx, mission_id: str):
+    """Claim a completed side mission reward"""
+    player = get_jjk_player(ctx.author.id)
+    if not player:
+        await ctx.send("Use `~jjkstart` to begin your journey!")
+        return
+    
+    mission_id = mission_id.lower()
+    mission = None
+    for m in SIDE_MISSIONS:
+        if m["id"] == mission_id:
+            mission = m
+            break
+    
+    if not mission:
+        await ctx.send(f"Mission `{mission_id}` not found! Use `~sidemissions` to see available missions.")
+        return
+    
+    completed_missions = player.get("completed_side_missions", [])
+    now = datetime.now(timezone.utc)
+    
+    # Check if already completed (non-repeatable)
+    if mission["id"] in completed_missions and not mission.get("repeatable", False):
+        await ctx.send("You've already completed this mission!")
+        return
+    
+    # Check cooldown for repeatable
+    if mission.get("repeatable"):
+        cooldown_key = f"side_cd_{mission['id']}"
+        last_complete = parse_iso_timestamp(player.get(cooldown_key))
+        if last_complete:
+            hours_passed = (now - last_complete).total_seconds() / 3600
+            if hours_passed < mission.get("cooldown_hours", 24):
+                remaining = int(mission["cooldown_hours"] - hours_passed)
+                await ctx.send(f"⏳ This mission is on cooldown! Available in **{remaining}h**.")
+                return
+    
+    # Check if requirements are met
+    if not check_side_mission_progress(player, mission):
+        progress = get_side_mission_display_progress(player, mission)
+        await ctx.send(f"❌ Mission not complete yet! Progress: {progress}")
+        return
+    
+    # Grant rewards
+    yen_reward = mission["reward"]["yen"]
+    xp_reward = mission["reward"]["xp"]
+    
+    player["yen"] += yen_reward
+    player["xp"] += xp_reward
+    check_level_up(player)
+    
+    # Mark as completed
+    if mission["id"] not in completed_missions:
+        completed_missions.append(mission["id"])
+        player["completed_side_missions"] = completed_missions
+    
+    # Reset progress for repeatable missions
+    if mission.get("repeatable"):
+        cooldown_key = f"side_cd_{mission['id']}"
+        player[cooldown_key] = now.isoformat()
+        
+        # Reset tracking counters
+        if "side_mission_progress" in player:
+            if mission["id"] in player["side_mission_progress"]:
+                player["side_mission_progress"][mission["id"]] = {}
+    
+    save_jjk_data()
+    
+    embed = discord.Embed(
+        title="🎉 Side Mission Complete!",
+        description=f"**{mission['name']}**\n{mission['desc']}",
+        color=0x2ECC71
+    )
+    embed.add_field(name="Rewards", value=f"💰 +{yen_reward:,} yen\n✨ +{xp_reward} XP", inline=False)
+    
+    await ctx.send(embed=embed)
+
+# =====================
+# ENHANCED LEADERBOARDS
+# =====================
+
+@bot.hybrid_command(name='leaderboards', aliases=['lbs', 'rankings'])
+async def jjk_leaderboards(ctx):
+    """View all available leaderboards"""
+    embed = discord.Embed(
+        title="📊 Leaderboards",
+        description="View rankings across different categories!",
+        color=0xF39C12
+    )
+    
+    embed.add_field(name="💴 `~jjklb`", value="Yen leaderboard", inline=True)
+    embed.add_field(name="📊 `~lvllb`", value="Level leaderboard", inline=True)
+    embed.add_field(name="👻 `~huntlb`", value="Curses exorcised", inline=True)
+    embed.add_field(name="⚔️ `~pvplb`", value="PvP ELO rankings", inline=True)
+    embed.add_field(name="🏯 `~clanlb`", value="Clan rankings", inline=True)
+    embed.add_field(name="📚 `~storylb`", value="Story progress", inline=True)
+    
+    await ctx.send(embed=embed)
+
+@bot.hybrid_command(name='lvllb', aliases=['levellb', 'xplb'])
+async def jjk_level_leaderboard(ctx):
+    """View the level leaderboard"""
+    sorted_players = sorted(jjk_players.items(), key=lambda x: (x[1].get('level', 1), x[1].get('xp', 0)), reverse=True)[:15]
+    
+    if not sorted_players:
+        await ctx.send("No players found!")
+        return
+    
+    embed = discord.Embed(
+        title="📊 Level Leaderboard",
+        description="Top sorcerers by level",
+        color=0x9B59B6
+    )
+    
+    lb_text = ""
+    medals = ["🥇", "🥈", "🥉"]
+    
+    for i, (uid, player) in enumerate(sorted_players):
+        medal = medals[i] if i < 3 else f"**{i+1}.**"
+        grade = get_jjk_grade(player['level'])
+        
+        try:
+            user = await bot.fetch_user(int(uid))
+            name = user.display_name[:15]
+        except:
+            name = f"Sorcerer #{uid[-4:]}"
+        
+        lb_text += f"{medal} **{name}** - Lv.{player['level']} ({grade})\n"
+    
+    embed.description = lb_text
+    await ctx.send(embed=embed)
+
+@bot.hybrid_command(name='huntlb', aliases=['curseslb', 'exorciselb'])
+async def jjk_hunt_leaderboard(ctx):
+    """View the curses exorcised leaderboard"""
+    sorted_players = sorted(jjk_players.items(), key=lambda x: x[1].get('curses_exorcised', 0), reverse=True)[:15]
+    
+    if not sorted_players:
+        await ctx.send("No players found!")
+        return
+    
+    embed = discord.Embed(
+        title="👻 Curses Exorcised Leaderboard",
+        description="Top curse hunters",
+        color=0xE74C3C
+    )
+    
+    lb_text = ""
+    medals = ["🥇", "🥈", "🥉"]
+    
+    for i, (uid, player) in enumerate(sorted_players):
+        medal = medals[i] if i < 3 else f"**{i+1}.**"
+        curses = player.get('curses_exorcised', 0)
+        
+        try:
+            user = await bot.fetch_user(int(uid))
+            name = user.display_name[:15]
+        except:
+            name = f"Sorcerer #{uid[-4:]}"
+        
+        lb_text += f"{medal} **{name}** - {curses:,} curses\n"
+    
+    embed.description = lb_text
+    await ctx.send(embed=embed)
+
+@bot.hybrid_command(name='storylb', aliases=['progresslb', 'arcslb'])
+async def jjk_story_leaderboard(ctx):
+    """View story progress leaderboard"""
+    def get_story_score(player):
+        progress = player.get("story_progress", {})
+        completed_arcs = len(progress.get("completed_arcs", []))
+        current_chapter = progress.get("current_chapter", 1)
+        return completed_arcs * 100 + current_chapter
+    
+    sorted_players = sorted(jjk_players.items(), key=lambda x: get_story_score(x[1]), reverse=True)[:15]
+    
+    if not sorted_players:
+        await ctx.send("No players found!")
+        return
+    
+    embed = discord.Embed(
+        title="📚 Story Progress Leaderboard",
+        description="Top story completers",
+        color=0x3498DB
+    )
+    
+    lb_text = ""
+    medals = ["🥇", "🥈", "🥉"]
+    
+    for i, (uid, player) in enumerate(sorted_players):
+        medal = medals[i] if i < 3 else f"**{i+1}.**"
+        progress = player.get("story_progress", {})
+        completed_arcs = len(progress.get("completed_arcs", []))
+        current_arc = progress.get("current_arc", "fearsome_womb")
+        arc_name = STORY_ARCS.get(current_arc, {}).get("name", "Unknown")[:20]
+        
+        try:
+            user = await bot.fetch_user(int(uid))
+            name = user.display_name[:15]
+        except:
+            name = f"Sorcerer #{uid[-4:]}"
+        
+        lb_text += f"{medal} **{name}** - {completed_arcs} arcs | {arc_name}\n"
+    
+    embed.description = lb_text
+    await ctx.send(embed=embed)
 
 # Run the bot
 if __name__ == "__main__":
