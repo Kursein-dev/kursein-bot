@@ -5,6 +5,7 @@ Kursein v4.0 is a JJK-focused Discord bot featuring a full idle RPG economy game
 
 ## Recent Changes (January 2026)
 - **v4.0 Refactor**: Removed Rocket League, Twitch stream, bump reminders, and moderation features to focus purely on JJK RPG
+- **Bug Fixes (Jan 16)**: Fixed side mission IDs to match names, XP leveling overflow migration, PvP leaderboard data keys
 - **Unified Guide**: Single `~guide` command with interactive button navigation for all features
 - **Unified Leaderboard**: Single `~lb` command with tabbed navigation (Yen, Level, Hunt, PvP, Story, Clan)
 - **PvP Battle System**: Challenge other players with ~pvp @user, ELO-based ranked matchmaking (Bronze to Special Grade)
