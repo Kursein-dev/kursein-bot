@@ -881,12 +881,47 @@ def ensure_player_fields(player):
         "story_progress": {"current_arc": "fearsome_womb", "current_chapter": 1, "completed_arcs": [], "active_story": None},
         "facilities": {},
         "event_claims": [],
-        "last_facility_collect": None
+        "last_facility_collect": None,
+        "sorcerer_levels": {},
+        "last_spar": None
     }
     for key, val in defaults.items():
         if key not in player:
             player[key] = val
     return player
+
+def get_sorcerer_level(player, sorcerer_key):
+    """Get a sorcerer's level from player data"""
+    levels = player.get("sorcerer_levels", {})
+    return levels.get(sorcerer_key, {"level": 1, "xp": 0})
+
+def add_sorcerer_xp(player, sorcerer_key, xp_amount):
+    """Add XP to a sorcerer and handle level ups"""
+    if "sorcerer_levels" not in player:
+        player["sorcerer_levels"] = {}
+    if sorcerer_key not in player["sorcerer_levels"]:
+        player["sorcerer_levels"][sorcerer_key] = {"level": 1, "xp": 0}
+    
+    sorc = player["sorcerer_levels"][sorcerer_key]
+    sorc["xp"] += xp_amount
+    
+    levels_gained = 0
+    xp_needed = 50 + (sorc["level"] * 25)
+    while sorc["xp"] >= xp_needed:
+        sorc["xp"] -= xp_needed
+        sorc["level"] += 1
+        levels_gained += 1
+        xp_needed = 50 + (sorc["level"] * 25)
+    
+    return levels_gained
+
+def calculate_sorcerer_power(player, sorcerer_key):
+    """Calculate a sorcerer's combat power based on their level"""
+    sorc_data = JJK_SORCERERS.get(sorcerer_key, {})
+    base_power = sorc_data.get("income", 10) * 10
+    sorc_level = get_sorcerer_level(player, sorcerer_key)
+    level_bonus = sorc_level.get("level", 1) * 50
+    return base_power + level_bonus
 
 import random
 
@@ -1638,6 +1673,148 @@ async def jjk_hire(ctx, *, sorcerer_name: str):
     
     await ctx.send(embed=embed)
 
+@bot.hybrid_command(name='sorcererinfo', aliases=['sinfo', 'mysorcerer'])
+async def jjk_sorcerer_info(ctx, *, sorcerer_name: str):
+    """View a sorcerer's stats and level"""
+    player = get_jjk_player(ctx.author.id)
+    if not player:
+        await ctx.send("Use `~jjkstart` to begin your journey!")
+        return
+    
+    sorc_key = sorcerer_name.lower().replace(" ", "").replace("-", "")
+    
+    found = None
+    for key in player.get("sorcerers", []):
+        sorc_data = JJK_SORCERERS.get(key, {})
+        if key == sorc_key or sorc_data.get("name", "").lower().replace(" ", "").replace("-", "") == sorc_key:
+            found = key
+            break
+    
+    if not found:
+        await ctx.send(f"You don't have **{sorcerer_name}**! Use `~sorcerers` to see your team.")
+        return
+    
+    sorc_data = JJK_SORCERERS.get(found, {})
+    sorc_level = get_sorcerer_level(player, found)
+    power = calculate_sorcerer_power(player, found)
+    xp_needed = 50 + (sorc_level["level"] * 25)
+    
+    embed = discord.Embed(
+        title=f"{sorc_data.get('emoji', '👤')} {sorc_data.get('name', found)}",
+        color=0x9B59B6
+    )
+    embed.add_field(name="Level", value=f"**{sorc_level['level']}**", inline=True)
+    embed.add_field(name="XP", value=f"{sorc_level['xp']}/{xp_needed}", inline=True)
+    embed.add_field(name="Combat Power", value=f"**{power:,}**", inline=True)
+    embed.add_field(name="Grade", value=sorc_data.get("grade", "Unknown"), inline=True)
+    embed.add_field(name="Income", value=f"+{sorc_data.get('income', 0)}/hr", inline=True)
+    embed.set_footer(text="Train this sorcerer with ~trainsorcerer or ~spar!")
+    
+    await ctx.send(embed=embed)
+
+@bot.hybrid_command(name='trainsorcerer', aliases=['tsorcerer', 'trainchar'])
+async def jjk_train_sorcerer(ctx, *, sorcerer_name: str):
+    """Train a sorcerer to level them up (costs 500 yen, 10min cooldown)"""
+    player = get_jjk_player(ctx.author.id)
+    if not player:
+        await ctx.send("Use `~jjkstart` to begin your journey!")
+        return
+    
+    sorc_key = sorcerer_name.lower().replace(" ", "").replace("-", "")
+    
+    found = None
+    for key in player.get("sorcerers", []):
+        sorc_data = JJK_SORCERERS.get(key, {})
+        if key == sorc_key or sorc_data.get("name", "").lower().replace(" ", "").replace("-", "") == sorc_key:
+            found = key
+            break
+    
+    if not found:
+        await ctx.send(f"You don't have **{sorcerer_name}**! Use `~sorcerers` to see your team.")
+        return
+    
+    train_cost = 500
+    if player["yen"] < train_cost:
+        await ctx.send(f"Training costs **{train_cost} yen**! You have {player['yen']:,} yen.")
+        return
+    
+    cd_key = f"sorcerer_train_{found}"
+    now = datetime.now(timezone.utc)
+    last_train = parse_iso_timestamp(player.get(cd_key))
+    if last_train:
+        elapsed = (now - last_train).total_seconds()
+        if elapsed < 600:
+            remaining = int(600 - elapsed)
+            await ctx.send(f"**{JJK_SORCERERS.get(found, {}).get('name', found)}** is resting! Try again in {remaining // 60}m {remaining % 60}s.")
+            return
+    
+    player["yen"] -= train_cost
+    player[cd_key] = now.isoformat()
+    
+    xp_gain = random.randint(30, 60)
+    levels = add_sorcerer_xp(player, found, xp_gain)
+    save_jjk_data()
+    
+    sorc_data = JJK_SORCERERS.get(found, {})
+    sorc_level = get_sorcerer_level(player, found)
+    
+    msg = f"🎯 **{sorc_data.get('name', found)}** trained and gained **+{xp_gain} XP**!"
+    if levels > 0:
+        msg += f"\n🎉 **LEVEL UP!** Now Level {sorc_level['level']}!"
+    
+    await ctx.send(msg)
+
+@bot.hybrid_command(name='spar', aliases=['practice', 'sparring'])
+async def jjk_spar(ctx, *, sorcerer_name: str):
+    """Spar with a sorcerer to train them (free, 30min cooldown, more XP)"""
+    player = get_jjk_player(ctx.author.id)
+    if not player:
+        await ctx.send("Use `~jjkstart` to begin your journey!")
+        return
+    
+    sorc_key = sorcerer_name.lower().replace(" ", "").replace("-", "")
+    
+    found = None
+    for key in player.get("sorcerers", []):
+        sorc_data = JJK_SORCERERS.get(key, {})
+        if key == sorc_key or sorc_data.get("name", "").lower().replace(" ", "").replace("-", "") == sorc_key:
+            found = key
+            break
+    
+    if not found:
+        await ctx.send(f"You don't have **{sorcerer_name}**! Use `~sorcerers` to see your team.")
+        return
+    
+    now = datetime.now(timezone.utc)
+    last_spar = parse_iso_timestamp(player.get("last_spar"))
+    if last_spar:
+        elapsed = (now - last_spar).total_seconds()
+        if elapsed < 1800:
+            remaining = int(1800 - elapsed)
+            await ctx.send(f"Sparring cooldown! Try again in **{remaining // 60}m {remaining % 60}s**.")
+            return
+    
+    player["last_spar"] = now.isoformat()
+    
+    xp_gain = random.randint(50, 100)
+    levels = add_sorcerer_xp(player, found, xp_gain)
+    save_jjk_data()
+    
+    sorc_data = JJK_SORCERERS.get(found, {})
+    sorc_level = get_sorcerer_level(player, found)
+    
+    battle_messages = [
+        f"🥊 You sparred intensely with **{sorc_data.get('name', found)}**!",
+        f"⚔️ **{sorc_data.get('name', found)}** put up a great fight in training!",
+        f"💥 Intense sparring session with **{sorc_data.get('name', found)}**!",
+    ]
+    
+    msg = random.choice(battle_messages) + f"\n+**{xp_gain} XP** gained!"
+    if levels > 0:
+        msg += f"\n🎉 **LEVEL UP!** Now Level {sorc_level['level']}!"
+    
+    await ctx.send(msg)
+
 @bot.hybrid_command(name='techniques', aliases=['techs'])
 async def jjk_techniques(ctx):
     """View available cursed techniques"""
@@ -2294,8 +2471,9 @@ class JJKGuideView(discord.ui.View):
         embed = discord.Embed(title="📝 Getting Started", color=0x9B59B6)
         embed.add_field(name="Begin Your Journey", value=f"""
 `{self.prefix}jjkstart` - Create your sorcerer profile
-`{self.prefix}school` - View your school stats
-`{self.prefix}balance` - Check your yen balance
+`{self.prefix}school [@user]` - View your/their school stats
+`{self.prefix}setschoolname <name>` - Rename school (1,000 yen)
+`{self.prefix}balance [@user]` - Check yen balance
 `{self.prefix}cooldowns` - View all cooldown timers
 `{self.prefix}lb` - View leaderboards (with tabs!)
         """, inline=False)
@@ -2364,7 +2542,8 @@ Complete collections for permanent bonuses!
         embed.add_field(name="Sorcerers", value=f"""
 `{self.prefix}sorcerers` - View available sorcerers
 `{self.prefix}hire <name>` - Hire a sorcerer
-Sorcerers generate passive income!
+`{self.prefix}trainsorcerer <name>` - Train sorcerer for PvP XP
+`{self.prefix}sorcererinfo <name>` - View sorcerer stats
         """, inline=False)
         embed.add_field(name="Techniques", value=f"""
 `{self.prefix}techniques` - View available techniques
@@ -2425,17 +2604,18 @@ Special bonuses during holidays!
     def get_pvp_embed(self):
         embed = discord.Embed(title="🗡️ PvP Battle System", color=0xFF6B6B)
         embed.add_field(name="Battle Commands", value=f"""
-`{self.prefix}pvp @user` - Challenge another sorcerer
+`{self.prefix}pvp @user [sorcerer]` - Challenge with chosen fighter
 `{self.prefix}pvpstats` - View your PvP stats & rank
+`{self.prefix}spar <sorcerer>` - Train sorcerer (cooldown 30m)
         """, inline=False)
         embed.add_field(name="ELO Ranking System", value="""
 **Unranked** → **Bronze** (800) → **Silver** (1000)
 → **Gold** (1200) → **Platinum** (1400)
 → **Diamond** (1600) → **Special Grade** (1800+)
         """, inline=False)
-        embed.add_field(name="Combat Power", value="""
-Your power is based on: Level, Sorcerers, Techniques, Tools, Domain
-5 minute cooldown between battles!
+        embed.add_field(name="Sorcerer Levels", value="""
+Each sorcerer gains XP from battles & sparring!
+Higher level = stronger combat power in PvP
         """, inline=False)
         return embed
     
@@ -2470,6 +2650,11 @@ Auto-clears when you send a message
 `{self.prefix}profile [@user]` - View JJK profile
 `{self.prefix}serverstats` - Server statistics
 `{self.prefix}botinfo` - Bot info and stats
+`{self.prefix}guide` - This help menu
+        """, inline=False)
+        embed.add_field(name="Admin Commands", value=f"""
+`{self.prefix}addyen @user <amt>` - Give yen (Admin)
+`{self.prefix}addxp @user <amt>` - Give XP (Admin)
         """, inline=False)
         return embed
     
@@ -3660,8 +3845,8 @@ def calculate_elo_change(winner_elo, loser_elo, k=32):
     return max(gain, 10), max(loss, 5)
 
 @bot.hybrid_command(name='pvp', aliases=['battle', 'fight', 'duel'])
-async def jjk_pvp(ctx, opponent: discord.Member):
-    """Challenge another sorcerer to a PvP battle!"""
+async def jjk_pvp(ctx, opponent: discord.Member, *, sorcerer_name: Optional[str] = None):
+    """Challenge another sorcerer to a PvP battle! Optionally choose your fighter."""
     if opponent == ctx.author:
         await ctx.send("You can't fight yourself!")
         return
@@ -3689,6 +3874,20 @@ async def jjk_pvp(ctx, opponent: discord.Member):
         await ctx.send(f"{opponent.display_name} needs to be at least **Level 5** to participate in PvP!")
         return
     
+    player_sorcerer = None
+    player_sorcerer_name = "Your School"
+    if sorcerer_name:
+        sorc_key = sorcerer_name.lower().replace(" ", "").replace("-", "")
+        for key in player.get("sorcerers", []):
+            sorc_data = JJK_SORCERERS.get(key, {})
+            if key == sorc_key or sorc_data.get("name", "").lower().replace(" ", "").replace("-", "") == sorc_key:
+                player_sorcerer = key
+                player_sorcerer_name = sorc_data.get("name", key)
+                break
+        if not player_sorcerer:
+            await ctx.send(f"You don't have **{sorcerer_name}**! Use `~sorcerers` to see your team.")
+            return
+    
     # Check cooldown (5 min between battles)
     now = datetime.now(timezone.utc)
     last_pvp = parse_iso_timestamp(player.get('last_pvp'))
@@ -3711,9 +3910,13 @@ async def jjk_pvp(ctx, opponent: discord.Member):
         enemy['pvp_wins'] = 0
         enemy['pvp_losses'] = 0
     
-    # Calculate combat power
+    # Calculate combat power (with optional sorcerer boost)
     player_power = calculate_combat_power(player)
     enemy_power = calculate_combat_power(enemy)
+    
+    if player_sorcerer:
+        sorcerer_power = calculate_sorcerer_power(player, player_sorcerer)
+        player_power += sorcerer_power
     
     # Battle simulation with randomness
     player_roll = random.randint(70, 130) / 100.0
@@ -3762,6 +3965,13 @@ async def jjk_pvp(ctx, opponent: discord.Member):
     winner['xp'] += xp_reward
     check_level_up(winner)
     
+    sorcerer_levelup = None
+    if player_sorcerer and winner == player:
+        sorc_xp = random.randint(40, 80)
+        levels = add_sorcerer_xp(player, player_sorcerer, sorc_xp)
+        if levels > 0:
+            sorcerer_levelup = (player_sorcerer_name, get_sorcerer_level(player, player_sorcerer)["level"])
+    
     # Update cooldowns
     player['last_pvp'] = now.isoformat()
     enemy['last_pvp'] = now.isoformat()
@@ -3774,8 +3984,9 @@ async def jjk_pvp(ctx, opponent: discord.Member):
         color=0xFF6B6B
     )
     
+    fighter_text = f" ({player_sorcerer_name})" if player_sorcerer else ""
     embed.add_field(
-        name=f"{ctx.author.display_name}",
+        name=f"{ctx.author.display_name}{fighter_text}",
         value=f"Power: {player_power:,}\nRoll: {player_score:,}\n{get_pvp_rank(player['pvp_elo'])['emoji']} {player['pvp_elo']} ELO",
         inline=True
     )
@@ -3806,6 +4017,13 @@ async def jjk_pvp(ctx, opponent: discord.Member):
         embed.add_field(
             name="📉 Rank Down",
             value=f"{loser_user.display_name}: {old_loser_rank['emoji']} → {new_loser_rank['emoji']} **{new_loser_rank['name']}**",
+            inline=False
+        )
+    
+    if sorcerer_levelup:
+        embed.add_field(
+            name="🎉 Sorcerer Level Up!",
+            value=f"**{sorcerer_levelup[0]}** is now Level {sorcerer_levelup[1]}!",
             inline=False
         )
     

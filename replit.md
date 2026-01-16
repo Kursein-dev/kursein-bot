@@ -6,6 +6,9 @@ Kursein v4.0 is a JJK-focused Discord bot featuring a full idle RPG economy game
 ## Recent Changes (January 2026)
 - **v4.0 Refactor**: Removed Rocket League, Twitch stream, bump reminders, and moderation features to focus purely on JJK RPG
 - **Bug Fixes (Jan 16)**: Fixed side mission IDs to match names, XP leveling overflow migration, PvP leaderboard data keys
+- **Sorcerer Leveling (Jan 16)**: Each sorcerer can now level up! Train them for PvP battles
+- **PvP Sorcerer Selection**: Choose which sorcerer to fight with using `~pvp @user <sorcerer>`
+- **New Commands**: `~trainsorcerer`, `~sorcererinfo`, `~spar` for character progression
 - **Unified Guide**: Single `~guide` command with interactive button navigation for all features
 - **Unified Leaderboard**: Single `~lb` command with tabbed navigation (Yen, Level, Hunt, PvP, Story, Clan)
 - **PvP Battle System**: Challenge other players with ~pvp @user, ELO-based ranked matchmaking (Bronze to Special Grade)
@@ -32,13 +35,20 @@ Run your own Jujutsu School, exorcise curses, and become a Special Grade sorcere
 - `~cooldowns` - View all cooldown timers
 - `~guide` - Full interactive command guide with button navigation
 
-**PvP Battle System (NEW!):**
-- `~pvp @user` - Challenge another sorcerer to battle
+**PvP Battle System:**
+- `~pvp @user [sorcerer]` - Challenge with optional fighter selection
 - `~pvpstats` - View your PvP stats and rank
-- `~lb` then click PvP tab - PvP leaderboard (or use legacy alias `~pvplb`)
+- `~lb` then click PvP tab - PvP leaderboard
 - ELO-based ranking: Unranked -> Bronze -> Silver -> Gold -> Platinum -> Diamond -> Special Grade
 - Combat power based on level, sorcerers, techniques, tools, and domain
+- Choose a leveled sorcerer for bonus combat power!
 - 5 minute cooldown between battles
+
+**Sorcerer Training (NEW!):**
+- `~sorcererinfo <name>` - View sorcerer level and stats
+- `~trainsorcerer <name>` - Train sorcerer (500 yen, 10m cooldown)
+- `~spar <sorcerer>` - Free training (30m cooldown, more XP)
+- Sorcerer levels boost their combat power in PvP!
 
 **Side Missions (NEW!):**
 - `~sidemissions` - View available side objectives
