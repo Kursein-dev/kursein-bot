@@ -762,6 +762,58 @@ def save_jjk_data():
     except Exception as e:
         print(f"Error saving JJK data: {e}")
 
+def migrate_player_data():
+    """Migrate old player data formats to new ones"""
+    id_migrations = {
+        "training_arc": "training_montage",
+        "technique_master": "technique_student",
+        "domain_init": "domain_initiate",
+        "daily_streak": "dedication"
+    }
+    
+    migrated = 0
+    for uid, player in jjk_players.items():
+        changed = False
+        
+        if player.get('xp', 0) >= xp_for_level(player.get('level', 1)):
+            old_level = player.get('level', 1)
+            check_level_up(player)
+            if player['level'] > old_level:
+                print(f"[MIGRATE] Fixed XP for {uid}: Level {old_level} -> {player['level']}")
+                changed = True
+        
+        if "side_mission_progress" in player:
+            progress = player["side_mission_progress"]
+            for old_id, new_id in id_migrations.items():
+                if old_id in progress:
+                    progress[new_id] = progress.pop(old_id)
+                    changed = True
+        
+        if "completed_side_missions" in player:
+            completed = player["completed_side_missions"]
+            for i, mission_id in enumerate(completed):
+                if mission_id in id_migrations:
+                    completed[i] = id_migrations[mission_id]
+                    changed = True
+            deduped = list(dict.fromkeys(completed))
+            if len(deduped) != len(completed):
+                player["completed_side_missions"] = deduped
+                changed = True
+        
+        for old_id, new_id in id_migrations.items():
+            old_cd_key = f"side_cd_{old_id}"
+            new_cd_key = f"side_cd_{new_id}"
+            if old_cd_key in player:
+                player[new_cd_key] = player.pop(old_cd_key)
+                changed = True
+        
+        if changed:
+            migrated += 1
+    
+    if migrated > 0:
+        save_jjk_data()
+        print(f"[MIGRATE] Migrated {migrated} players")
+
 def get_jjk_player(user_id):
     """Get or create a JJK player profile"""
     uid = str(user_id)
@@ -873,6 +925,8 @@ async def on_ready():
     load_prefixes()
     load_afk_users()
     load_jjk_data()
+    
+    migrate_player_data()
     
     print("Starting slash command sync...")
     try:
@@ -3811,14 +3865,14 @@ async def jjk_pvp_stats(ctx, member: Optional[discord.Member] = None):
 # =====================
 
 SIDE_MISSIONS = [
-    {"id": "training_dummy", "name": "Destroy Training Dummies", "desc": "Clear 10 training dummies for Maki", "requirement": {"type": "hunt_count", "count": 10}, "reward": {"yen": 2000, "xp": 200}, "repeatable": True, "cooldown_hours": 24},
+    {"id": "training_dummy", "name": "Training Dummy", "desc": "Clear 10 training dummies for Maki", "requirement": {"type": "hunt_count", "count": 10}, "reward": {"yen": 2000, "xp": 200}, "repeatable": True, "cooldown_hours": 24},
     {"id": "curse_collector", "name": "Curse Collector", "desc": "Exorcise 25 curses", "requirement": {"type": "hunt_count", "count": 25}, "reward": {"yen": 5000, "xp": 500}, "repeatable": True, "cooldown_hours": 48},
-    {"id": "training_arc", "name": "Training Montage", "desc": "Train 15 times", "requirement": {"type": "train_count", "count": 15}, "reward": {"yen": 3000, "xp": 600}, "repeatable": True, "cooldown_hours": 24},
+    {"id": "training_montage", "name": "Training Montage", "desc": "Train 15 times", "requirement": {"type": "train_count", "count": 15}, "reward": {"yen": 3000, "xp": 600}, "repeatable": True, "cooldown_hours": 24},
     {"id": "wealthy_sorcerer", "name": "Wealthy Sorcerer", "desc": "Accumulate 50,000 yen total", "requirement": {"type": "yen_threshold", "amount": 50000}, "reward": {"yen": 5000, "xp": 250}, "repeatable": False},
     {"id": "squad_builder", "name": "Squad Builder", "desc": "Hire 5 sorcerers", "requirement": {"type": "sorcerer_count", "count": 5}, "reward": {"yen": 8000, "xp": 400}, "repeatable": False},
-    {"id": "technique_master", "name": "Technique Student", "desc": "Learn 3 techniques", "requirement": {"type": "technique_count", "count": 3}, "reward": {"yen": 10000, "xp": 800}, "repeatable": False},
-    {"id": "domain_init", "name": "Domain Initiate", "desc": "Develop an Incomplete Domain", "requirement": {"type": "domain_level", "level": 1}, "reward": {"yen": 15000, "xp": 1000}, "repeatable": False},
-    {"id": "daily_streak", "name": "Dedication", "desc": "Reach a 7-day daily streak", "requirement": {"type": "daily_streak", "count": 7}, "reward": {"yen": 7000, "xp": 700}, "repeatable": True, "cooldown_hours": 168},
+    {"id": "technique_student", "name": "Technique Student", "desc": "Learn 3 techniques", "requirement": {"type": "technique_count", "count": 3}, "reward": {"yen": 10000, "xp": 800}, "repeatable": False},
+    {"id": "domain_initiate", "name": "Domain Initiate", "desc": "Develop an Incomplete Domain", "requirement": {"type": "domain_level", "level": 1}, "reward": {"yen": 15000, "xp": 1000}, "repeatable": False},
+    {"id": "dedication", "name": "Dedication", "desc": "Reach a 7-day daily streak", "requirement": {"type": "daily_streak", "count": 7}, "reward": {"yen": 7000, "xp": 700}, "repeatable": True, "cooldown_hours": 168},
     {"id": "first_blood", "name": "First Blood", "desc": "Win your first PvP battle", "requirement": {"type": "pvp_wins", "count": 1}, "reward": {"yen": 3000, "xp": 300}, "repeatable": False},
     {"id": "pvp_veteran", "name": "PvP Veteran", "desc": "Win 10 PvP battles", "requirement": {"type": "pvp_wins", "count": 10}, "reward": {"yen": 15000, "xp": 1500}, "repeatable": False},
 ]
@@ -3937,7 +3991,7 @@ async def jjk_side_missions(ctx):
         
         embed.add_field(
             name=f"{'🎯' if is_complete else '📌'} {mission['name']}",
-            value=f"{mission['desc']}\n{status}\n{reward_text}",
+            value=f"ID: `{mission['id']}`\n{mission['desc']}\n{status}\n{reward_text}",
             inline=True
         )
         available_count += 1
@@ -3945,7 +3999,7 @@ async def jjk_side_missions(ctx):
     if available_count == 0:
         embed.description = "All side missions completed! Check back later."
     
-    embed.set_footer(text="Use ~claimside <mission_id> to claim rewards")
+    embed.set_footer(text="Use ~claimside <id> to claim (e.g. ~claimside training_dummy)")
     await ctx.send(embed=embed)
 
 @bot.hybrid_command(name='claimside', aliases=['claimquest', 'claimobjective'])
@@ -3956,15 +4010,16 @@ async def jjk_claim_side(ctx, mission_id: str):
         await ctx.send("Use `~jjkstart` to begin your journey!")
         return
     
-    mission_id = mission_id.lower()
+    mission_id_lower = mission_id.lower().replace(" ", "_")
     mission = None
     for m in SIDE_MISSIONS:
-        if m["id"] == mission_id:
+        if m["id"] == mission_id_lower or m["name"].lower().replace(" ", "_") == mission_id_lower:
             mission = m
             break
     
     if not mission:
-        await ctx.send(f"Mission `{mission_id}` not found! Use `~sidemissions` to see available missions.")
+        valid_ids = ", ".join([f"`{m['id']}`" for m in SIDE_MISSIONS])
+        await ctx.send(f"Mission `{mission_id}` not found!\nValid IDs: {valid_ids}")
         return
     
     completed_missions = player.get("completed_side_missions", [])
@@ -4095,7 +4150,7 @@ class LeaderboardView(discord.ui.View):
         return embed
     
     async def get_pvp_embed(self):
-        sorted_players = sorted(jjk_players.items(), key=lambda x: x[1].get('pvp_stats', {}).get('elo', 1000), reverse=True)[:10]
+        sorted_players = sorted(jjk_players.items(), key=lambda x: x[1].get('pvp_elo', 1000), reverse=True)[:10]
         embed = discord.Embed(title="🏆 Leaderboard - PvP Rankings", color=0xFF6B6B)
         if not sorted_players:
             embed.description = "No players yet!"
@@ -4104,16 +4159,15 @@ class LeaderboardView(discord.ui.View):
         medals = ["🥇", "🥈", "🥉"]
         for i, (uid, player) in enumerate(sorted_players):
             medal = medals[i] if i < 3 else f"**{i+1}.**"
-            pvp = player.get('pvp_stats', {})
-            elo = pvp.get('elo', 1000)
-            wins = pvp.get('wins', 0)
-            losses = pvp.get('losses', 0)
-            rank = get_pvp_rank(elo) if 'get_pvp_rank' in dir() else "Unranked"
+            elo = player.get('pvp_elo', 1000)
+            wins = player.get('pvp_wins', 0)
+            losses = player.get('pvp_losses', 0)
+            rank = get_pvp_rank(elo)
             try:
                 name = f"<@{uid}>"
             except:
                 name = f"Sorcerer #{uid[-4:]}"
-            lines.append(f"{medal} {name}\n└ {elo} ELO | {wins}W-{losses}L")
+            lines.append(f"{medal} {name}\n└ {rank['emoji']} {elo} ELO | {wins}W-{losses}L")
         embed.description = "\n".join(lines)
         return embed
     
