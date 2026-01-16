@@ -1,33 +1,58 @@
 {
   "343055455263916045": {
-    "xp": 1108,
-    "yen": 134310,
-    "clan": "Kazuma",
-    "level": 57,
-    "tools": [],
+    "xp": 3090,
+    "yen": 702069755,
+    "clan": null,
+    "level": 266,
+    "tools": [
+      "slaughter_demon",
+      "playful_cloud",
+      "inverted_spear",
+      "split_soul_katana",
+      "prison_realm"
+    ],
     "boosts": {},
-    "domain": 0,
-    "injuries": {},
+    "domain": 4,
+    "injuries": {
+      "minor_bruise": {
+        "expires": "2026-01-16T01:33:52.325945+00:00"
+      }
+    },
     "last_eat": null,
     "inventory": {},
-    "last_hunt": "2026-01-15T05:41:19.196496+00:00",
+    "last_hunt": "2026-01-16T02:20:16.374828+00:00",
     "last_rest": "2026-01-14T22:57:29.061809+00:00",
     "sorcerers": [
       "yuji",
       "cha_haein",
       "saya"
     ],
-    "facilities": {},
-    "last_daily": null,
-    "last_train": "2026-01-14T23:31:14.882833+00:00",
-    "techniques": [],
+    "facilities": {
+      "dormitory": 10,
+      "training_grounds": 10,
+      "cursed_archives": 10,
+      "barrier_ward": 5,
+      "curse_workshop": 5
+    },
+    "last_daily": "2026-01-15T15:22:13.695151+00:00",
+    "last_train": "2026-01-16T02:20:13.903486+00:00",
+    "techniques": [
+      "divergent_fist",
+      "black_flash",
+      "ten_shadows",
+      "cursed_speech",
+      "boogie_woogie",
+      "reverse_cursed",
+      "domain_amplification",
+      "noctflare"
+    ],
     "collections": {},
     "school_name": "fake emma's Jujutsu School",
-    "daily_streak": 0,
+    "daily_streak": 1,
     "event_claims": [
       "bot_launch"
     ],
-    "last_collect": "2026-01-15T05:16:19.433049+00:00",
+    "last_collect": "2026-01-15T23:55:26.313649+00:00",
     "active_mission": {
       "name": "Shibuya Incident Cleanup",
       "difficulty": "extreme",
@@ -38,21 +63,89 @@
       "start_time": "2026-01-15T06:51:51.257406+00:00"
     },
     "dispatch_slots": [],
-    "mission_offers": [],
+    "mission_offers": [
+      {
+        "name": "Escort Mission",
+        "desc": "Protect a civilian from curse activity",
+        "duration": 120,
+        "yen": 605,
+        "xp": 62,
+        "risk": 0.05,
+        "min_level": 1,
+        "id": 1,
+        "difficulty": "easy"
+      },
+      {
+        "name": "Grade 3 Curse Hunt",
+        "desc": "A confirmed Grade 3 curse needs exorcising",
+        "duration": 150,
+        "yen": 1607,
+        "xp": 132,
+        "risk": 0.15,
+        "min_level": 5,
+        "id": 2,
+        "difficulty": "medium"
+      },
+      {
+        "name": "Domain Expansion Training",
+        "desc": "Master your incomplete domain",
+        "duration": 600,
+        "yen": 3561,
+        "xp": 542,
+        "risk": 0.25,
+        "min_level": 20,
+        "id": 3,
+        "difficulty": "hard"
+      },
+      {
+        "name": "Special Grade Investigation",
+        "desc": "Scout a Special Grade curse location",
+        "duration": 900,
+        "yen": 16514,
+        "xp": 987,
+        "risk": 0.6,
+        "min_level": 30,
+        "id": 4,
+        "difficulty": "extreme"
+      }
+    ],
     "story_progress": {
-      "current_arc": "fearsome_womb",
+      "current_arc": "shibuya_incident",
       "active_story": null,
-      "completed_arcs": [],
+      "completed_arcs": [
+        "fearsome_womb",
+        "cursed_training",
+        "kyoto_exchange",
+        "origin_obedience"
+      ],
       "current_chapter": 1
     },
-    "curses_exorcised": 3,
+    "curses_exorcised": 23,
     "protection_wards": 0,
     "missions_completed": 1,
-    "mission_offers_time": "2026-01-15T06:51:37.176235+00:00",
-    "last_facility_collect": null
+    "mission_offers_time": "2026-01-15T13:49:50.763062+00:00",
+    "last_facility_collect": null,
+    "side_mission_progress": {
+      "training_dummy": {
+        "hunts": 20
+      },
+      "curse_collector": {
+        "hunts": 20
+      },
+      "training_arc": {
+        "trains": 20
+      }
+    },
+    "pvp_elo": 949,
+    "pvp_wins": 0,
+    "pvp_losses": 3,
+    "last_pvp": "2026-01-15T19:23:29.275671+00:00",
+    "completed_side_missions": [
+      "wealthy_sorcerer"
+    ]
   },
   "570779072549093399": {
-    "xp": 236,
+    "xp": 318,
     "yen": 76165,
     "clan": "Kazuma",
     "level": 5,
@@ -69,7 +162,7 @@
     ],
     "facilities": {},
     "last_daily": null,
-    "last_train": "2026-01-15T02:28:07.445338+00:00",
+    "last_train": "2026-01-15T18:04:53.444215+00:00",
     "techniques": [],
     "collections": {},
     "school_name": "\u20b1\u00d8\u20a9\u0246\u2c64's Jujutsu School",
@@ -91,7 +184,12 @@
     "protection_wards": 0,
     "missions_completed": 0,
     "mission_offers_time": null,
-    "last_facility_collect": null
+    "last_facility_collect": null,
+    "side_mission_progress": {
+      "training_arc": {
+        "trains": 1
+      }
+    }
   },
   "696101989205016649": {
     "xp": 230,
@@ -136,17 +234,21 @@
     "last_facility_collect": null
   },
   "697495071737511997": {
-    "xp": 11,
-    "yen": 2914,
+    "xp": 159,
+    "yen": 2260,
     "clan": null,
-    "level": 15,
+    "level": 16,
     "tools": [],
     "boosts": {},
     "domain": 0,
-    "injuries": {},
+    "injuries": {
+      "minor_bruise": {
+        "expires": "2026-01-16T01:34:19.957169+00:00"
+      }
+    },
     "last_eat": "2026-01-14T22:59:31.430683+00:00",
     "inventory": {},
-    "last_hunt": "2026-01-15T00:59:52.562917+00:00",
+    "last_hunt": "2026-01-16T00:35:34.009354+00:00",
     "last_rest": null,
     "sorcerers": [
       "yuji",
@@ -155,31 +257,141 @@
       "miwa",
       "momo",
       "mai",
-      "kamo"
+      "kamo",
+      "inumaki"
     ],
     "facilities": {},
     "last_daily": "2026-01-14T22:59:19.684598+00:00",
-    "last_train": "2026-01-15T00:59:39.593271+00:00",
+    "last_train": "2026-01-16T00:35:35.084886+00:00",
     "techniques": [],
     "collections": {},
     "school_name": "cocoa's Jujutsu School",
     "daily_streak": 1,
     "event_claims": [],
-    "last_collect": "2026-01-15T00:03:47.420125+00:00",
-    "active_mission": null,
-    "dispatch_slots": [],
+    "last_collect": "2026-01-16T00:31:28.592403+00:00",
+    "active_mission": {
+      "name": "Rescue Operation",
+      "difficulty": "hard",
+      "yen": 5260,
+      "xp": 351,
+      "risk": 0.3,
+      "end_time": "2026-01-16T00:36:02.803894+00:00",
+      "start_time": "2026-01-16T00:29:02.803894+00:00"
+    },
+    "dispatch_slots": [
+      {
+        "sorcerer": "yuji",
+        "mission_id": "curse_nest",
+        "mission_name": "Curse Nest Raid",
+        "end_time": "2026-01-16T06:10:34.599803+00:00",
+        "base_yen": 8000,
+        "base_xp": 500,
+        "risk": 0.35,
+        "rare_loot_chance": 0.15
+      },
+      {
+        "sorcerer": "megumi",
+        "mission_id": "curse_nest",
+        "mission_name": "Curse Nest Raid",
+        "end_time": "2026-01-16T05:37:11.545993+00:00",
+        "base_yen": 8000,
+        "base_xp": 500,
+        "risk": 0.35,
+        "rare_loot_chance": 0.15
+      },
+      {
+        "sorcerer": "nobara",
+        "mission_id": "curse_nest",
+        "mission_name": "Curse Nest Raid",
+        "end_time": "2026-01-16T05:09:24.300403+00:00",
+        "base_yen": 8000,
+        "base_xp": 500,
+        "risk": 0.35,
+        "rare_loot_chance": 0.15
+      },
+      {
+        "sorcerer": "miwa",
+        "mission_id": "curse_nest",
+        "mission_name": "Curse Nest Raid",
+        "end_time": "2026-01-16T04:16:30.081749+00:00",
+        "base_yen": 8000,
+        "base_xp": 500,
+        "risk": 0.35,
+        "rare_loot_chance": 0.15
+      },
+      {
+        "sorcerer": "momo",
+        "mission_id": "curse_nest",
+        "mission_name": "Curse Nest Raid",
+        "end_time": "2026-01-16T05:52:41.723706+00:00",
+        "base_yen": 8000,
+        "base_xp": 500,
+        "risk": 0.35,
+        "rare_loot_chance": 0.15
+      },
+      {
+        "sorcerer": "mai",
+        "mission_id": "curse_nest",
+        "mission_name": "Curse Nest Raid",
+        "end_time": "2026-01-16T05:16:46.948954+00:00",
+        "base_yen": 8000,
+        "base_xp": 500,
+        "risk": 0.35,
+        "rare_loot_chance": 0.15
+      },
+      {
+        "sorcerer": "kamo",
+        "mission_id": "curse_nest",
+        "mission_name": "Curse Nest Raid",
+        "end_time": "2026-01-16T05:30:11.329101+00:00",
+        "base_yen": 8000,
+        "base_xp": 500,
+        "risk": 0.35,
+        "rare_loot_chance": 0.15
+      },
+      {
+        "sorcerer": "inumaki",
+        "mission_id": "curse_nest",
+        "mission_name": "Curse Nest Raid",
+        "end_time": "2026-01-16T05:34:22.610483+00:00",
+        "base_yen": 8000,
+        "base_xp": 500,
+        "risk": 0.35,
+        "rare_loot_chance": 0.15
+      }
+    ],
     "mission_offers": [],
     "story_progress": {
       "current_arc": "fearsome_womb",
-      "active_story": null,
+      "active_story": {
+        "arc": "fearsome_womb",
+        "chapter": 3,
+        "title": "Sukuna Awakens",
+        "enemy": "Sukuna (2 Fingers)",
+        "difficulty": 3,
+        "yen": 2000,
+        "xp": 400,
+        "end_time": "2026-01-16T00:38:09.475358+00:00"
+      },
       "completed_arcs": [],
-      "current_chapter": 1
+      "current_chapter": 3
     },
-    "curses_exorcised": 52,
+    "curses_exorcised": 58,
     "protection_wards": 0,
     "missions_completed": 19,
-    "mission_offers_time": null,
-    "last_facility_collect": null
+    "mission_offers_time": "2026-01-16T00:28:59.780801+00:00",
+    "last_facility_collect": null,
+    "side_mission_progress": {
+      "training_dummy": {
+        "hunts": 6
+      },
+      "curse_collector": {
+        "hunts": 6
+      },
+      "training_arc": {
+        "trains": 4
+      }
+    }
   },
   "760075655374176277": {
     "xp": 0,
@@ -222,19 +434,29 @@
     "last_facility_collect": null
   },
   "826598202915815475": {
-    "xp": 4264,
-    "yen": 131459,
+    "xp": 6026,
+    "yen": 506552095,
     "clan": "Kazuma",
-    "level": 124,
-    "tools": [],
+    "level": 277,
+    "tools": [
+      "slaughter_demon",
+      "playful_cloud",
+      "inverted_spear",
+      "split_soul_katana",
+      "prison_realm"
+    ],
     "boosts": {},
-    "domain": 1,
-    "injuries": {},
+    "domain": 4,
+    "injuries": {
+      "cursed_wound": {
+        "expires": "2026-01-16T17:36:30.513513+00:00"
+      }
+    },
     "last_eat": "2026-01-14T22:29:13.393394+00:00",
     "inventory": {
       "cursed_salve": 1
     },
-    "last_hunt": "2026-01-15T05:46:07.897696+00:00",
+    "last_hunt": "2026-01-16T14:36:08.910671+00:00",
     "last_rest": "2026-01-15T00:21:23.598469+00:00",
     "sorcerers": [
       "yuji",
@@ -266,17 +488,68 @@
       "toji",
       "arima",
       "gojo",
-      "saya"
+      "saya",
+      "zayne",
+      "rukia",
+      "byakuya",
+      "rengoku",
+      "zoro_op",
+      "sylus",
+      "xavier_lds",
+      "rafayel",
+      "hawks", "erwin",
+      "shinobu",
+      "denji",
+      "bakugo",
+      "killua",
+      "ryu",
+      "deku",
+      "kurapika",
+      "eren",
+      "hakari",
+      "yorozu",
+      "eto",
+      "ban",
+      "uraume",
+      "kakashi",
+      "kashimo",
+      "law",
+      "urahara",
+      "jiraiya",
+      "beru",
+      "merlin_7ds",
+      "endeavor",
+      "ichigo",
+      "hisoka",
+      "ace",
+      "kenpachi",
+      "naruto",
+      "luffy",
+      "sasuke",
+      "meliodas",
+      "thomas_andre",
+      "levi",
+      "escanor",
+      "itachi",
+      "minato",
+      "makima_csm",
+      "all_might",
+      "sung_jinwoo",
+      "netero",
+      "shanks",
+      "aizen",
+      "madara",
+      "kenjaku"
     ],
     "facilities": {
-      "dormitory": 5,
+      "dormitory": 10,
       "barrier_ward": 5,
-      "curse_workshop": 1,
-      "cursed_archives": 5,
-      "training_grounds": 1
+      "curse_workshop": 5,
+      "cursed_archives": 10,
+      "training_grounds": 10
     },
-    "last_daily": "2026-01-14T22:22:31.032450+00:00",
-    "last_train": "2026-01-15T05:46:11.645806+00:00",
+    "last_daily": "2026-01-16T00:36:47.819192+00:00",
+    "last_train": "2026-01-16T14:36:15.592344+00:00",
     "techniques": [
       "divergent_fist",
       "black_flash",
@@ -284,27 +557,38 @@
       "reverse_cursed",
       "ten_shadows",
       "cursed_speech",
-      "domain_amplification"
+      "domain_amplification",
+      "noctflare"
     ],
-    "collections": {},
+    "collections": {
+      "maki_glasses": 1
+    },
     "school_name": "\ud835\ude8a\ud835\ude98\ud835\ude92 \ud835\ude97\ud835\ude8a\ud835\udea2\ud835\ude8a\ud835\ude98\ud835\ude8a\ud835\udea0\ud835\ude8a's Jujutsu School",
-    "daily_streak": 1,
+    "daily_streak": 2,
     "event_claims": [],
-    "last_collect": "2026-01-15T05:22:35.353540+00:00",
-    "active_mission": null,
+    "last_collect": "2026-01-16T13:04:38.691156+00:00",
+    "active_mission": {
+      "name": "Grade 1 Curse Suppression",
+      "difficulty": "extreme",
+      "yen": 10222,
+      "xp": 761,
+      "risk": 0.55,
+      "end_time": "2026-01-16T14:48:59.302524+00:00",
+      "start_time": "2026-01-16T14:36:59.302524+00:00"
+    },
     "dispatch_slots": [],
     "mission_offers": [],
     "story_progress": {
       "current_arc": "culling_game",
       "active_story": {
-        "xp": 6000,
         "arc": "culling_game",
-        "yen": 30000,
-        "enemy": "Hajime Kashimo",
-        "title": "Kashimo's Lightning",
         "chapter": 4,
-        "end_time": "2026-01-15T06:44:47.806261+00:00",
-        "difficulty": 9
+        "title": "Kashimo's Lightning",
+        "enemy": "Hajime Kashimo",
+        "difficulty": 9,
+        "yen": 30000,
+        "xp": 6000,
+        "end_time": "2026-01-16T14:48:36.568184+00:00"
       },
       "completed_arcs": [
         "fearsome_womb",
@@ -312,21 +596,63 @@
         "kyoto_exchange",
         "origin_obedience",
         "shibuya_incident",
+        "culling_game",
+        "culling_game",
+        "culling_game",
+        "culling_game",
+        "culling_game",
+        "culling_game",
+        "culling_game",
+        "culling_game",
+        "culling_game",
+        "culling_game",
+        "culling_game",
+        "culling_game",
+        "culling_game",
+        "culling_game",
+        "culling_game",
+        "culling_game",
+        "culling_game",
+        "culling_game",
+        "culling_game",
+        "culling_game",
+        "culling_game",
+        "culling_game",
+        "culling_game",
         "culling_game"
       ],
       "current_chapter": 4
     },
-    "curses_exorcised": 53,
+    "curses_exorcised": 74,
     "protection_wards": 0,
-    "missions_completed": 20,
-    "mission_offers_time": null,
-    "last_facility_collect": null
+    "missions_completed": 30,
+    "mission_offers_time": "2026-01-16T14:36:48.525426+00:00",
+    "last_facility_collect": null,
+    "pvp_elo": 948,
+    "pvp_wins": 0,
+    "pvp_losses": 3,
+    "last_pvp": "2026-01-16T03:47:59.206352+00:00",
+    "side_mission_progress": {
+      "training_dummy": {
+        "hunts": 21
+      },
+      "curse_collector": {
+        "hunts": 21
+      },
+      "training_arc": {
+        "trains": 16
+      }
+    },
+    "completed_side_missions": [
+      "wealthy_sorcerer",
+      "squad_builder"
+    ]
   },
   "1037121318396624956": {
-    "xp": 1607,
-    "yen": 69835442,
+    "xp": 59932,
+    "yen": 1020148059,
     "clan": "Kazuma",
-    "level": 132,
+    "level": 231,
     "tools": [
       "playful_cloud",
       "slaughter_demon",
@@ -337,12 +663,12 @@
     "boosts": {},
     "domain": 4,
     "injuries": {},
-    "last_eat": "2026-01-15T00:47:55.305383+00:00",
+    "last_eat": "2026-01-15T15:51:18.966051+00:00",
     "inventory": {
-      "reverse_technique": 12
+      "reverse_technique": 8
     },
-    "last_hunt": "2026-01-15T05:52:01.400550+00:00",
-    "last_rest": "2026-01-15T00:29:08.915780+00:00",
+    "last_hunt": "2026-01-16T04:05:56.111834+00:00",
+    "last_rest": "2026-01-15T16:45:48.822405+00:00",
     "sorcerers": [
       "yuji",
       "saya",
@@ -374,7 +700,108 @@
       "arima",
       "gojo",
       "sung_jinwoo",
-      "sukuna"
+      "sukuna",
+      "ryuji",
+      "ann",
+      "makoto_p5",
+      "kobeni",
+      "inosuke",
+      "zenitsu",
+      "aira",
+      "uraraka",
+      "ayato",
+      "iida",
+      "tsukiyama",
+      "momo_dd",
+      "nezuko",
+      "power",
+      "leafa",
+      "nami",
+      "sinon",
+      "charles",
+      "mc_lds",
+      "okarun",
+      "caleb",
+      "sylus",
+      "zayne",
+      "xavier_lds",
+      "kirishima",
+      "angel_devil",
+      "tokoyami",
+      "hanami",
+      "turbo_granny",
+      "rafayel",
+      "eugeo",
+      "aki",
+      "hange",
+      "tanjiro",
+      "gowther",
+      "iron",
+      "mahito",
+      "kirito",
+      "dagon",
+      "rukia",
+      "asuna",
+      "mikasa",
+      "mitsuri",
+      "diane",
+      "jogo",
+      "gon",
+      "robin",
+      "uro",
+      "annie",
+      "muichiro",
+      "sanji",
+      "king_7ds",
+      "todoroki",
+      "toshiro",
+      "higuruma",
+      "erwin",
+      "shinobu",
+      "denji",
+      "bakugo",
+      "killua",
+      "ryu",
+      "kurapika",
+      "eren",
+      "deku",
+      "hakari",
+      "yorozu",
+      "eto",
+      "rengoku",
+      "zoro_op",
+      "ban",
+      "byakuya",
+      "uraume",
+      "hawks",
+      "kashimo",
+      "kakashi",
+      "law",
+      "urahara",
+      "jiraiya",
+      "beru",
+      "merlin_7ds",
+      "endeavor",
+      "ichigo",
+      "hisoka",
+      "ace",
+      "meliodas",
+      "thomas_andre",
+      "sasuke",
+      "kenpachi",
+      "luffy",
+      "naruto",
+      "levi",
+      "escanor",
+      "itachi",
+      "minato",
+      "all_might",
+      "makima_csm",
+      "netero",
+      "shanks",
+      "madara",
+      "kenjaku",
+      "aizen"
     ],
     "facilities": {
       "dormitory": 10,
@@ -384,7 +811,7 @@
       "training_grounds": 10
     },
     "last_daily": "2026-01-14T22:25:46.302455+00:00",
-    "last_train": "2026-01-15T06:15:18.379900+00:00",
+    "last_train": "2026-01-16T04:06:02.046115+00:00",
     "techniques": [
       "divergent_fist",
       "black_flash",
@@ -399,43 +826,116 @@
     "school_name": "\u2727\u02d6\u00b0.\ud835\udc9c\ud835\udcbe\ud835\udcc8\ud835\udcc8 \ud835\udc9c\ud835\udcb6\ud835\udcc0\ud835\udcbe\ud835\udcc2\ud835\udcb6\u22c6\u02d9\u27e1's Jujutsu School",
     "daily_streak": 1,
     "event_claims": [],
-    "last_collect": "2026-01-15T05:16:09.140791+00:00",
-    "active_mission": null,
-    "dispatch_slots": [],
+    "last_collect": "2026-01-16T04:06:49.463897+00:00",
+    "active_mission": {
+      "name": "Shibuya Incident Cleanup",
+      "difficulty": "extreme",
+      "yen": 20223,
+      "xp": 1480,
+      "risk": 0.5,
+      "end_time": "2026-01-16T04:26:18.284036+00:00",
+      "start_time": "2026-01-16T04:06:18.284036+00:00"
+    },
+    "dispatch_slots": [
+      {
+        "sorcerer": "yuji",
+        "mission_id": "special_grade",
+        "mission_name": "Special Grade Hunt",
+        "end_time": "2026-01-16T03:52:18.396031+00:00",
+        "base_yen": 30000,
+        "base_xp": 1500,
+        "risk": 0.6,
+        "rare_loot_chance": 0.3
+      }
+    ],
     "mission_offers": [],
     "story_progress": {
       "current_arc": "culling_game",
-      "active_story": null,
+      "active_story": {
+        "arc": "culling_game",
+        "chapter": 4,
+        "title": "Kashimo's Lightning",
+        "enemy": "Hajime Kashimo",
+        "difficulty": 9,
+        "yen": 30000,
+        "xp": 6000,
+        "end_time": "2026-01-16T04:18:30.408209+00:00"
+      },
       "completed_arcs": [
         "fearsome_womb",
         "cursed_training",
         "kyoto_exchange",
         "origin_obedience",
         "shibuya_incident",
+        "culling_game",
+        "culling_game",
+        "culling_game",
+        "culling_game",
+        "culling_game",
+        "culling_game",
+        "culling_game",
+        "culling_game",
+        "culling_game",
+        "culling_game",
+        "culling_game",
+        "culling_game",
+        "culling_game",
         "culling_game"
       ],
       "current_chapter": 4
     },
-    "curses_exorcised": 127,
+    "curses_exorcised": 183,
     "protection_wards": 0,
-    "missions_completed": 17,
-    "mission_offers_time": null,
-    "last_facility_collect": null
+    "missions_completed": 30,
+    "mission_offers_time": "2026-01-16T04:06:14.322840+00:00",
+    "last_facility_collect": null,
+    "side_mission_progress": {
+      "training_arc": {
+        "trains": 44
+      },
+      "training_dummy": {
+        "hunts": 56
+      },
+      "curse_collector": {
+        "hunts": 22
+      }
+    },
+    "completed_side_missions": [
+      "wealthy_sorcerer",
+      "squad_builder",
+      "first_blood",
+      "curse_collector"
+    ],
+    "pvp_elo": 1056,
+    "pvp_wins": 4,
+    "pvp_losses": 0,
+    "last_pvp": "2026-01-15T19:29:20.308623+00:00",
+    "side_cd_curse_collector": "2026-01-15T19:32:01.717990+00:00"
   },
   "1102599600122110083": {
-    "xp": 36,
-    "yen": 3970751,
+    "xp": 4081,
+    "yen": 1227424214,
     "clan": "Kazuma",
-    "level": 98,
-    "tools": [],
+    "level": 281,
+    "tools": [
+      "prison_realm",
+      "split_soul_katana",
+      "inverted_spear",
+      "playful_cloud",
+      "slaughter_demon"
+    ],
     "boosts": {},
     "domain": 4,
-    "injuries": {},
+    "injuries": {
+      "broken_arm": {
+        "expires": "2026-01-16T20:44:25.172887+00:00"
+      }
+    },
     "last_eat": "2026-01-15T00:47:55.305383+00:00",
     "inventory": {
       "bandage": 1
     },
-    "last_hunt": "2026-01-15T03:47:26.336603+00:00",
+    "last_hunt": "2026-01-16T16:02:22.589694+00:00",
     "last_rest": "2026-01-15T00:29:08.915780+00:00",
     "sorcerers": [
       "yuji",
@@ -468,7 +968,108 @@
       "naoya",
       "makoto",
       "todo",
-      "mechamaru"
+      "mechamaru",
+      "kenjaku",
+      "madara",
+      "aizen",
+      "shanks",
+      "all_might",
+      "netero",
+      "makima_csm",
+      "denji",
+      "power",
+      "levi",
+      "escanor",
+      "itachi",
+      "minato",
+      "naruto",
+      "luffy",
+      "sasuke",
+      "kenpachi",
+      "meliodas",
+      "ryuji",
+      "ann",
+      "makoto_p5",
+      "thomas_andre",
+      "ace",
+      "hisoka",
+      "ichigo",
+      "endeavor",
+      "merlin_7ds",
+      "sylus",
+      "beru",
+      "jiraiya",
+      "urahara",
+      "law",
+      "kashimo",
+      "kakashi",
+      "hawks",
+      "uraume",
+      "ban",
+      "nami",
+      "momo_dd",
+      "byakuya",
+      "zoro_op",
+      "rengoku",
+      "eto",
+      "yorozu",
+      "hakari",
+      "eren",
+      "kurapika",
+      "deku",
+      "ryu",
+      "killua",
+      "bakugo",
+      "king_7ds",
+      "sanji",
+      "erwin",
+      "higuruma",
+      "toshiro",
+      "todoroki",
+      "muichiro",
+      "iron",
+      "sinon",
+      "annie",
+      "jogo",
+      "uro",
+      "gon",
+      "robin",
+      "diane",
+      "mikasa",
+      "mahito",
+      "kirito",
+      "dagon",
+      "asuna",
+      "xavier_lds",
+      "rukia",
+      "gowther",
+      "leafa",
+      "caleb",
+      "angel_devil",
+      "turbo_granny",
+      "tanjiro",
+      "aki",
+      "hange",
+      "hanami",
+      "rafayel",
+      "eugeo",
+      "zayne",
+      "tokoyami",
+      "okarun",
+      "charles",
+      "kirishima",
+      "nezuko",
+      "tsukiyama",
+      "iida",
+      "aira",
+      "zenitsu",
+      "ayato",
+      "uraraka",
+      "kobeni",
+      "inosuke",
+      "mc_lds",
+      "mitsuri",
+      "shinobu"
     ],
     "facilities": {
       "dormitory": 10,
@@ -477,8 +1078,8 @@
       "cursed_archives": 10,
       "training_grounds": 10
     },
-    "last_daily": null,
-    "last_train": "2026-01-15T03:47:22.308655+00:00",
+    "last_daily": "2026-01-16T02:11:22.988917+00:00",
+    "last_train": "2026-01-16T16:02:19.870560+00:00",
     "techniques": [
       "divergent_fist",
       "black_flash",
@@ -489,14 +1090,61 @@
       "domain_amplification",
       "noctflare"
     ],
-    "collections": {},
+    "collections": {
+      "todo_photo": 1
+    },
     "school_name": "\ud835\udc9f\ud835\udc52\ud835\udcc3\ud835\udcf3\ud835\udcbe's Jujutsu School",
-    "daily_streak": 0,
+    "daily_streak": 1,
     "event_claims": [],
-    "last_collect": "2026-01-15T03:03:04.285796+00:00",
+    "last_collect": "2026-01-16T13:45:40.846062+00:00",
     "active_mission": null,
     "dispatch_slots": [],
-    "mission_offers": [],
+    "mission_offers": [
+      {
+        "name": "Training Exercise",
+        "desc": "Practice with fellow sorcerers",
+        "duration": 60,
+        "yen": 166,
+        "xp": 81,
+        "risk": 0.0,
+        "min_level": 1,
+        "id": 1,
+        "difficulty": "easy"
+      },
+      {
+        "name": "Grade 3 Curse Hunt",
+        "desc": "A confirmed Grade 3 curse needs exorcising",
+        "duration": 150,
+        "yen": 1335,
+        "xp": 141,
+        "risk": 0.15,
+        "min_level": 5,
+        "id": 2,
+        "difficulty": "medium"
+      },
+      {
+        "name": "Domain Expansion Training",
+        "desc": "Master your incomplete domain",
+        "duration": 600,
+        "yen": 3476,
+        "xp": 489,
+        "risk": 0.25,
+        "min_level": 20,
+        "id": 3,
+        "difficulty": "hard"
+      },
+      {
+        "name": "Shibuya Incident Cleanup",
+        "desc": "Clear remaining curses from Shibuya",
+        "duration": 1200,
+        "yen": 17500,
+        "xp": 1615,
+        "risk": 0.5,
+        "min_level": 35,
+        "id": 4,
+        "difficulty": "extreme"
+      }
+    ],
     "story_progress": {
       "current_arc": "culling_game",
       "active_story": null,
@@ -506,36 +1154,83 @@
         "kyoto_exchange",
         "origin_obedience",
         "shibuya_incident",
+        "culling_game",
+        "culling_game",
+        "culling_game",
+        "culling_game",
+        "culling_game",
+        "culling_game",
+        "culling_game",
+        "culling_game",
+        "culling_game",
+        "culling_game",
+        "culling_game",
+        "culling_game",
+        "culling_game",
+        "culling_game",
+        "culling_game",
+        "culling_game",
+        "culling_game",
+        "culling_game",
+        "culling_game",
+        "culling_game",
+        "culling_game",
+        "culling_game",
         "culling_game"
       ],
       "current_chapter": 4
     },
-    "curses_exorcised": 115,
+    "curses_exorcised": 189,
     "protection_wards": 0,
-    "missions_completed": 14,
-    "mission_offers_time": null,
-    "last_facility_collect": null
+    "missions_completed": 22,
+    "mission_offers_time": "2026-01-16T14:44:31.791181+00:00",
+    "last_facility_collect": null,
+    "side_mission_progress": {
+      "training_dummy": {
+        "hunts": 74
+      },
+      "curse_collector": {
+        "hunts": 25
+      },
+      "training_arc": {
+        "trains": 72
+      }
+    },
+    "pvp_elo": 1029,
+    "pvp_wins": 2,
+    "pvp_losses": 0,
+    "last_pvp": "2026-01-16T03:47:59.206352+00:00",
+    "completed_side_missions": [
+      "curse_collector",
+      "first_blood",
+      "wealthy_sorcerer",
+      "squad_builder"
+    ],
+    "side_cd_curse_collector": "2026-01-16T02:08:26.809812+00:00"
   },
   "1148850150618439732": {
-    "xp": 49,
-    "yen": 1781,
+    "xp": 74,
+    "yen": 7278,
     "clan": null,
-    "level": 1,
+    "level": 10,
     "tools": [],
     "boosts": {},
     "domain": 0,
     "injuries": {},
     "last_eat": null,
     "inventory": {},
-    "last_hunt": "2026-01-15T06:34:04.905728+00:00",
+    "last_hunt": "2026-01-15T20:44:09.751903+00:00",
     "last_rest": null,
     "sorcerers": [
-      "yuji"
+      "yuji",
+      "mai"
     ],
     "facilities": {},
     "last_daily": null,
-    "last_train": null,
-    "techniques": [],
+    "last_train": "2026-01-15T20:44:04.607742+00:00",
+    "techniques": [
+      "divergent_fist"
+    ],
     "collections": {},
     "school_name": "Beep Boop | Lain COME HOME's Jujutsu School",
     "daily_streak": 0,
@@ -545,25 +1240,38 @@
     "dispatch_slots": [],
     "mission_offers": [],
     "story_progress": {
-      "current_arc": "fearsome_womb",
+      "current_arc": "cursed_training",
       "active_story": {
-        "xp": 100,
-        "arc": "fearsome_womb",
-        "yen": 500,
-        "enemy": "Finger Bearer",
-        "title": "Entering the Detention Center",
-        "chapter": 1,
-        "end_time": "2026-01-15T06:34:58.641728+00:00",
-        "difficulty": 1
+        "arc": "cursed_training",
+        "chapter": 2,
+        "title": "Mahito Appears",
+        "enemy": "Mahito",
+        "difficulty": 3,
+        "yen": 1500,
+        "xp": 300,
+        "end_time": "2026-01-15T20:44:10.874381+00:00"
       },
-      "completed_arcs": [],
-      "current_chapter": 1
+      "completed_arcs": [
+        "fearsome_womb"
+      ],
+      "current_chapter": 2
     },
-    "curses_exorcised": 7,
+    "curses_exorcised": 27,
     "protection_wards": 0,
     "missions_completed": 0,
     "mission_offers_time": null,
-    "last_facility_collect": null
+    "last_facility_collect": null,
+    "side_mission_progress": {
+      "training_dummy": {
+        "hunts": 20
+      },
+      "curse_collector": {
+        "hunts": 20
+      },
+      "training_arc": {
+        "trains": 11
+      }
+    }
   },
   "1237598739041091652": {
     "xp": 155,
@@ -604,5 +1312,87 @@
     "missions_completed": 3,
     "mission_offers_time": null,
     "last_facility_collect": null
-  }
-}
+  },
+  "291548454155583498": {
+    "yen": 35021,
+    "xp": 4333,
+    "level": 23,
+    "school_name": "Cassiope's Jujutsu School",
+    "sorcerers": [
+      "yuji",
+      "panda",
+      "maki",
+      "kamo",
+      "mai",
+      "momo",
+      "miwa",
+      "nobara",
+      "megumi"
+    ],
+    "techniques": [
+      "divergent_fist",
+      "black_flash",
+      "boogie_woogie",
+      "reverse_cursed"
+    ],
+    "tools": [
+      "slaughter_demon"
+    ],
+    "domain": 0,
+    "curses_exorcised": 4,
+    "missions_completed": 2,
+    "clan": null,
+    "daily_streak": 1,
+    "last_daily": "2026-01-15T20:14:17.620652+00:00",
+    "last_hunt": "2026-01-16T13:37:56.282032+00:00",
+    "last_train": "2026-01-16T13:37:51.872860+00:00",
+    "last_collect": "2026-01-16T10:30:20.677316+00:00",
+    "inventory": {},
+    "injuries": {
+      "broken_arm": {
+        "expires": "2026-01-16T19:38:21.628814+00:00"
+      }
+    },
+    "active_mission": {
+      "name": "Cursed Womb Investigation",
+      "difficulty": "medium",
+      "yen": 963,
+      "xp": 116,
+      "risk": 0.15,
+      "end_time": "2026-01-16T10:31:21.059003+00:00",
+      "start_time": "2026-01-16T10:28:21.059003+00:00"
+    },
+    "mission_offers": [],
+    "mission_offers_time": "2026-01-16T10:28:07.622508+00:00",
+    "dispatch_slots": [],
+    "collections": {},
+    "boosts": {},
+    "last_eat": "2026-01-16T10:27:17.635833+00:00",
+    "last_rest": "2026-01-16T13:38:07.337127+00:00",
+    "protection_wards": 0,
+    "story_progress": {
+      "current_arc": "shibuya_incident",
+      "current_chapter": 1,
+      "completed_arcs": [
+        "fearsome_womb",
+        "cursed_training",
+        "kyoto_exchange",
+        "origin_obedience"
+      ],
+      "active_story": null
+    },
+    "facilities": {},
+    "event_claims": [],
+    "last_facility_collect": null,
+    "side_mission_progress": {
+      "training_dummy": {
+        "hunts": 4
+      },
+      "curse_collector": {
+        "hunts": 4
+      },
+      "training_arc": {
+        "trains": 6
+      }
+    }
+  }}
