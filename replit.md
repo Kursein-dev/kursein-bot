@@ -9,6 +9,9 @@ Kursein v4.0 is a JJK-focused Discord bot featuring a full idle RPG economy game
 - **Sorcerer Leveling (Jan 16)**: Each sorcerer can now level up! Train them for PvP battles
 - **PvP Sorcerer Selection**: Choose which sorcerer to fight with using `~pvp @user <sorcerer>`
 - **New Commands**: `~trainsorcerer`, `~sorcererinfo`, `~spar` for character progression
+- **Team Dispatch (Jan 16)**: Send 2-4 sorcerers together on team missions for bigger rewards
+- **Gates System (Jan 16)**: Solo Leveling-style gates (E-S rank) with timed clears
+- **Dungeons System (Jan 16)**: Multi-floor dungeons with bosses and rare loot
 - **Unified Guide**: Single `~guide` command with interactive button navigation for all features
 - **Unified Leaderboard**: Single `~lb` command with tabbed navigation (Yen, Level, Hunt, PvP, Story, Clan)
 - **PvP Battle System**: Challenge other players with ~pvp @user, ELO-based ranked matchmaking (Bronze to Special Grade)
@@ -79,6 +82,29 @@ Run your own Jujutsu School, exorcise curses, and become a Special Grade sorcere
 - `~dispatchclaim` - Claim all completed dispatch rewards
 - Missions range from 30 minutes to 12 hours
 - Higher risk = better rewards + rare loot chances
+
+**Team Dispatch (NEW!):**
+- `~teamlist` - View team missions requiring 2-4 sorcerers
+- `~teamdispatch <mission_id> <sorcerer1, sorcerer2, ...>` - Send a team
+- `~teamstatus` - Check team dispatch progress
+- `~teamclaim` - Claim completed team missions
+- Same-series sorcerers get +25% synergy bonus!
+
+**Gates System - Solo Leveling Style (NEW!):**
+- `~gates` - Scan for nearby gates
+- `~gateenter <rank> [sorcerer]` - Enter a gate (E, D, C, B, A, S ranks)
+- `~gatestatus` - Check gate clearing progress
+- `~gateclaim` - Claim rewards when gate is cleared
+- Higher rank gates = better rewards but higher risk
+- 2 hour cooldown between gate scans
+
+**Dungeons System (NEW!):**
+- `~dungeons` - View available dungeons
+- `~dungeonenter <dungeon_id> [sorcerer]` - Enter a dungeon
+- `~dungeonstatus` - Check dungeon progress
+- `~dungeonclaim` - Claim boss rewards
+- 5 dungeons with 3-8 floors and unique bosses
+- 6 hour cooldown between dungeon runs
 
 **Injury & Recovery:**
 - Injuries can block hunting/training until healed
