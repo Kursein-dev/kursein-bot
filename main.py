@@ -928,6 +928,9 @@ async def on_command_error(ctx, error):
     elif isinstance(error, commands.MissingRequiredArgument):
         await ctx.send(f"❌ Missing argument: `{error.param.name}`")
     else:
+        import traceback
+        print(f"[ERROR] Command {ctx.command} raised: {error}")
+        traceback.print_exception(type(error), error, error.__traceback__)
         await ctx.send("❌ An error occurred. Please try again.")
 
 @bot.event
