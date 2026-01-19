@@ -287,6 +287,101 @@ DISPATCH_MISSIONS = [
 ]
 
 # =====================
+# GATES SYSTEM (Solo Leveling style)
+# =====================
+GATE_RANKS = {
+    "E": {"name": "E-Rank Gate", "emoji": "🟢", "min_level": 1, "duration_min": 5, "duration_max": 10, "base_yen": 1000, "base_xp": 100, "risk": 0.05, "loot_chance": 0.03, "token_reward": 1},
+    "D": {"name": "D-Rank Gate", "emoji": "🔵", "min_level": 10, "duration_min": 10, "duration_max": 20, "base_yen": 3000, "base_xp": 250, "risk": 0.15, "loot_chance": 0.08, "token_reward": 2},
+    "C": {"name": "C-Rank Gate", "emoji": "🟡", "min_level": 25, "duration_min": 15, "duration_max": 30, "base_yen": 8000, "base_xp": 500, "risk": 0.25, "loot_chance": 0.12, "token_reward": 3},
+    "B": {"name": "B-Rank Gate", "emoji": "🟠", "min_level": 50, "duration_min": 20, "duration_max": 45, "base_yen": 20000, "base_xp": 1000, "risk": 0.40, "loot_chance": 0.18, "token_reward": 5},
+    "A": {"name": "A-Rank Gate", "emoji": "🔴", "min_level": 100, "duration_min": 30, "duration_max": 60, "base_yen": 50000, "base_xp": 2500, "risk": 0.55, "loot_chance": 0.25, "token_reward": 8},
+    "S": {"name": "S-Rank Gate", "emoji": "🟣", "min_level": 200, "duration_min": 45, "duration_max": 90, "base_yen": 150000, "base_xp": 6000, "risk": 0.70, "loot_chance": 0.40, "token_reward": 15},
+}
+
+GATE_BOSSES = [
+    "Cursed Spirit Lord", "Shadow Monarch Fragment", "Demon General", "Ancient Curse",
+    "Disaster Avatar", "Domain Master", "Death Painting Womb", "Special Grade Entity"
+]
+
+# =====================
+# DUNGEON SYSTEM (100 Floors - SAO Tower style)
+# =====================
+def get_floor_data(floor):
+    """Calculate floor difficulty and rewards"""
+    is_boss = floor % 10 == 0
+    is_major_boss = floor in [25, 50, 75, 100]
+    
+    base_yen = 500 + (floor * 100) + (floor ** 1.5 * 20)
+    base_xp = 50 + (floor * 15) + (floor ** 1.3 * 5)
+    risk = min(0.05 + (floor * 0.007), 0.80)
+    duration = max(1, 2 + (floor // 10))
+    loot_chance = min(0.02 + (floor * 0.003), 0.50)
+    
+    if is_boss:
+        base_yen *= 3
+        base_xp *= 2.5
+        risk = min(risk + 0.15, 0.85)
+        duration += 3
+        loot_chance += 0.10
+    
+    if is_major_boss:
+        base_yen *= 2
+        base_xp *= 2
+        risk = min(risk + 0.10, 0.90)
+        duration += 5
+        loot_chance += 0.15
+    
+    return {
+        "floor": floor,
+        "is_boss": is_boss,
+        "is_major_boss": is_major_boss,
+        "yen": int(base_yen),
+        "xp": int(base_xp),
+        "risk": round(risk, 2),
+        "duration_min": duration,
+        "loot_chance": round(loot_chance, 2)
+    }
+
+DUNGEON_MILESTONES = {
+    10: {"reward_type": "yen", "reward_amount": 25000, "title": "Floor Clearer"},
+    25: {"reward_type": "technique", "reward_item": "domain_amplification", "title": "Quarter Master"},
+    50: {"reward_type": "yen", "reward_amount": 250000, "title": "Halfway Hero"},
+    75: {"reward_type": "sorcerer", "reward_item": "floor_boss", "title": "Elite Climber"},
+    100: {"reward_type": "title", "reward_item": "Tower Conqueror", "title": "Tower Conqueror", "bonus_yen": 1000000}
+}
+
+# =====================
+# TEAM DISPATCH SYSTEM
+# =====================
+TEAM_DISPATCH_MISSIONS = [
+    {"id": "team_patrol", "name": "Squad Patrol", "desc": "Team patrol mission", "duration_min": 45, "duration_max": 90, "base_yen": 3000, "base_xp": 200, "risk": 0.08, "min_level": 5, "min_team": 2, "max_team": 4, "loot_chance": 0.08},
+    {"id": "team_raid", "name": "Curse Nest Raid", "desc": "Clear a dangerous curse nest together", "duration_min": 90, "duration_max": 180, "base_yen": 12000, "base_xp": 600, "risk": 0.25, "min_level": 20, "min_team": 2, "max_team": 4, "loot_chance": 0.15},
+    {"id": "team_domain", "name": "Domain Breach", "desc": "Break into an enemy domain as a team", "duration_min": 120, "duration_max": 240, "base_yen": 30000, "base_xp": 1200, "risk": 0.40, "min_level": 40, "min_team": 3, "max_team": 4, "loot_chance": 0.22},
+    {"id": "team_special", "name": "Special Grade Hunt", "desc": "Hunt a Special Grade curse with your squad", "duration_min": 180, "duration_max": 360, "base_yen": 80000, "base_xp": 3000, "risk": 0.55, "min_level": 75, "min_team": 3, "max_team": 4, "loot_chance": 0.35},
+    {"id": "team_disaster", "name": "Disaster Curse Battle", "desc": "Face a Disaster Curse with full squad", "duration_min": 240, "duration_max": 480, "base_yen": 200000, "base_xp": 8000, "risk": 0.70, "min_level": 150, "min_team": 4, "max_team": 4, "loot_chance": 0.50},
+]
+
+def get_team_synergy(sorcerer_keys):
+    """Calculate team synergy bonus based on series/composition"""
+    series_map = {}
+    for key in sorcerer_keys:
+        sorc = JJK_SORCERERS.get(key, {})
+        series = sorc.get("series", "jjk")
+        series_map[series] = series_map.get(series, 0) + 1
+    
+    synergy = 1.0
+    for series, count in series_map.items():
+        if count >= 2:
+            synergy += 0.10 * (count - 1)
+        if count >= 4:
+            synergy += 0.15
+    
+    if len(series_map) >= 3:
+        synergy += 0.10
+    
+    return min(synergy, 2.0)
+
+# =====================
 # INJURY SYSTEM
 # =====================
 INJURIES = {
@@ -829,7 +924,16 @@ def ensure_player_fields(player):
         "story_progress": {"current_arc": "fearsome_womb", "current_chapter": 1, "completed_arcs": [], "active_story": None},
         "facilities": {},
         "event_claims": [],
-        "last_facility_collect": None
+        "last_facility_collect": None,
+        "gate_tokens": 0,
+        "active_gate": None,
+        "gates_cleared": 0,
+        "dungeon_floor": 1,
+        "dungeon_max_floor": 1,
+        "active_dungeon": None,
+        "dungeon_milestones_claimed": [],
+        "team_dispatch_slots": [],
+        "pvp_stats": {"wins": 0, "losses": 0, "elo": 1000}
     }
     for key, val in defaults.items():
         if key not in player:
