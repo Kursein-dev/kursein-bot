@@ -18,6 +18,9 @@ Kursein v4.0 is a JJK-focused Discord bot featuring a full idle RPG economy game
 - **Item Shop & Inventory**: Healing items, XP boosts, protection wards, success boosters
 - **Rare Loot Collections**: 12 rare items across 8 collections with set bonuses
 - **Story Mode**: 6 story arcs with 22 chapters following the JJK storyline
+- **Gates System**: Solo Leveling-inspired dungeon gates (E/D/C/B/A/S ranks) with gate tokens and rare loot
+- **100-Floor Dungeon**: SAO Tower-style progressive climbing with boss floors, checkpoints, and milestone rewards
+- **Team Dispatch**: Send squads of 2-4 sorcerers with synergy bonuses based on series composition
 
 ## Features
 
@@ -122,6 +125,29 @@ Run your own Jujutsu School, exorcise curses, and become a Special Grade sorcere
 - `~eventclaim` - Claim event rewards
 - Bot Launch Event (Jan 14-21): +50% income/XP, claimable reward
 - Birthday Event (Jan 17-18): +100% income/XP, claimable reward
+
+**Gates System (Solo Leveling):**
+- `~gates` - View available gates
+- `~entergate <rank>` - Enter a gate (E/D/C/B/A/S)
+- `~gateclaim` - Claim gate rewards
+- 6 gate ranks with level requirements (E: Lv1, D: Lv10, C: Lv25, B: Lv50, A: Lv100, S: Lv200)
+- Earn Gate Tokens, yen, XP, and rare loot
+
+**100-Floor Dungeon (SAO Tower):**
+- `~dungeon` - View dungeon progress
+- `~climbfloor` - Attempt the next floor
+- `~dungeonclaim` - Claim floor rewards
+- Boss floors every 10 floors (better rewards)
+- Checkpoints every 10 floors (failure returns to last checkpoint)
+- Milestones: Floor 10 (25K), Floor 25 (Technique), Floor 50 (250K), Floor 75 (Sorcerer), Floor 100 (1M)
+
+**Team Dispatch:**
+- `~teamdispatch` - View team missions
+- `~sendteam <mission_id> <sorcerers>` - Send a squad (2-4 sorcerers)
+- `~teamstatus` - Check team progress
+- `~teamclaim` - Claim completed missions
+- 5 team missions with varying difficulty and team size requirements
+- Synergy bonuses for same-series or diverse teams
 
 **Give/Trade:**
 - `~give <@user> <amount>` - Transfer yen to another player
