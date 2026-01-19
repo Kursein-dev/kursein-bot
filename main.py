@@ -4728,18 +4728,35 @@ def get_best_sorcerer(player):
             best = s
     return best, best_power
 
+def create_health_bar(current_hp, max_hp, length=10):
+    """Create a visual health bar"""
+    if current_hp < 0:
+        current_hp = 0
+    ratio = current_hp / max_hp
+    filled = int(ratio * length)
+    empty = length - filled
+    if ratio > 0.5:
+        bar = "🟩" * filled + "⬛" * empty
+    elif ratio > 0.25:
+        bar = "🟨" * filled + "⬛" * empty
+    else:
+        bar = "🟥" * filled + "⬛" * empty
+    return bar
+
 def simulate_pvp_battle(player, enemy, player_sorc, enemy_sorc):
-    """Simulate a move-based PvP battle and return battle log and winner"""
+    """Simulate a move-based PvP battle and return detailed turn data"""
     player_slv = get_sorcerer_level(player, player_sorc)
     enemy_slv = get_sorcerer_level(enemy, enemy_sorc)
     
     player_moves = get_sorcerer_moves(player_sorc, player_slv)
     enemy_moves = get_sorcerer_moves(enemy_sorc, enemy_slv)
     
-    player_hp = 100 + (player_slv * 10) + (player['level'] * 5)
-    enemy_hp = 100 + (enemy_slv * 10) + (enemy['level'] * 5)
+    player_max_hp = 100 + (player_slv * 10) + (player['level'] * 5)
+    enemy_max_hp = 100 + (enemy_slv * 10) + (enemy['level'] * 5)
+    player_hp = player_max_hp
+    enemy_hp = enemy_max_hp
     
-    battle_log = []
+    turns = []
     turn = 0
     max_turns = 10
     
@@ -4748,17 +4765,33 @@ def simulate_pvp_battle(player, enemy, player_sorc, enemy_sorc):
     
     while player_hp > 0 and enemy_hp > 0 and turn < max_turns:
         turn += 1
+        turn_data = {"turn": turn, "actions": []}
         
         # Player's turn
         move = random.choice(player_moves)
         if random.randint(1, 100) <= move['accuracy']:
             dmg = int(move['power'] * (1 + player_slv * 0.05) * random.uniform(0.8, 1.2))
             enemy_hp -= dmg
-            battle_log.append(f"⚔️ **{player_sorc_name}** used **{move['name']}** for {dmg} damage!")
+            turn_data["actions"].append({
+                "attacker": player_sorc_name,
+                "move": move['name'],
+                "damage": dmg,
+                "hit": True
+            })
         else:
-            battle_log.append(f"❌ **{player_sorc_name}**'s {move['name']} missed!")
+            turn_data["actions"].append({
+                "attacker": player_sorc_name,
+                "move": move['name'],
+                "damage": 0,
+                "hit": False
+            })
         
         if enemy_hp <= 0:
+            turn_data["player_hp"] = player_hp
+            turn_data["enemy_hp"] = max(0, enemy_hp)
+            turn_data["player_max"] = player_max_hp
+            turn_data["enemy_max"] = enemy_max_hp
+            turns.append(turn_data)
             break
         
         # Enemy's turn
@@ -4766,9 +4799,25 @@ def simulate_pvp_battle(player, enemy, player_sorc, enemy_sorc):
         if random.randint(1, 100) <= move['accuracy']:
             dmg = int(move['power'] * (1 + enemy_slv * 0.05) * random.uniform(0.8, 1.2))
             player_hp -= dmg
-            battle_log.append(f"⚔️ **{enemy_sorc_name}** used **{move['name']}** for {dmg} damage!")
+            turn_data["actions"].append({
+                "attacker": enemy_sorc_name,
+                "move": move['name'],
+                "damage": dmg,
+                "hit": True
+            })
         else:
-            battle_log.append(f"❌ **{enemy_sorc_name}**'s {move['name']} missed!")
+            turn_data["actions"].append({
+                "attacker": enemy_sorc_name,
+                "move": move['name'],
+                "damage": 0,
+                "hit": False
+            })
+        
+        turn_data["player_hp"] = max(0, player_hp)
+        turn_data["enemy_hp"] = max(0, enemy_hp)
+        turn_data["player_max"] = player_max_hp
+        turn_data["enemy_max"] = enemy_max_hp
+        turns.append(turn_data)
     
     if player_hp > enemy_hp:
         winner = "player"
@@ -4777,7 +4826,7 @@ def simulate_pvp_battle(player, enemy, player_sorc, enemy_sorc):
     else:
         winner = random.choice(["player", "enemy"])
     
-    return battle_log, winner, player_hp, enemy_hp
+    return turns, winner, max(0, player_hp), max(0, enemy_hp), player_max_hp, enemy_max_hp
 
 def calculate_elo_change(winner_elo, loser_elo, k=32):
     """Calculate ELO changes after a match"""
@@ -4862,7 +4911,74 @@ async def jjk_pvp(ctx, opponent: discord.Member, *, sorcerer_name: str = None):
         return
     
     # Simulate the battle with moves
-    battle_log, winner_side, player_hp, enemy_hp = simulate_pvp_battle(player, enemy, player_sorc, enemy_sorc)
+    turns, winner_side, final_player_hp, final_enemy_hp, player_max_hp, enemy_max_hp = simulate_pvp_battle(player, enemy, player_sorc, enemy_sorc)
+    
+    player_sorc_name = JJK_SORCERERS.get(player_sorc, {}).get('name', player_sorc)
+    enemy_sorc_name = JJK_SORCERERS.get(enemy_sorc, {}).get('name', enemy_sorc)
+    player_slv = get_sorcerer_level(player, player_sorc)
+    enemy_slv = get_sorcerer_level(enemy, enemy_sorc)
+    
+    # Send initial battle embed
+    battle_embed = discord.Embed(
+        title="⚔️ PvP Battle Starting!",
+        description=f"**{ctx.author.display_name}** vs **{opponent.display_name}**",
+        color=0xFF6B6B
+    )
+    battle_embed.add_field(
+        name=f"{player_sorc_name} (Lv{player_slv})",
+        value=f"{create_health_bar(player_max_hp, player_max_hp)}\n❤️ {player_max_hp}/{player_max_hp}",
+        inline=True
+    )
+    battle_embed.add_field(name="VS", value="⚔️", inline=True)
+    battle_embed.add_field(
+        name=f"{enemy_sorc_name} (Lv{enemy_slv})",
+        value=f"{create_health_bar(enemy_max_hp, enemy_max_hp)}\n❤️ {enemy_max_hp}/{enemy_max_hp}",
+        inline=True
+    )
+    battle_embed.set_footer(text="Battle in progress...")
+    
+    battle_msg = await ctx.send(embed=battle_embed)
+    
+    # Animate through turns
+    import asyncio
+    for turn_data in turns:
+        await asyncio.sleep(1.5)
+        
+        turn_num = turn_data["turn"]
+        actions = turn_data["actions"]
+        p_hp = turn_data["player_hp"]
+        e_hp = turn_data["enemy_hp"]
+        p_max = turn_data["player_max"]
+        e_max = turn_data["enemy_max"]
+        
+        # Build action text
+        action_lines = []
+        for action in actions:
+            if action["hit"]:
+                action_lines.append(f"⚔️ **{action['attacker']}** used **{action['move']}** for **{action['damage']}** damage!")
+            else:
+                action_lines.append(f"❌ **{action['attacker']}**'s {action['move']} missed!")
+        
+        battle_embed = discord.Embed(
+            title=f"⚔️ Turn {turn_num}",
+            description="\n".join(action_lines),
+            color=0xFF6B6B
+        )
+        battle_embed.add_field(
+            name=f"{player_sorc_name} (Lv{player_slv})",
+            value=f"{create_health_bar(p_hp, p_max)}\n❤️ {p_hp}/{p_max}",
+            inline=True
+        )
+        battle_embed.add_field(name="VS", value="⚔️", inline=True)
+        battle_embed.add_field(
+            name=f"{enemy_sorc_name} (Lv{enemy_slv})",
+            value=f"{create_health_bar(e_hp, e_max)}\n❤️ {e_hp}/{e_max}",
+            inline=True
+        )
+        
+        await battle_msg.edit(embed=battle_embed)
+    
+    await asyncio.sleep(1)
     
     # Determine winner/loser
     if winner_side == "player":
@@ -4905,36 +5021,24 @@ async def jjk_pvp(ctx, opponent: discord.Member, *, sorcerer_name: str = None):
     
     save_jjk_data()
     
-    player_sorc_name = JJK_SORCERERS.get(player_sorc, {}).get('name', player_sorc)
-    enemy_sorc_name = JJK_SORCERERS.get(enemy_sorc, {}).get('name', enemy_sorc)
-    player_slv = get_sorcerer_level(player, player_sorc)
-    enemy_slv = get_sorcerer_level(enemy, enemy_sorc)
-    
-    # Build result embed
+    # Build final result embed
     embed = discord.Embed(
-        title="⚔️ PvP Battle Results",
-        description="A battle of sorcerers!",
-        color=0xFF6B6B
+        title="⚔️ Battle Complete!",
+        description=f"**{winner_user.display_name}** is victorious!",
+        color=0x00FF00 if winner_side == "player" else 0xFF0000
     )
     
     embed.add_field(
-        name=f"{ctx.author.display_name}",
-        value=f"**{player_sorc_name}** Lv{player_slv}\n{get_pvp_rank(player['pvp_elo'])['emoji']} {player['pvp_elo']} ELO",
+        name=f"{player_sorc_name} (Lv{player_slv})",
+        value=f"{create_health_bar(final_player_hp, player_max_hp)}\n❤️ {final_player_hp}/{player_max_hp}",
         inline=True
     )
-    
     embed.add_field(name="VS", value="⚔️", inline=True)
-    
     embed.add_field(
-        name=f"{opponent.display_name}",
-        value=f"**{enemy_sorc_name}** Lv{enemy_slv}\n{get_pvp_rank(enemy['pvp_elo'])['emoji']} {enemy['pvp_elo']} ELO",
+        name=f"{enemy_sorc_name} (Lv{enemy_slv})",
+        value=f"{create_health_bar(final_enemy_hp, enemy_max_hp)}\n❤️ {final_enemy_hp}/{enemy_max_hp}",
         inline=True
     )
-    
-    # Show battle log (last 4 moves for brevity)
-    if battle_log:
-        log_text = "\n".join(battle_log[-4:])
-        embed.add_field(name="📜 Battle Log", value=log_text, inline=False)
     
     result_text = f"🏆 **{winner_user.display_name}** wins!\n"
     result_text += f"+{elo_gain} ELO | +{yen_reward:,} yen | +{xp_reward} XP\n"
@@ -4959,7 +5063,7 @@ async def jjk_pvp(ctx, opponent: discord.Member, *, sorcerer_name: str = None):
     
     embed.set_footer(text="Tip: Use ~pvp @user <sorcerer> to pick your fighter!")
     
-    await ctx.send(embed=embed)
+    await battle_msg.edit(embed=embed)
 
 @bot.hybrid_command(name='pvpstats', aliases=['pvpprofile', 'ranked'])
 async def jjk_pvp_stats(ctx, member: Optional[discord.Member] = None):
