@@ -21,6 +21,8 @@ Kursein v4.0 is a JJK-focused Discord bot featuring a full idle RPG economy game
 - **Gates System**: Solo Leveling-inspired dungeon gates (E/D/C/B/A/S ranks) with gate tokens and rare loot
 - **100-Floor Dungeon**: SAO Tower-style progressive climbing with boss floors, checkpoints, and milestone rewards
 - **Team Dispatch**: Send squads of 2-4 sorcerers with synergy bonuses based on series composition
+- **Sorcerer Levels**: Each owned sorcerer levels independently (1-100) from hunts, training, and PvP
+- **Move-Based PvP**: Sorcerers have unique signature moves with power, accuracy, and unlock levels
 
 ## Features
 
@@ -34,12 +36,14 @@ Run your own Jujutsu School, exorcise curses, and become a Special Grade sorcere
 - `~cooldowns` - View all cooldown timers
 - `~guide` - Full interactive command guide with button navigation
 
-**PvP Battle System (NEW!):**
-- `~pvp @user` - Challenge another sorcerer to battle
+**PvP Battle System:**
+- `~pvp @user [sorcerer]` - Challenge with optional sorcerer selection
 - `~pvpstats` - View your PvP stats and rank
-- `~lb` then click PvP tab - PvP leaderboard (or use legacy alias `~pvplb`)
+- `~sorcererstats <name>` - View sorcerer moves, level, and stats
+- `~lb` then click PvP tab - PvP leaderboard
 - ELO-based ranking: Unranked -> Bronze -> Silver -> Gold -> Platinum -> Diamond -> Special Grade
-- Combat power based on level, sorcerers, techniques, tools, and domain
+- Move-based combat: Each sorcerer has unique signature moves with power/accuracy
+- Sorcerers gain XP from battles and level up (1-100)
 - 5 minute cooldown between battles
 
 **Side Missions (NEW!):**

@@ -1964,7 +1964,7 @@ async def jjk_hire(ctx, *, sorcerer_name: str):
     
     await ctx.send(embed=embed)
 
-@bot.hybrid_command(name='sorcererstats', aliases=['sstats', 'sorcstat'])
+@bot.hybrid_command(name='sorcererstats', aliases=['sorcstat', 'sorcstats'])
 async def jjk_sorcerer_stats(ctx, *, sorcerer_name: str):
     """View detailed stats and moves for a specific sorcerer"""
     player = get_jjk_player(ctx.author.id)
