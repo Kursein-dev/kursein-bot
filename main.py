@@ -227,6 +227,219 @@ JJK_DOMAINS = {
     4: {"name": "Infinite Void", "multiplier": 5.0, "cost": 2000000},
 }
 
+# =====================
+# SORCERER MOVE SETS
+# =====================
+SORCERER_MOVES = {
+    # JJK CORE
+    "yuji": [
+        {"name": "Divergent Fist", "power": 45, "accuracy": 95, "type": "physical", "desc": "Delayed cursed energy impact"},
+        {"name": "Black Flash", "power": 80, "accuracy": 75, "type": "special", "desc": "2.5x critical hit", "unlock_level": 10},
+        {"name": "Manji Kick", "power": 55, "accuracy": 90, "type": "physical", "desc": "Powerful roundhouse kick"},
+    ],
+    "megumi": [
+        {"name": "Divine Dog", "power": 40, "accuracy": 95, "type": "summon", "desc": "Wolf shikigami attack"},
+        {"name": "Nue", "power": 55, "accuracy": 85, "type": "summon", "desc": "Lightning owl strike"},
+        {"name": "Mahoraga", "power": 120, "accuracy": 60, "type": "ultimate", "desc": "Wheel of destruction", "unlock_level": 25},
+    ],
+    "nobara": [
+        {"name": "Straw Doll", "power": 50, "accuracy": 90, "type": "curse", "desc": "Resonance damage"},
+        {"name": "Hairpin", "power": 60, "accuracy": 85, "type": "ranged", "desc": "Nail projectile barrage"},
+        {"name": "Black Flash", "power": 80, "accuracy": 75, "type": "special", "desc": "Critical resonance", "unlock_level": 15},
+    ],
+    "maki": [
+        {"name": "Weapon Strike", "power": 55, "accuracy": 95, "type": "physical", "desc": "Cursed tool slash"},
+        {"name": "Heavenly Restriction", "power": 75, "accuracy": 90, "type": "physical", "desc": "Enhanced physical power", "unlock_level": 10},
+        {"name": "Dragon Bone", "power": 90, "accuracy": 85, "type": "special", "desc": "Ultimate weapon technique", "unlock_level": 20},
+    ],
+    "gojo": [
+        {"name": "Infinity", "power": 30, "accuracy": 100, "type": "defense", "desc": "Absolute barrier"},
+        {"name": "Red", "power": 70, "accuracy": 90, "type": "cursed", "desc": "Repulsive force"},
+        {"name": "Hollow Purple", "power": 150, "accuracy": 70, "type": "ultimate", "desc": "Imaginary mass", "unlock_level": 30},
+    ],
+    "sukuna": [
+        {"name": "Dismantle", "power": 80, "accuracy": 95, "type": "slash", "desc": "Default slash attack"},
+        {"name": "Cleave", "power": 100, "accuracy": 85, "type": "slash", "desc": "Adaptive cutting force"},
+        {"name": "Divine Flame", "power": 140, "accuracy": 75, "type": "ultimate", "desc": "Open fire arrow", "unlock_level": 35},
+    ],
+    "todo": [
+        {"name": "Heavy Blow", "power": 60, "accuracy": 90, "type": "physical", "desc": "Powerful punch"},
+        {"name": "Boogie Woogie", "power": 50, "accuracy": 100, "type": "utility", "desc": "Position swap confusion"},
+        {"name": "Black Flash", "power": 90, "accuracy": 70, "type": "special", "desc": "Enhanced critical", "unlock_level": 15},
+    ],
+    "nanami": [
+        {"name": "Ratio Technique", "power": 65, "accuracy": 95, "type": "curse", "desc": "7:3 weak point strike"},
+        {"name": "Overtime", "power": 85, "accuracy": 90, "type": "special", "desc": "Binding vow power boost", "unlock_level": 12},
+        {"name": "Collapse", "power": 100, "accuracy": 80, "type": "ultimate", "desc": "110% output", "unlock_level": 20},
+    ],
+    "yuta": [
+        {"name": "Rika Claw", "power": 70, "accuracy": 90, "type": "curse", "desc": "Queen of Curses attack"},
+        {"name": "Copy", "power": 60, "accuracy": 85, "type": "utility", "desc": "Copied technique"},
+        {"name": "Full Manifestation", "power": 130, "accuracy": 75, "type": "ultimate", "desc": "Complete Rika release", "unlock_level": 25},
+    ],
+    "toji": [
+        {"name": "Inverted Spear", "power": 75, "accuracy": 95, "type": "physical", "desc": "Nullifies cursed energy"},
+        {"name": "Chain Strike", "power": 60, "accuracy": 90, "type": "physical", "desc": "Playful cloud combo"},
+        {"name": "Heavenly Restriction", "power": 110, "accuracy": 90, "type": "special", "desc": "Peak physical form", "unlock_level": 20},
+    ],
+    # SOLO LEVELING
+    "sung_jinwoo": [
+        {"name": "Dagger Slash", "power": 50, "accuracy": 95, "type": "physical", "desc": "Swift blade attack"},
+        {"name": "Shadow Exchange", "power": 70, "accuracy": 85, "type": "shadow", "desc": "Teleport strike"},
+        {"name": "Arise", "power": 120, "accuracy": 80, "type": "ultimate", "desc": "Shadow Army summoning", "unlock_level": 25},
+    ],
+    "cha_haein": [
+        {"name": "Sword Dance", "power": 55, "accuracy": 95, "type": "physical", "desc": "Elegant blade work"},
+        {"name": "Piercing Strike", "power": 75, "accuracy": 85, "type": "physical", "desc": "Armor-piercing thrust", "unlock_level": 10},
+    ],
+    # DEMON SLAYER
+    "tanjiro": [
+        {"name": "Water Breathing", "power": 50, "accuracy": 90, "type": "breath", "desc": "Flowing water style"},
+        {"name": "Hinokami Kagura", "power": 85, "accuracy": 80, "type": "fire", "desc": "Sun breathing technique", "unlock_level": 15},
+        {"name": "Thirteenth Form", "power": 120, "accuracy": 70, "type": "ultimate", "desc": "Ultimate sun form", "unlock_level": 30},
+    ],
+    "rengoku": [
+        {"name": "Flame Breathing", "power": 65, "accuracy": 90, "type": "fire", "desc": "Blazing sword strike"},
+        {"name": "Esoteric Art", "power": 100, "accuracy": 80, "type": "special", "desc": "Ninth Form: Rengoku", "unlock_level": 20},
+    ],
+    # NARUTO
+    "naruto": [
+        {"name": "Rasengan", "power": 65, "accuracy": 90, "type": "chakra", "desc": "Spiraling sphere"},
+        {"name": "Sage Mode", "power": 85, "accuracy": 85, "type": "sage", "desc": "Enhanced combat form", "unlock_level": 15},
+        {"name": "Baryon Mode", "power": 150, "accuracy": 70, "type": "ultimate", "desc": "Life force fusion", "unlock_level": 35},
+    ],
+    "sasuke": [
+        {"name": "Chidori", "power": 70, "accuracy": 90, "type": "lightning", "desc": "Lightning blade"},
+        {"name": "Amaterasu", "power": 90, "accuracy": 80, "type": "fire", "desc": "Black flames", "unlock_level": 15},
+        {"name": "Susanoo", "power": 130, "accuracy": 75, "type": "ultimate", "desc": "Complete body Susanoo", "unlock_level": 30},
+    ],
+    # BLEACH
+    "ichigo": [
+        {"name": "Getsuga Tensho", "power": 70, "accuracy": 90, "type": "spiritual", "desc": "Moon fang strike"},
+        {"name": "Bankai", "power": 95, "accuracy": 85, "type": "special", "desc": "Tensa Zangetsu", "unlock_level": 15},
+        {"name": "Final Getsuga", "power": 140, "accuracy": 70, "type": "ultimate", "desc": "Mugetsu", "unlock_level": 35},
+    ],
+    # ONE PIECE
+    "luffy": [
+        {"name": "Gum-Gum Pistol", "power": 50, "accuracy": 95, "type": "physical", "desc": "Rubber fist punch"},
+        {"name": "Gear Fourth", "power": 90, "accuracy": 85, "type": "haki", "desc": "Boundman form", "unlock_level": 20},
+        {"name": "Gear Fifth", "power": 135, "accuracy": 75, "type": "ultimate", "desc": "Sun God Nika", "unlock_level": 35},
+    ],
+    # MY HERO ACADEMIA
+    "deku": [
+        {"name": "Detroit Smash", "power": 60, "accuracy": 90, "type": "physical", "desc": "100% power punch"},
+        {"name": "Full Cowling", "power": 75, "accuracy": 90, "type": "physical", "desc": "20% constant output", "unlock_level": 10},
+        {"name": "United States of Smash", "power": 130, "accuracy": 75, "type": "ultimate", "desc": "All Might's final move", "unlock_level": 30},
+    ],
+    "all_might": [
+        {"name": "Texas Smash", "power": 80, "accuracy": 90, "type": "physical", "desc": "Single power punch"},
+        {"name": "Carolina Smash", "power": 95, "accuracy": 85, "type": "physical", "desc": "Cross arm strike", "unlock_level": 15},
+        {"name": "United States of Smash", "power": 150, "accuracy": 70, "type": "ultimate", "desc": "Final Symbol move", "unlock_level": 25},
+    ],
+    # ATTACK ON TITAN
+    "levi": [
+        {"name": "Blade Slash", "power": 65, "accuracy": 95, "type": "physical", "desc": "Swift ODM attack"},
+        {"name": "Spinning Strike", "power": 85, "accuracy": 85, "type": "physical", "desc": "Rotation slash combo", "unlock_level": 10},
+        {"name": "Ackerman Awakening", "power": 110, "accuracy": 80, "type": "special", "desc": "Full power mode", "unlock_level": 20},
+    ],
+    "eren": [
+        {"name": "Titan Punch", "power": 70, "accuracy": 90, "type": "titan", "desc": "Attack Titan strike"},
+        {"name": "Hardening", "power": 60, "accuracy": 95, "type": "defense", "desc": "Crystal armor attack"},
+        {"name": "Founding Titan", "power": 140, "accuracy": 70, "type": "ultimate", "desc": "Coordinate power", "unlock_level": 30},
+    ],
+    # CHAINSAW MAN
+    "denji": [
+        {"name": "Chainsaw Slash", "power": 60, "accuracy": 90, "type": "devil", "desc": "Basic chainsaw attack"},
+        {"name": "Chain Throw", "power": 70, "accuracy": 85, "type": "ranged", "desc": "Extended chain strike", "unlock_level": 10},
+        {"name": "Full Devil", "power": 120, "accuracy": 75, "type": "ultimate", "desc": "Complete transformation", "unlock_level": 25},
+    ],
+    "makima_csm": [
+        {"name": "Control", "power": 50, "accuracy": 100, "type": "psychic", "desc": "Force submission"},
+        {"name": "Contract Kill", "power": 90, "accuracy": 80, "type": "devil", "desc": "Borrowed devil power", "unlock_level": 15},
+        {"name": "Bang", "power": 130, "accuracy": 85, "type": "ultimate", "desc": "Conceptual attack", "unlock_level": 30},
+    ],
+    # HUNTER X HUNTER
+    "gon": [
+        {"name": "Rock", "power": 70, "accuracy": 85, "type": "nen", "desc": "Jajanken power punch"},
+        {"name": "Paper", "power": 50, "accuracy": 95, "type": "ranged", "desc": "Aura projectile"},
+        {"name": "Adult Form", "power": 140, "accuracy": 70, "type": "ultimate", "desc": "Transformation", "unlock_level": 30},
+    ],
+    "killua": [
+        {"name": "Claws", "power": 55, "accuracy": 95, "type": "physical", "desc": "Assassin technique"},
+        {"name": "Godspeed", "power": 90, "accuracy": 90, "type": "lightning", "desc": "Lightning speed mode", "unlock_level": 15},
+        {"name": "Thunder Palm", "power": 75, "accuracy": 90, "type": "lightning", "desc": "Electric strike"},
+    ],
+    # TOKYO GHOUL
+    "kaneki": [
+        {"name": "Kagune Strike", "power": 60, "accuracy": 90, "type": "ghoul", "desc": "Rinkaku attack"},
+        {"name": "Kakuja", "power": 95, "accuracy": 80, "type": "special", "desc": "Centipede form", "unlock_level": 15},
+        {"name": "Dragon", "power": 140, "accuracy": 65, "type": "ultimate", "desc": "Final form", "unlock_level": 35},
+    ],
+    # EXCLUSIVE
+    "saya": [
+        {"name": "Noctflare Spark", "power": 65, "accuracy": 90, "type": "fire", "desc": "Black flame burst"},
+        {"name": "Burning Mark", "power": 80, "accuracy": 85, "type": "curse", "desc": "Target-locked flames", "unlock_level": 10},
+        {"name": "Eternal Blaze", "power": 125, "accuracy": 75, "type": "ultimate", "desc": "Oxygenless inferno", "unlock_level": 25},
+    ],
+}
+
+DEFAULT_MOVES = [
+    {"name": "Strike", "power": 40, "accuracy": 95, "type": "physical", "desc": "Basic attack"},
+    {"name": "Guard", "power": 20, "accuracy": 100, "type": "defense", "desc": "Defensive stance"},
+    {"name": "Power Strike", "power": 60, "accuracy": 80, "type": "physical", "desc": "Heavy attack", "unlock_level": 10},
+]
+
+def get_sorcerer_moves(sorcerer_key, sorcerer_level=1):
+    """Get available moves for a sorcerer based on their level"""
+    moves = SORCERER_MOVES.get(sorcerer_key, DEFAULT_MOVES)
+    available = []
+    for move in moves:
+        unlock_level = move.get("unlock_level", 1)
+        if sorcerer_level >= unlock_level:
+            available.append(move)
+    if not available:
+        available = [moves[0]] if moves else DEFAULT_MOVES[:1]
+    return available
+
+def get_sorcerer_level(player, sorcerer_key):
+    """Get the level of a specific sorcerer for the player"""
+    sorcerer_data = player.get("sorcerer_levels", {}).get(sorcerer_key, {"level": 1, "xp": 0})
+    return sorcerer_data.get("level", 1)
+
+def get_sorcerer_xp(player, sorcerer_key):
+    """Get the XP of a specific sorcerer"""
+    sorcerer_data = player.get("sorcerer_levels", {}).get(sorcerer_key, {"level": 1, "xp": 0})
+    return sorcerer_data.get("xp", 0)
+
+def xp_for_sorcerer_level(level):
+    """Calculate XP needed for next sorcerer level"""
+    return int(100 * (level ** 1.5))
+
+def add_sorcerer_xp(player, sorcerer_key, xp_amount):
+    """Add XP to a sorcerer and handle level ups"""
+    if "sorcerer_levels" not in player:
+        player["sorcerer_levels"] = {}
+    if sorcerer_key not in player["sorcerer_levels"]:
+        player["sorcerer_levels"][sorcerer_key] = {"level": 1, "xp": 0}
+    
+    sorcerer = player["sorcerer_levels"][sorcerer_key]
+    sorcerer["xp"] += xp_amount
+    leveled_up = False
+    
+    while sorcerer["xp"] >= xp_for_sorcerer_level(sorcerer["level"]):
+        sorcerer["xp"] -= xp_for_sorcerer_level(sorcerer["level"])
+        sorcerer["level"] += 1
+        leveled_up = True
+    
+    return leveled_up, sorcerer["level"]
+
+def get_sorcerer_power(player, sorcerer_key):
+    """Calculate a sorcerer's combat power based on their level and base stats"""
+    sorcerer_info = JJK_SORCERERS.get(sorcerer_key, {})
+    base_income = sorcerer_info.get("income", 10)
+    sorcerer_level = get_sorcerer_level(player, sorcerer_key)
+    return int(base_income * (1 + (sorcerer_level - 1) * 0.15))
+
 JJK_CURSES = [
     {"name": "Finger Bearer", "min_yen": 50, "max_yen": 150, "xp": 5},
     {"name": "Cursed Spirit", "min_yen": 100, "max_yen": 300, "xp": 10},
@@ -949,11 +1162,19 @@ def ensure_player_fields(player):
         "active_dungeon": None,
         "dungeon_milestones_claimed": [],
         "team_dispatch_slots": [],
-        "pvp_stats": {"wins": 0, "losses": 0, "elo": 1000}
+        "pvp_stats": {"wins": 0, "losses": 0, "elo": 1000},
+        "sorcerer_levels": {},
+        "active_sorcerer": None,
+        "last_pvp": None
     }
     for key, val in defaults.items():
         if key not in player:
             player[key] = val
+    for s in player.get("sorcerers", []):
+        if s not in player.get("sorcerer_levels", {}):
+            if "sorcerer_levels" not in player:
+                player["sorcerer_levels"] = {}
+            player["sorcerer_levels"][s] = {"level": 1, "xp": 0}
     return player
 
 import random
@@ -1437,6 +1658,16 @@ async def jjk_hunt(ctx):
     player['curses_exorcised'] += 1
     player['last_hunt'] = now.isoformat()
     
+    # Give XP to a random sorcerer
+    sorcerer_leveled = None
+    owned_sorcerers = player.get('sorcerers', [])
+    if owned_sorcerers:
+        random_sorc = random.choice(owned_sorcerers)
+        sorc_xp = random.randint(5, 15)
+        leveled_up, new_level = add_sorcerer_xp(player, random_sorc, sorc_xp)
+        if leveled_up:
+            sorcerer_leveled = (random_sorc, new_level)
+    
     # Track side mission progress
     try:
         track_side_mission_progress(player, "hunt")
@@ -1465,6 +1696,10 @@ async def jjk_hunt(ctx):
         grade = get_jjk_grade(player['level'])
         embed.add_field(name="🎉 LEVEL UP!", value=f"You're now Level {player['level']} ({grade})!", inline=False)
     
+    if sorcerer_leveled:
+        sorc_name = JJK_SORCERERS.get(sorcerer_leveled[0], {}).get('name', sorcerer_leveled[0])
+        embed.add_field(name="🎊 Sorcerer Level Up!", value=f"**{sorc_name}** reached Level {sorcerer_leveled[1]}!", inline=False)
+    
     await ctx.send(embed=embed)
 
 @bot.hybrid_command(name='train')
@@ -1488,6 +1723,16 @@ async def jjk_train(ctx):
     xp_earned = apply_xp_multipliers(base_xp, player)
     player['xp'] += xp_earned
     player['last_train'] = now.isoformat()
+    
+    # Give XP to a random sorcerer (more XP than hunt since training)
+    sorcerer_leveled = None
+    owned_sorcerers = player.get('sorcerers', [])
+    if owned_sorcerers:
+        random_sorc = random.choice(owned_sorcerers)
+        sorc_xp = random.randint(10, 25)
+        leveled_up, new_level = add_sorcerer_xp(player, random_sorc, sorc_xp)
+        if leveled_up:
+            sorcerer_leveled = (random_sorc, new_level)
     
     # Track side mission progress
     try:
@@ -1521,6 +1766,10 @@ async def jjk_train(ctx):
     if leveled:
         grade = get_jjk_grade(player['level'])
         embed.add_field(name="🎉 LEVEL UP!", value=f"Level {player['level']} ({grade})!", inline=False)
+    
+    if sorcerer_leveled:
+        sorc_name = JJK_SORCERERS.get(sorcerer_leveled[0], {}).get('name', sorcerer_leveled[0])
+        embed.add_field(name="🎊 Sorcerer Level Up!", value=f"**{sorc_name}** reached Level {sorcerer_leveled[1]}!", inline=False)
     
     await ctx.send(embed=embed)
 
@@ -1632,15 +1881,20 @@ async def jjk_sorcerers(ctx):
         )
         
         for key, sorc in page_sorcs:
-            owned = "✅" if key in player.get('sorcerers', []) else ""
+            owned = key in player.get('sorcerers', [])
             locked = player['level'] < sorc['unlock']
-            status = "🔒" if locked else owned
             
             collab = f" [{sorc.get('collab', '')}]" if sorc.get('collab') else ""
             
             if locked:
+                status = "🔒"
                 value = f"Unlocks at Level {sorc['unlock']}{collab}"
+            elif owned:
+                slv = get_sorcerer_level(player, key)
+                status = f"Lv{slv}"
+                value = f"Income: +{sorc['income']}/hr | Power: {get_sorcerer_power(player, key)}{collab}"
             else:
+                status = ""
                 value = f"Cost: {sorc['cost']:,} yen\nIncome: +{sorc['income']}/hr{collab}"
             
             embed.add_field(
@@ -1695,6 +1949,9 @@ async def jjk_hire(ctx, *, sorcerer_name: str):
     
     player['yen'] -= sorc['cost']
     player['sorcerers'].append(key)
+    if "sorcerer_levels" not in player:
+        player["sorcerer_levels"] = {}
+    player["sorcerer_levels"][key] = {"level": 1, "xp": 0}
     save_jjk_data()
     
     embed = discord.Embed(
@@ -1704,6 +1961,67 @@ async def jjk_hire(ctx, *, sorcerer_name: str):
     )
     embed.add_field(name="💴 Cost", value=f"-{sorc['cost']:,} yen", inline=True)
     embed.add_field(name="💰 Income Boost", value=f"+{sorc['income']}/hr", inline=True)
+    
+    await ctx.send(embed=embed)
+
+@bot.hybrid_command(name='sorcererstats', aliases=['sstats', 'sorcstat'])
+async def jjk_sorcerer_stats(ctx, *, sorcerer_name: str):
+    """View detailed stats and moves for a specific sorcerer"""
+    player = get_jjk_player(ctx.author.id)
+    if not player:
+        await ctx.send("Use `~jjkstart` to begin your journey!")
+        return
+    
+    sorc_key = sorcerer_name.lower().replace(" ", "").replace("-", "_")
+    
+    found = None
+    for key, sorc in JJK_SORCERERS.items():
+        if key == sorc_key or sorc['name'].lower().replace(" ", "") == sorc_key.replace("_", ""):
+            found = (key, sorc)
+            break
+    
+    if not found:
+        await ctx.send(f"❌ Sorcerer not found. Use `~sorcerers` to see available options.")
+        return
+    
+    key, sorc = found
+    
+    if key not in player.get('sorcerers', []):
+        await ctx.send(f"❌ You haven't hired **{sorc['name']}** yet!")
+        return
+    
+    slv = get_sorcerer_level(player, key)
+    sxp = get_sorcerer_xp(player, key)
+    xp_needed = xp_for_sorcerer_level(slv)
+    power = get_sorcerer_power(player, key)
+    moves = get_sorcerer_moves(key, slv)
+    
+    embed = discord.Embed(
+        title=f"{sorc['emoji']} {sorc['name']}",
+        description=f"**{sorc['grade']}** | {sorc.get('collab', 'JJK Core')}",
+        color=0x9B59B6
+    )
+    
+    embed.add_field(name="📊 Level", value=f"**{slv}**", inline=True)
+    embed.add_field(name="✨ XP", value=f"{sxp:,}/{xp_needed:,}", inline=True)
+    embed.add_field(name="⚔️ Power", value=f"**{power:,}**", inline=True)
+    embed.add_field(name="💰 Income", value=f"+{sorc['income']}/hr", inline=True)
+    
+    moves_text = ""
+    all_moves = SORCERER_MOVES.get(key, DEFAULT_MOVES)
+    for move in all_moves:
+        unlock = move.get("unlock_level", 1)
+        unlocked = slv >= unlock
+        status = "✅" if unlocked else f"🔒 Lv{unlock}"
+        moves_text += f"**{move['name']}** {status}\n"
+        if unlocked:
+            moves_text += f"  Power: {move['power']} | Acc: {move['accuracy']}% | {move['type'].title()}\n"
+    
+    embed.add_field(name="🎯 Move Set", value=moves_text or "No special moves", inline=False)
+    
+    progress = int((sxp / xp_needed) * 10) if xp_needed > 0 else 10
+    bar = "█" * progress + "░" * (10 - progress)
+    embed.set_footer(text=f"XP Progress: [{bar}] {int(sxp/xp_needed*100) if xp_needed > 0 else 100}%")
     
     await ctx.send(embed=embed)
 
@@ -2494,18 +2812,21 @@ Special bonuses during holidays!
     def get_pvp_embed(self):
         embed = discord.Embed(title="🗡️ PvP Battle System", color=0xFF6B6B)
         embed.add_field(name="Battle Commands", value=f"""
-`{self.prefix}pvp @user` - Challenge another sorcerer
+`{self.prefix}pvp @user [sorcerer]` - Challenge with optional sorcerer pick
 `{self.prefix}pvpstats` - View your PvP stats & rank
+`{self.prefix}sorcererstats <name>` - View sorcerer moves & level
+        """, inline=False)
+        embed.add_field(name="Sorcerer Combat", value="""
+Each sorcerer has unique **moves** with power & accuracy!
+Level up sorcerers via hunting/training for stronger moves.
+Your best sorcerer fights if none specified.
         """, inline=False)
         embed.add_field(name="ELO Ranking System", value="""
 **Unranked** → **Bronze** (800) → **Silver** (1000)
 → **Gold** (1200) → **Platinum** (1400)
 → **Diamond** (1600) → **Special Grade** (1800+)
         """, inline=False)
-        embed.add_field(name="Combat Power", value="""
-Your power is based on: Level, Sorcerers, Techniques, Tools, Domain
-5 minute cooldown between battles!
-        """, inline=False)
+        embed.set_footer(text="5 minute cooldown between battles!")
         return embed
     
     def get_sidemissions_embed(self):
@@ -4392,6 +4713,72 @@ def calculate_combat_power(player):
     domain_mult = JJK_DOMAINS[player.get('domain', 0)]['multiplier']
     return int((base + sorcerer_bonus + tool_bonus) * tech_mult * domain_mult)
 
+def get_best_sorcerer(player):
+    """Get the player's strongest sorcerer based on level and base power"""
+    sorcerers = player.get('sorcerers', [])
+    if not sorcerers:
+        return None, 0
+    
+    best = None
+    best_power = 0
+    for s in sorcerers:
+        power = get_sorcerer_power(player, s)
+        if power > best_power:
+            best_power = power
+            best = s
+    return best, best_power
+
+def simulate_pvp_battle(player, enemy, player_sorc, enemy_sorc):
+    """Simulate a move-based PvP battle and return battle log and winner"""
+    player_slv = get_sorcerer_level(player, player_sorc)
+    enemy_slv = get_sorcerer_level(enemy, enemy_sorc)
+    
+    player_moves = get_sorcerer_moves(player_sorc, player_slv)
+    enemy_moves = get_sorcerer_moves(enemy_sorc, enemy_slv)
+    
+    player_hp = 100 + (player_slv * 10) + (player['level'] * 5)
+    enemy_hp = 100 + (enemy_slv * 10) + (enemy['level'] * 5)
+    
+    battle_log = []
+    turn = 0
+    max_turns = 10
+    
+    player_sorc_name = JJK_SORCERERS.get(player_sorc, {}).get('name', player_sorc)
+    enemy_sorc_name = JJK_SORCERERS.get(enemy_sorc, {}).get('name', enemy_sorc)
+    
+    while player_hp > 0 and enemy_hp > 0 and turn < max_turns:
+        turn += 1
+        
+        # Player's turn
+        move = random.choice(player_moves)
+        if random.randint(1, 100) <= move['accuracy']:
+            dmg = int(move['power'] * (1 + player_slv * 0.05) * random.uniform(0.8, 1.2))
+            enemy_hp -= dmg
+            battle_log.append(f"⚔️ **{player_sorc_name}** used **{move['name']}** for {dmg} damage!")
+        else:
+            battle_log.append(f"❌ **{player_sorc_name}**'s {move['name']} missed!")
+        
+        if enemy_hp <= 0:
+            break
+        
+        # Enemy's turn
+        move = random.choice(enemy_moves)
+        if random.randint(1, 100) <= move['accuracy']:
+            dmg = int(move['power'] * (1 + enemy_slv * 0.05) * random.uniform(0.8, 1.2))
+            player_hp -= dmg
+            battle_log.append(f"⚔️ **{enemy_sorc_name}** used **{move['name']}** for {dmg} damage!")
+        else:
+            battle_log.append(f"❌ **{enemy_sorc_name}**'s {move['name']} missed!")
+    
+    if player_hp > enemy_hp:
+        winner = "player"
+    elif enemy_hp > player_hp:
+        winner = "enemy"
+    else:
+        winner = random.choice(["player", "enemy"])
+    
+    return battle_log, winner, player_hp, enemy_hp
+
 def calculate_elo_change(winner_elo, loser_elo, k=32):
     """Calculate ELO changes after a match"""
     expected_win = 1 / (1 + 10 ** ((loser_elo - winner_elo) / 400))
@@ -4400,8 +4787,8 @@ def calculate_elo_change(winner_elo, loser_elo, k=32):
     return max(gain, 10), max(loss, 5)
 
 @bot.hybrid_command(name='pvp', aliases=['battle', 'fight', 'duel'])
-async def jjk_pvp(ctx, opponent: discord.Member):
-    """Challenge another sorcerer to a PvP battle!"""
+async def jjk_pvp(ctx, opponent: discord.Member, *, sorcerer_name: str = None):
+    """Challenge another sorcerer to a PvP battle! Optionally specify which sorcerer to use."""
     if opponent == ctx.author:
         await ctx.send("You can't fight yourself!")
         return
@@ -4451,35 +4838,41 @@ async def jjk_pvp(ctx, opponent: discord.Member):
         enemy['pvp_wins'] = 0
         enemy['pvp_losses'] = 0
     
-    # Calculate combat power
-    player_power = calculate_combat_power(player)
-    enemy_power = calculate_combat_power(enemy)
+    # Select sorcerer for player
+    if sorcerer_name:
+        sorc_key = sorcerer_name.lower().replace(" ", "").replace("-", "_")
+        player_sorc = None
+        for key in player.get('sorcerers', []):
+            if key == sorc_key or JJK_SORCERERS.get(key, {}).get('name', '').lower().replace(" ", "") == sorc_key.replace("_", ""):
+                player_sorc = key
+                break
+        if not player_sorc:
+            await ctx.send(f"❌ You don't have that sorcerer! Use `~sorcerers` to see your team.")
+            return
+    else:
+        player_sorc, _ = get_best_sorcerer(player)
+        if not player_sorc:
+            await ctx.send("❌ You need at least one sorcerer to battle!")
+            return
     
-    # Battle simulation with randomness
-    player_roll = random.randint(70, 130) / 100.0
-    enemy_roll = random.randint(70, 130) / 100.0
+    # Enemy uses their best sorcerer
+    enemy_sorc, _ = get_best_sorcerer(enemy)
+    if not enemy_sorc:
+        await ctx.send(f"❌ {opponent.display_name} has no sorcerers to battle with!")
+        return
     
-    player_score = int(player_power * player_roll)
-    enemy_score = int(enemy_power * enemy_roll)
+    # Simulate the battle with moves
+    battle_log, winner_side, player_hp, enemy_hp = simulate_pvp_battle(player, enemy, player_sorc, enemy_sorc)
     
-    # Determine winner
-    if player_score > enemy_score:
+    # Determine winner/loser
+    if winner_side == "player":
         winner, loser = player, enemy
         winner_user, loser_user = ctx.author, opponent
-        winner_score, loser_score = player_score, enemy_score
-    elif enemy_score > player_score:
+        winner_sorc, loser_sorc = player_sorc, enemy_sorc
+    else:
         winner, loser = enemy, player
         winner_user, loser_user = opponent, ctx.author
-        winner_score, loser_score = enemy_score, player_score
-    else:
-        # Tie - slight advantage to challenger
-        if random.random() > 0.5:
-            winner, loser = player, enemy
-            winner_user, loser_user = ctx.author, opponent
-        else:
-            winner, loser = enemy, player
-            winner_user, loser_user = opponent, ctx.author
-        winner_score, loser_score = player_score, enemy_score
+        winner_sorc, loser_sorc = enemy_sorc, player_sorc
     
     # Calculate ELO changes
     elo_gain, elo_loss = calculate_elo_change(winner['pvp_elo'], loser['pvp_elo'])
@@ -4490,7 +4883,7 @@ async def jjk_pvp(ctx, opponent: discord.Member):
     winner['pvp_elo'] += elo_gain
     winner['pvp_wins'] += 1
     loser['pvp_elo'] = max(0, loser['pvp_elo'] - elo_loss)
-    loser['pvp_losses'] += 1
+    loser['pvp_losses'] = loser.get('pvp_losses', 0) + 1
     
     new_winner_rank = get_pvp_rank(winner['pvp_elo'])
     new_loser_rank = get_pvp_rank(loser['pvp_elo'])
@@ -4502,21 +4895,31 @@ async def jjk_pvp(ctx, opponent: discord.Member):
     winner['xp'] += xp_reward
     check_level_up(winner)
     
+    # Give XP to sorcerers who fought
+    add_sorcerer_xp(player, player_sorc, 20)
+    add_sorcerer_xp(enemy, enemy_sorc, 10)
+    
     # Update cooldowns
     player['last_pvp'] = now.isoformat()
     enemy['last_pvp'] = now.isoformat()
     
     save_jjk_data()
     
+    player_sorc_name = JJK_SORCERERS.get(player_sorc, {}).get('name', player_sorc)
+    enemy_sorc_name = JJK_SORCERERS.get(enemy_sorc, {}).get('name', enemy_sorc)
+    player_slv = get_sorcerer_level(player, player_sorc)
+    enemy_slv = get_sorcerer_level(enemy, enemy_sorc)
+    
     # Build result embed
     embed = discord.Embed(
         title="⚔️ PvP Battle Results",
+        description="A battle of sorcerers!",
         color=0xFF6B6B
     )
     
     embed.add_field(
         name=f"{ctx.author.display_name}",
-        value=f"Power: {player_power:,}\nRoll: {player_score:,}\n{get_pvp_rank(player['pvp_elo'])['emoji']} {player['pvp_elo']} ELO",
+        value=f"**{player_sorc_name}** Lv{player_slv}\n{get_pvp_rank(player['pvp_elo'])['emoji']} {player['pvp_elo']} ELO",
         inline=True
     )
     
@@ -4524,9 +4927,14 @@ async def jjk_pvp(ctx, opponent: discord.Member):
     
     embed.add_field(
         name=f"{opponent.display_name}",
-        value=f"Power: {enemy_power:,}\nRoll: {enemy_score:,}\n{get_pvp_rank(enemy['pvp_elo'])['emoji']} {enemy['pvp_elo']} ELO",
+        value=f"**{enemy_sorc_name}** Lv{enemy_slv}\n{get_pvp_rank(enemy['pvp_elo'])['emoji']} {enemy['pvp_elo']} ELO",
         inline=True
     )
+    
+    # Show battle log (last 4 moves for brevity)
+    if battle_log:
+        log_text = "\n".join(battle_log[-4:])
+        embed.add_field(name="📜 Battle Log", value=log_text, inline=False)
     
     result_text = f"🏆 **{winner_user.display_name}** wins!\n"
     result_text += f"+{elo_gain} ELO | +{yen_reward:,} yen | +{xp_reward} XP\n"
@@ -4548,6 +4956,8 @@ async def jjk_pvp(ctx, opponent: discord.Member):
             value=f"{loser_user.display_name}: {old_loser_rank['emoji']} → {new_loser_rank['emoji']} **{new_loser_rank['name']}**",
             inline=False
         )
+    
+    embed.set_footer(text="Tip: Use ~pvp @user <sorcerer> to pick your fighter!")
     
     await ctx.send(embed=embed)
 
