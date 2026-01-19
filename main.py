@@ -2775,8 +2775,11 @@ async def dispatch_list(ctx):
     
     available_sorcerers = [s for s in player.get("sorcerers", []) if not any(d.get("sorcerer") == s for d in player.get("dispatch_slots", []))]
     if available_sorcerers:
-        sorcerer_names = ", ".join([JJK_SORCERERS.get(s, {}).get("name", s) for s in available_sorcerers])
-        embed.add_field(name="Available Sorcerers", value=sorcerer_names, inline=False)
+        sorcerer_names = [JJK_SORCERERS.get(s, {}).get("name", s) for s in available_sorcerers]
+        display_text = ", ".join(sorcerer_names[:20])
+        if len(sorcerer_names) > 20:
+            display_text += f" ... and {len(sorcerer_names) - 20} more"
+        embed.add_field(name=f"Available Sorcerers ({len(sorcerer_names)})", value=display_text[:1000], inline=False)
     
     await ctx.send(embed=embed)
 
