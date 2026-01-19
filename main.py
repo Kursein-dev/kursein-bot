@@ -413,6 +413,22 @@ def get_injury_from_risk(risk_level, player=None):
     else:
         return random.choice(["cursed_poison", "domain_backlash"])
 
+def has_blocking_injury(player, action_type="hunt"):
+    """Check if player has an injury that blocks the specified action"""
+    injuries = player.get("injuries", {})
+    now = datetime.now(timezone.utc)
+    
+    for injury_key, injury_data in injuries.items():
+        if isinstance(injury_data, dict):
+            end_time = parse_iso_timestamp(injury_data.get("end_time"))
+            if end_time and end_time > now:
+                injury_info = INJURIES.get(injury_key, {})
+                if action_type == "hunt" and injury_info.get("blocks_hunt", False):
+                    return True
+                if action_type == "train" and injury_info.get("blocks_train", False):
+                    return True
+    return False
+
 # =====================
 # ITEMS & INVENTORY
 # =====================
@@ -3081,6 +3097,601 @@ async def dispatch_claim(ctx):
     
     if injuries:
         embed.add_field(name="🩹 Injuries", value="\n".join(injuries), inline=True)
+    
+    if loot:
+        embed.add_field(name="🎁 Rare Loot", value="\n".join(loot), inline=True)
+    
+    await ctx.send(embed=embed)
+
+# =====================
+# GATES SYSTEM (Solo Leveling style)
+# =====================
+
+def get_available_gates(player_level):
+    """Get gates available based on player level"""
+    available = []
+    for rank, data in GATE_RANKS.items():
+        if player_level >= data["min_level"]:
+            available.append((rank, data))
+    return available
+
+@bot.hybrid_command(name='gates', aliases=['gate', 'portals'])
+async def gates_cmd(ctx):
+    """View available gates to enter"""
+    player = get_jjk_player(ctx.author.id)
+    if not player:
+        await ctx.send("Use `~jjkstart` to begin your journey!")
+        return
+    
+    if player.get("active_gate"):
+        end_time = parse_iso_timestamp(player["active_gate"].get("end_time"))
+        if end_time:
+            now = datetime.now(timezone.utc)
+            if end_time > now:
+                remaining = int((end_time - now).total_seconds())
+                mins, secs = remaining // 60, remaining % 60
+                await ctx.send(f"⚔️ You're already in a **{player['active_gate']['rank']}-Rank Gate**! {mins}m {secs}s remaining.\nUse `~gateclaim` when ready.")
+                return
+            else:
+                await ctx.send(f"✅ Your **{player['active_gate']['rank']}-Rank Gate** is complete! Use `~gateclaim` to collect rewards.")
+                return
+    
+    available = get_available_gates(player["level"])
+    
+    embed = discord.Embed(
+        title="🌀 Available Gates",
+        description=f"Enter a gate with `~entergate <rank>`\n🎫 Gate Tokens: **{player.get('gate_tokens', 0)}** | 🌀 Gates Cleared: **{player.get('gates_cleared', 0)}**",
+        color=0x9B59B6
+    )
+    
+    for rank, data in available:
+        risk_pct = int(data["risk"] * 100)
+        loot_pct = int(data["loot_chance"] * 100)
+        embed.add_field(
+            name=f"{data['emoji']} {data['name']}",
+            value=f"Lvl {data['min_level']}+ | ⏱️ {data['duration_min']}-{data['duration_max']}m\n💰 {data['base_yen']:,} | ✨ {data['base_xp']} XP\n⚠️ {risk_pct}% | 🎫 +{data['token_reward']} tokens",
+            inline=True
+        )
+    
+    locked = [(r, d) for r, d in GATE_RANKS.items() if player["level"] < d["min_level"]]
+    if locked:
+        locked_text = ", ".join([f"{d['emoji']}{r} (Lv{d['min_level']})" for r, d in locked[:3]])
+        embed.set_footer(text=f"Locked: {locked_text}")
+    
+    await ctx.send(embed=embed)
+
+@bot.hybrid_command(name='entergate', aliases=['enter'])
+async def enter_gate(ctx, rank: str):
+    """Enter a gate"""
+    player = get_jjk_player(ctx.author.id)
+    if not player:
+        await ctx.send("Use `~jjkstart` to begin your journey!")
+        return
+    
+    if player.get("active_gate"):
+        await ctx.send("❌ You're already in a gate! Use `~gateclaim` when it's ready.")
+        return
+    
+    rank = rank.upper()
+    if rank not in GATE_RANKS:
+        await ctx.send(f"❌ Invalid gate rank! Use: E, D, C, B, A, or S")
+        return
+    
+    gate_data = GATE_RANKS[rank]
+    if player["level"] < gate_data["min_level"]:
+        await ctx.send(f"❌ You need Level **{gate_data['min_level']}** for {rank}-Rank Gates!")
+        return
+    
+    if has_blocking_injury(player, "hunt"):
+        await ctx.send("❌ Your injuries prevent you from entering gates! Use `~rest` or healing items.")
+        return
+    
+    duration = random.randint(gate_data["duration_min"], gate_data["duration_max"]) * 60
+    now = datetime.now(timezone.utc)
+    end_time = now + timedelta(seconds=duration)
+    
+    boss = random.choice(GATE_BOSSES)
+    
+    player["active_gate"] = {
+        "rank": rank,
+        "boss": boss,
+        "start_time": now.isoformat(),
+        "end_time": end_time.isoformat(),
+        "base_yen": gate_data["base_yen"],
+        "base_xp": gate_data["base_xp"],
+        "risk": gate_data["risk"],
+        "loot_chance": gate_data["loot_chance"],
+        "token_reward": gate_data["token_reward"]
+    }
+    save_jjk_data()
+    
+    mins = duration // 60
+    embed = discord.Embed(
+        title=f"{gate_data['emoji']} Entering {rank}-Rank Gate",
+        description=f"**Boss detected:** {boss}\n\n⏱️ Clear time: **{mins} minutes**\n⚠️ Risk: **{int(gate_data['risk']*100)}%**",
+        color=0x9B59B6
+    )
+    embed.set_footer(text="Use ~gateclaim when the timer is done!")
+    await ctx.send(embed=embed)
+
+@bot.hybrid_command(name='gateclaim', aliases=['gclaim'])
+async def gate_claim(ctx):
+    """Claim rewards from completed gate"""
+    player = get_jjk_player(ctx.author.id)
+    if not player:
+        await ctx.send("Use `~jjkstart` to begin your journey!")
+        return
+    
+    if not player.get("active_gate"):
+        await ctx.send("❌ You're not in a gate! Use `~gates` to see available gates.")
+        return
+    
+    gate = player["active_gate"]
+    end_time = parse_iso_timestamp(gate.get("end_time"))
+    now = datetime.now(timezone.utc)
+    
+    if end_time and end_time > now:
+        remaining = int((end_time - now).total_seconds())
+        mins, secs = remaining // 60, remaining % 60
+        await ctx.send(f"⏳ Gate in progress! **{mins}m {secs}s** remaining.")
+        return
+    
+    yen_reward = apply_yen_multipliers(int(gate["base_yen"] * random.uniform(0.9, 1.4)), player)
+    xp_reward = apply_xp_multipliers(int(gate["base_xp"] * random.uniform(0.9, 1.3)), player)
+    tokens = gate["token_reward"]
+    
+    injury_result = None
+    if random.random() < gate["risk"]:
+        injury_key = get_injury_from_risk(gate["risk"], player)
+        if injury_key:
+            injury_result = apply_injury(player, injury_key)
+    
+    loot_item = None
+    if random.random() < gate["loot_chance"]:
+        loot_item = roll_rare_loot(1.5, player)
+        if loot_item:
+            player["collections"][loot_item] = player.get("collections", {}).get(loot_item, 0) + 1
+    
+    player["yen"] += yen_reward
+    player["xp"] += xp_reward
+    player["gate_tokens"] = player.get("gate_tokens", 0) + tokens
+    player["gates_cleared"] = player.get("gates_cleared", 0) + 1
+    player["active_gate"] = None
+    
+    while player["xp"] >= xp_for_level(player["level"]):
+        player["xp"] -= xp_for_level(player["level"])
+        player["level"] += 1
+    
+    save_jjk_data()
+    
+    embed = discord.Embed(
+        title=f"🌀 {gate['rank']}-Rank Gate Cleared!",
+        description=f"**Boss defeated:** {gate['boss']}",
+        color=0x00FF00
+    )
+    embed.add_field(name="Rewards", value=f"💰 {yen_reward:,} yen\n✨ {xp_reward} XP\n🎫 +{tokens} Gate Tokens", inline=True)
+    
+    if injury_result:
+        embed.add_field(name="🩹 Injury!", value=f"**{injury_result['name']}**", inline=True)
+    
+    if loot_item:
+        loot_info = RARE_LOOT.get(loot_item, {})
+        embed.add_field(name="🎁 Rare Loot!", value=f"{loot_info.get('emoji', '📦')} **{loot_info.get('name', loot_item)}**", inline=True)
+    
+    embed.set_footer(text=f"Total Gates Cleared: {player['gates_cleared']} | Tokens: {player['gate_tokens']}")
+    await ctx.send(embed=embed)
+
+# =====================
+# DUNGEON SYSTEM (100 Floors - SAO Tower)
+# =====================
+
+@bot.hybrid_command(name='dungeon', aliases=['tower', 'floor'])
+async def dungeon_status(ctx):
+    """View your dungeon progress"""
+    player = get_jjk_player(ctx.author.id)
+    if not player:
+        await ctx.send("Use `~jjkstart` to begin your journey!")
+        return
+    
+    current_floor = player.get("dungeon_floor", 1)
+    max_floor = player.get("dungeon_max_floor", 1)
+    
+    if player.get("active_dungeon"):
+        end_time = parse_iso_timestamp(player["active_dungeon"].get("end_time"))
+        if end_time:
+            now = datetime.now(timezone.utc)
+            if end_time > now:
+                remaining = int((end_time - now).total_seconds())
+                mins, secs = remaining // 60, remaining % 60
+                await ctx.send(f"⚔️ Climbing Floor **{player['active_dungeon']['floor']}**! {mins}m {secs}s remaining.\nUse `~dungeonclaim` when ready.")
+                return
+            else:
+                await ctx.send(f"✅ Floor **{player['active_dungeon']['floor']}** clear! Use `~dungeonclaim` to collect rewards.")
+                return
+    
+    floor_data = get_floor_data(current_floor)
+    
+    embed = discord.Embed(
+        title="🗼 Dungeon Tower",
+        description=f"Climb 100 floors to become the Tower Conqueror!\n\n**Current Floor:** {current_floor}/100\n**Highest Floor:** {max_floor}",
+        color=0xE74C3C
+    )
+    
+    floor_type = "🔥 **MAJOR BOSS**" if floor_data["is_major_boss"] else ("⚔️ **Boss Floor**" if floor_data["is_boss"] else "Regular Floor")
+    embed.add_field(
+        name=f"Floor {current_floor} - {floor_type}",
+        value=f"⏱️ {floor_data['duration_min']} min | ⚠️ {int(floor_data['risk']*100)}% risk\n💰 {floor_data['yen']:,} | ✨ {floor_data['xp']} XP",
+        inline=False
+    )
+    
+    next_milestone = None
+    for floor, milestone in sorted(DUNGEON_MILESTONES.items()):
+        if floor > max_floor:
+            next_milestone = (floor, milestone)
+            break
+    
+    if next_milestone:
+        embed.add_field(name="🎯 Next Milestone", value=f"Floor {next_milestone[0]}: **{next_milestone[1]['title']}**", inline=True)
+    
+    claimed = player.get("dungeon_milestones_claimed", [])
+    progress = f"{'🟩' * (max_floor // 10)}{'⬜' * (10 - max_floor // 10)}"
+    embed.add_field(name="Progress", value=progress, inline=True)
+    
+    embed.set_footer(text="Use ~climbfloor to start climbing!")
+    await ctx.send(embed=embed)
+
+@bot.hybrid_command(name='climbfloor', aliases=['climb'])
+async def climb_floor(ctx):
+    """Attempt to climb the next dungeon floor"""
+    player = get_jjk_player(ctx.author.id)
+    if not player:
+        await ctx.send("Use `~jjkstart` to begin your journey!")
+        return
+    
+    if player.get("active_dungeon"):
+        await ctx.send("❌ Already climbing! Use `~dungeonclaim` when ready.")
+        return
+    
+    if has_blocking_injury(player, "hunt"):
+        await ctx.send("❌ Your injuries prevent you from climbing! Use `~rest` or healing items.")
+        return
+    
+    current_floor = player.get("dungeon_floor", 1)
+    if current_floor > 100:
+        await ctx.send("🏆 You've already conquered all 100 floors!")
+        return
+    
+    floor_data = get_floor_data(current_floor)
+    duration = floor_data["duration_min"] * 60
+    now = datetime.now(timezone.utc)
+    end_time = now + timedelta(seconds=duration)
+    
+    player["active_dungeon"] = {
+        "floor": current_floor,
+        "start_time": now.isoformat(),
+        "end_time": end_time.isoformat(),
+        **floor_data
+    }
+    save_jjk_data()
+    
+    floor_type = "🔥 MAJOR BOSS" if floor_data["is_major_boss"] else ("⚔️ Boss" if floor_data["is_boss"] else "")
+    embed = discord.Embed(
+        title=f"🗼 Climbing Floor {current_floor} {floor_type}",
+        description=f"⏱️ Clear time: **{floor_data['duration_min']} minutes**\n⚠️ Risk: **{int(floor_data['risk']*100)}%**",
+        color=0xE74C3C
+    )
+    embed.set_footer(text="Use ~dungeonclaim when ready!")
+    await ctx.send(embed=embed)
+
+@bot.hybrid_command(name='dungeonclaim', aliases=['floorclaim'])
+async def dungeon_claim(ctx):
+    """Claim rewards from completed floor"""
+    player = get_jjk_player(ctx.author.id)
+    if not player:
+        await ctx.send("Use `~jjkstart` to begin your journey!")
+        return
+    
+    if not player.get("active_dungeon"):
+        await ctx.send("❌ Not climbing! Use `~climbfloor` to start.")
+        return
+    
+    dungeon = player["active_dungeon"]
+    end_time = parse_iso_timestamp(dungeon.get("end_time"))
+    now = datetime.now(timezone.utc)
+    
+    if end_time and end_time > now:
+        remaining = int((end_time - now).total_seconds())
+        mins, secs = remaining // 60, remaining % 60
+        await ctx.send(f"⏳ Still climbing! **{mins}m {secs}s** remaining.")
+        return
+    
+    floor = dungeon["floor"]
+    success = random.random() > dungeon["risk"]
+    
+    if success:
+        yen_reward = apply_yen_multipliers(dungeon["yen"], player)
+        xp_reward = apply_xp_multipliers(dungeon["xp"], player)
+        
+        player["yen"] += yen_reward
+        player["xp"] += xp_reward
+        player["dungeon_floor"] = floor + 1
+        player["dungeon_max_floor"] = max(player.get("dungeon_max_floor", 1), floor)
+        
+        loot_item = None
+        if random.random() < dungeon["loot_chance"]:
+            loot_item = roll_rare_loot(1.5, player)
+            if loot_item:
+                player["collections"][loot_item] = player.get("collections", {}).get(loot_item, 0) + 1
+        
+        while player["xp"] >= xp_for_level(player["level"]):
+            player["xp"] -= xp_for_level(player["level"])
+            player["level"] += 1
+        
+        embed = discord.Embed(
+            title=f"✅ Floor {floor} Cleared!",
+            color=0x00FF00
+        )
+        embed.add_field(name="Rewards", value=f"💰 {yen_reward:,} yen\n✨ {xp_reward} XP", inline=True)
+        
+        if loot_item:
+            loot_info = RARE_LOOT.get(loot_item, {})
+            embed.add_field(name="🎁 Rare Loot!", value=f"{loot_info.get('emoji', '📦')} **{loot_info.get('name', loot_item)}**", inline=True)
+        
+        milestone = DUNGEON_MILESTONES.get(floor)
+        if milestone and floor not in player.get("dungeon_milestones_claimed", []):
+            player["dungeon_milestones_claimed"] = player.get("dungeon_milestones_claimed", []) + [floor]
+            if milestone["reward_type"] == "yen":
+                player["yen"] += milestone["reward_amount"]
+                embed.add_field(name="🏆 Milestone!", value=f"**{milestone['title']}**\n+{milestone['reward_amount']:,} yen bonus!", inline=False)
+            else:
+                embed.add_field(name="🏆 Milestone!", value=f"**{milestone['title']}** achieved!", inline=False)
+        
+        embed.set_footer(text=f"Now on Floor {floor + 1}")
+    else:
+        checkpoint = max(1, (floor // 10) * 10)
+        player["dungeon_floor"] = checkpoint
+        
+        injury_key = get_injury_from_risk(dungeon["risk"], player)
+        injury_result = None
+        if injury_key:
+            injury_result = apply_injury(player, injury_key)
+        
+        embed = discord.Embed(
+            title=f"❌ Floor {floor} Failed!",
+            description=f"Returned to checkpoint: Floor {checkpoint}",
+            color=0xFF0000
+        )
+        if injury_result:
+            embed.add_field(name="🩹 Injury", value=f"**{injury_result['name']}**", inline=True)
+    
+    player["active_dungeon"] = None
+    save_jjk_data()
+    await ctx.send(embed=embed)
+
+# =====================
+# TEAM DISPATCH SYSTEM
+# =====================
+
+@bot.hybrid_command(name='teamdispatch', aliases=['teamd', 'squad'])
+async def team_dispatch_list(ctx):
+    """View team dispatch missions"""
+    player = get_jjk_player(ctx.author.id)
+    if not player:
+        await ctx.send("Use `~jjkstart` to begin your journey!")
+        return
+    
+    embed = discord.Embed(
+        title="👥 Team Dispatch Missions",
+        description="Send a squad on missions together!\nUse `~sendteam <mission_id> <sorcerer1>, <sorcerer2>, ...`",
+        color=0x3498DB
+    )
+    
+    for mission in TEAM_DISPATCH_MISSIONS:
+        if mission["min_level"] <= player["level"]:
+            risk_pct = int(mission["risk"] * 100)
+            embed.add_field(
+                name=f"[{mission['id']}] {mission['name']}",
+                value=f"{mission['desc']}\n⏱️ {mission['duration_min']}-{mission['duration_max']}m | 👥 {mission['min_team']}-{mission['max_team']}\n💰 {mission['base_yen']:,} | ✨ {mission['base_xp']} | ⚠️ {risk_pct}%",
+                inline=False
+            )
+    
+    active_teams = player.get("team_dispatch_slots", [])
+    if active_teams:
+        embed.add_field(name="📤 Active Teams", value=f"{len(active_teams)} team(s) on missions", inline=False)
+    
+    await ctx.send(embed=embed)
+
+@bot.hybrid_command(name='sendteam', aliases=['teamsend'])
+async def send_team(ctx, mission_id: str, *, sorcerers: str):
+    """Send a team on a dispatch mission"""
+    player = get_jjk_player(ctx.author.id)
+    if not player:
+        await ctx.send("Use `~jjkstart` to begin your journey!")
+        return
+    
+    mission = None
+    for m in TEAM_DISPATCH_MISSIONS:
+        if m["id"] == mission_id:
+            mission = m
+            break
+    
+    if not mission:
+        await ctx.send(f"❌ Mission `{mission_id}` not found! Use `~teamdispatch` to see available missions.")
+        return
+    
+    if player["level"] < mission["min_level"]:
+        await ctx.send(f"❌ You need Level **{mission['min_level']}** for this mission!")
+        return
+    
+    sorcerer_inputs = [s.strip().lower() for s in sorcerers.split(",")]
+    if len(sorcerer_inputs) < mission["min_team"]:
+        await ctx.send(f"❌ Need at least **{mission['min_team']}** sorcerers! Separate with commas.")
+        return
+    if len(sorcerer_inputs) > mission["max_team"]:
+        await ctx.send(f"❌ Maximum **{mission['max_team']}** sorcerers for this mission!")
+        return
+    
+    team_keys = []
+    already_dispatched = [d.get("sorcerer") for d in player.get("dispatch_slots", [])]
+    team_dispatched = []
+    for team in player.get("team_dispatch_slots", []):
+        team_dispatched.extend(team.get("sorcerers", []))
+    
+    for sorc_input in sorcerer_inputs:
+        found_key = None
+        for key in player.get("sorcerers", []):
+            sorc_data = JJK_SORCERERS.get(key, {})
+            sorc_name = sorc_data.get("name", "").lower()
+            if key == sorc_input or sorc_name == sorc_input or sorc_input.replace(" ", "_") == key:
+                found_key = key
+                break
+        
+        if not found_key:
+            await ctx.send(f"❌ You don't have **{sorc_input}**!")
+            return
+        if found_key in already_dispatched or found_key in team_dispatched:
+            await ctx.send(f"❌ **{JJK_SORCERERS.get(found_key, {}).get('name', found_key)}** is already on a mission!")
+            return
+        if found_key in team_keys:
+            await ctx.send(f"❌ Can't send the same sorcerer twice!")
+            return
+        team_keys.append(found_key)
+    
+    synergy = get_team_synergy(team_keys)
+    duration = random.randint(mission["duration_min"], mission["duration_max"]) * 60
+    now = datetime.now(timezone.utc)
+    end_time = now + timedelta(seconds=duration)
+    
+    team_data = {
+        "mission_id": mission["id"],
+        "mission_name": mission["name"],
+        "sorcerers": team_keys,
+        "start_time": now.isoformat(),
+        "end_time": end_time.isoformat(),
+        "base_yen": int(mission["base_yen"] * synergy),
+        "base_xp": int(mission["base_xp"] * synergy),
+        "risk": max(0.02, mission["risk"] - (len(team_keys) * 0.05)),
+        "loot_chance": mission["loot_chance"],
+        "synergy": synergy
+    }
+    
+    player["team_dispatch_slots"] = player.get("team_dispatch_slots", []) + [team_data]
+    save_jjk_data()
+    
+    team_names = ", ".join([JJK_SORCERERS.get(k, {}).get("name", k) for k in team_keys])
+    mins = duration // 60
+    
+    embed = discord.Embed(
+        title=f"👥 Team Dispatched: {mission['name']}",
+        description=f"**Squad:** {team_names}\n**Synergy Bonus:** {synergy:.1f}x",
+        color=0x3498DB
+    )
+    embed.add_field(name="⏱️ Duration", value=f"{mins} minutes", inline=True)
+    embed.add_field(name="💰 Est. Reward", value=f"{team_data['base_yen']:,} yen", inline=True)
+    embed.set_footer(text="Use ~teamstatus to check progress, ~teamclaim when ready!")
+    await ctx.send(embed=embed)
+
+@bot.hybrid_command(name='teamstatus', aliases=['teamst'])
+async def team_status(ctx):
+    """Check team dispatch status"""
+    player = get_jjk_player(ctx.author.id)
+    if not player:
+        await ctx.send("Use `~jjkstart` to begin your journey!")
+        return
+    
+    teams = player.get("team_dispatch_slots", [])
+    if not teams:
+        await ctx.send("📭 No teams on missions! Use `~teamdispatch` to send a squad.")
+        return
+    
+    now = datetime.now(timezone.utc)
+    embed = discord.Embed(title="👥 Team Dispatch Status", color=0x3498DB)
+    
+    ready_count = 0
+    for i, team in enumerate(teams):
+        team_names = ", ".join([JJK_SORCERERS.get(k, {}).get("name", k) for k in team["sorcerers"]])
+        end_time = parse_iso_timestamp(team.get("end_time"))
+        
+        if end_time and end_time <= now:
+            status = "✅ **READY**"
+            ready_count += 1
+        elif end_time:
+            remaining = int((end_time - now).total_seconds())
+            mins, secs = remaining // 60, remaining % 60
+            status = f"⏳ {mins}m {secs}s"
+        else:
+            status = "❓"
+        
+        embed.add_field(
+            name=f"{team['mission_name']} ({team['synergy']:.1f}x synergy)",
+            value=f"👥 {team_names}\n{status}",
+            inline=False
+        )
+    
+    if ready_count:
+        embed.set_footer(text=f"Use ~teamclaim to claim {ready_count} completed mission(s)!")
+    await ctx.send(embed=embed)
+
+@bot.hybrid_command(name='teamclaim', aliases=['tclaim'])
+async def team_claim(ctx):
+    """Claim completed team dispatch rewards"""
+    player = get_jjk_player(ctx.author.id)
+    if not player:
+        await ctx.send("Use `~jjkstart` to begin your journey!")
+        return
+    
+    teams = player.get("team_dispatch_slots", [])
+    if not teams:
+        await ctx.send("📭 No teams on missions!")
+        return
+    
+    now = datetime.now(timezone.utc)
+    completed = []
+    still_active = []
+    
+    for team in teams:
+        end_time = parse_iso_timestamp(team.get("end_time"))
+        if end_time and end_time <= now:
+            completed.append(team)
+        else:
+            still_active.append(team)
+    
+    if not completed:
+        await ctx.send("⏳ No teams ready yet! Use `~teamstatus` to check progress.")
+        return
+    
+    total_yen = 0
+    total_xp = 0
+    loot = []
+    
+    for team in completed:
+        yen = apply_yen_multipliers(int(team["base_yen"] * random.uniform(0.9, 1.3)), player)
+        xp = apply_xp_multipliers(int(team["base_xp"] * random.uniform(0.9, 1.2)), player)
+        
+        if random.random() < team["loot_chance"]:
+            loot_item = roll_rare_loot(team["synergy"], player)
+            if loot_item:
+                player["collections"][loot_item] = player.get("collections", {}).get(loot_item, 0) + 1
+                loot.append(RARE_LOOT.get(loot_item, {}).get("name", loot_item))
+        
+        total_yen += yen
+        total_xp += xp
+    
+    player["team_dispatch_slots"] = still_active
+    player["yen"] += total_yen
+    player["xp"] += total_xp
+    
+    while player["xp"] >= xp_for_level(player["level"]):
+        player["xp"] -= xp_for_level(player["level"])
+        player["level"] += 1
+    
+    save_jjk_data()
+    
+    embed = discord.Embed(
+        title=f"👥 Team Missions Complete ({len(completed)})",
+        color=0x00FF00
+    )
+    embed.add_field(name="Rewards", value=f"💰 {total_yen:,} yen\n✨ {total_xp} XP", inline=True)
     
     if loot:
         embed.add_field(name="🎁 Rare Loot", value="\n".join(loot), inline=True)
