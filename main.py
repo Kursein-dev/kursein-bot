@@ -2529,6 +2529,67 @@ Your power is based on: Level, Sorcerers, Techniques, Tools, Domain
         embed.set_footer(text="Progress tracked automatically!")
         return embed
     
+    def get_gates_embed(self):
+        embed = discord.Embed(title="🌀 Gates System (Solo Leveling)", color=0x9B59B6)
+        embed.add_field(name="Commands", value=f"""
+`{self.prefix}gates` - View available gates
+`{self.prefix}entergate <rank>` - Enter a gate (E/D/C/B/A/S)
+`{self.prefix}gateclaim` - Claim rewards when done
+        """, inline=False)
+        embed.add_field(name="Gate Ranks", value="""
+🟢 **E-Rank** - Level 1+ | 5-10min | Low risk
+🔵 **D-Rank** - Level 10+ | 10-20min | Moderate risk
+🟡 **C-Rank** - Level 25+ | 15-30min | Medium risk
+🟠 **B-Rank** - Level 50+ | 20-45min | High risk
+🔴 **A-Rank** - Level 100+ | 30-60min | Dangerous
+🟣 **S-Rank** - Level 200+ | 45-90min | Extreme risk
+        """, inline=False)
+        embed.set_footer(text="Earn Gate Tokens and rare loot from gates!")
+        return embed
+    
+    def get_dungeon_embed(self):
+        embed = discord.Embed(title="🗼 100-Floor Dungeon (SAO Tower)", color=0xE74C3C)
+        embed.add_field(name="Commands", value=f"""
+`{self.prefix}dungeon` - View your dungeon progress
+`{self.prefix}climbfloor` - Attempt the next floor
+`{self.prefix}dungeonclaim` - Claim floor rewards
+        """, inline=False)
+        embed.add_field(name="Floor System", value="""
+• 100 floors with increasing difficulty
+• **Boss floors** every 10 floors (better rewards)
+• **Major bosses** at floors 25, 50, 75, 100
+• Failure returns you to last checkpoint (every 10 floors)
+        """, inline=False)
+        embed.add_field(name="Milestones", value="""
+🏆 Floor 10 - **Floor Clearer** + 25K yen
+🏆 Floor 25 - **Quarter Master** + Technique
+🏆 Floor 50 - **Halfway Hero** + 250K yen
+🏆 Floor 75 - **Elite Climber** + Sorcerer
+🏆 Floor 100 - **Tower Conqueror** + 1M yen
+        """, inline=False)
+        return embed
+    
+    def get_teamdispatch_embed(self):
+        embed = discord.Embed(title="👥 Team Dispatch", color=0x3498DB)
+        embed.add_field(name="Commands", value=f"""
+`{self.prefix}teamdispatch` - View team missions
+`{self.prefix}sendteam <mission_id> <s1, s2, ...>` - Send a squad
+`{self.prefix}teamstatus` - Check team progress
+`{self.prefix}teamclaim` - Claim completed missions
+        """, inline=False)
+        embed.add_field(name="Missions", value="""
+• **Squad Patrol** (Lv5+) - 2-4 members
+• **Curse Nest Raid** (Lv20+) - 2-4 members
+• **Domain Breach** (Lv40+) - 3-4 members
+• **Special Grade Hunt** (Lv75+) - 3-4 members
+• **Disaster Curse Battle** (Lv150+) - 4 members
+        """, inline=False)
+        embed.add_field(name="Synergy Bonuses", value="""
+Same-series teams get bonus multipliers!
+Mixed teams (3+ series) get variety bonus.
+        """, inline=False)
+        return embed
+    
     def get_utility_embed(self):
         embed = discord.Embed(title="🔧 Utility Commands", color=0x5865F2)
         embed.add_field(name="AFK System", value=f"""
@@ -2591,6 +2652,18 @@ Auto-clears when you send a message
     @discord.ui.button(label="Utility", style=discord.ButtonStyle.secondary, emoji="🔧", row=2)
     async def utility_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         await interaction.response.edit_message(embed=self.get_utility_embed(), view=self)
+    
+    @discord.ui.button(label="Gates", style=discord.ButtonStyle.primary, emoji="🌀", row=3)
+    async def gates_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.edit_message(embed=self.get_gates_embed(), view=self)
+    
+    @discord.ui.button(label="Dungeon", style=discord.ButtonStyle.danger, emoji="🗼", row=3)
+    async def dungeon_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.edit_message(embed=self.get_dungeon_embed(), view=self)
+    
+    @discord.ui.button(label="Team", style=discord.ButtonStyle.primary, emoji="👥", row=3)
+    async def team_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.edit_message(embed=self.get_teamdispatch_embed(), view=self)
 
 @bot.hybrid_command(name='guide', aliases=['help', 'commands', 'jjkguide', 'jguide'])
 async def guide_command(ctx):
