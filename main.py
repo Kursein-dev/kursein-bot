@@ -287,40 +287,6 @@ DISPATCH_MISSIONS = [
 ]
 
 # =====================
-# TEAM DISPATCH MISSIONS (2-4 sorcerers)
-# =====================
-TEAM_DISPATCH_MISSIONS = [
-    {"id": "cursed_spirit_hunt", "name": "Cursed Spirit Hunt", "desc": "Team up to hunt multiple curses", "duration_min": 45, "duration_max": 90, "base_yen": 3000, "base_xp": 200, "risk": 0.15, "min_level": 5, "rare_loot_chance": 0.08, "min_team": 2, "max_team": 3},
-    {"id": "territory_sweep", "name": "Territory Sweep", "desc": "Clear an entire district of curses", "duration_min": 90, "duration_max": 180, "base_yen": 8000, "base_xp": 400, "risk": 0.25, "min_level": 10, "rare_loot_chance": 0.12, "min_team": 2, "max_team": 4},
-    {"id": "veil_operation", "name": "Veil Operation", "desc": "Deploy veil and neutralize threat", "duration_min": 120, "duration_max": 240, "base_yen": 15000, "base_xp": 600, "risk": 0.35, "min_level": 15, "rare_loot_chance": 0.18, "min_team": 3, "max_team": 4},
-    {"id": "disaster_response", "name": "Disaster Response", "desc": "Respond to a major curse outbreak", "duration_min": 180, "duration_max": 360, "base_yen": 25000, "base_xp": 1000, "risk": 0.45, "min_level": 25, "rare_loot_chance": 0.25, "min_team": 3, "max_team": 4},
-    {"id": "special_grade_siege", "name": "Special Grade Siege", "desc": "Assault a Special Grade curse stronghold", "duration_min": 300, "duration_max": 480, "base_yen": 50000, "base_xp": 2000, "risk": 0.60, "min_level": 35, "rare_loot_chance": 0.35, "min_team": 4, "max_team": 4},
-]
-
-# =====================
-# GATES SYSTEM (Solo Leveling Style)
-# =====================
-GATES = {
-    "E": {"name": "E-Rank Gate", "color": 0x808080, "duration_min": 5, "duration_max": 10, "base_yen": 1000, "base_xp": 100, "risk": 0.05, "min_level": 1, "rare_loot_chance": 0.05, "min_power": 100},
-    "D": {"name": "D-Rank Gate", "color": 0x00FF00, "duration_min": 10, "duration_max": 20, "base_yen": 3000, "base_xp": 250, "risk": 0.15, "min_level": 5, "rare_loot_chance": 0.10, "min_power": 500},
-    "C": {"name": "C-Rank Gate", "color": 0x0000FF, "duration_min": 15, "duration_max": 30, "base_yen": 8000, "base_xp": 500, "risk": 0.25, "min_level": 10, "rare_loot_chance": 0.15, "min_power": 1500},
-    "B": {"name": "B-Rank Gate", "color": 0x800080, "duration_min": 25, "duration_max": 45, "base_yen": 20000, "base_xp": 1000, "risk": 0.40, "min_level": 20, "rare_loot_chance": 0.20, "min_power": 5000},
-    "A": {"name": "A-Rank Gate", "color": 0xFFA500, "duration_min": 40, "duration_max": 60, "base_yen": 50000, "base_xp": 2000, "risk": 0.55, "min_level": 30, "rare_loot_chance": 0.30, "min_power": 15000},
-    "S": {"name": "S-Rank Gate", "color": 0xFF0000, "duration_min": 60, "duration_max": 90, "base_yen": 100000, "base_xp": 5000, "risk": 0.70, "min_level": 40, "rare_loot_chance": 0.50, "min_power": 50000},
-}
-
-# =====================
-# DUNGEONS SYSTEM
-# =====================
-DUNGEONS = {
-    "cursed_warehouse": {"name": "Cursed Warehouse", "floors": 3, "duration_min": 30, "base_yen": 5000, "base_xp": 400, "risk": 0.20, "min_level": 5, "rare_loot_chance": 0.10, "boss": "Finger Bearer"},
-    "abandoned_school": {"name": "Abandoned School", "floors": 4, "duration_min": 45, "base_yen": 12000, "base_xp": 800, "risk": 0.30, "min_level": 15, "rare_loot_chance": 0.15, "boss": "Grasshopper Curse"},
-    "curse_nest": {"name": "Curse Womb Nest", "floors": 5, "duration_min": 60, "base_yen": 25000, "base_xp": 1500, "risk": 0.45, "min_level": 25, "rare_loot_chance": 0.25, "boss": "Death Painting"},
-    "domain_realm": {"name": "Domain Realm", "floors": 6, "duration_min": 90, "base_yen": 50000, "base_xp": 3000, "risk": 0.55, "min_level": 35, "rare_loot_chance": 0.35, "boss": "Disaster Curse"},
-    "malevolent_shrine": {"name": "Malevolent Shrine", "floors": 8, "duration_min": 120, "base_yen": 100000, "base_xp": 6000, "risk": 0.70, "min_level": 45, "rare_loot_chance": 0.50, "boss": "Sukuna Fragment"},
-}
-
-# =====================
 # INJURY SYSTEM
 # =====================
 INJURIES = {
@@ -796,58 +762,6 @@ def save_jjk_data():
     except Exception as e:
         print(f"Error saving JJK data: {e}")
 
-def migrate_player_data():
-    """Migrate old player data formats to new ones"""
-    id_migrations = {
-        "training_arc": "training_montage",
-        "technique_master": "technique_student",
-        "domain_init": "domain_initiate",
-        "daily_streak": "dedication"
-    }
-    
-    migrated = 0
-    for uid, player in jjk_players.items():
-        changed = False
-        
-        if player.get('xp', 0) >= xp_for_level(player.get('level', 1)):
-            old_level = player.get('level', 1)
-            check_level_up(player)
-            if player['level'] > old_level:
-                print(f"[MIGRATE] Fixed XP for {uid}: Level {old_level} -> {player['level']}")
-                changed = True
-        
-        if "side_mission_progress" in player:
-            progress = player["side_mission_progress"]
-            for old_id, new_id in id_migrations.items():
-                if old_id in progress:
-                    progress[new_id] = progress.pop(old_id)
-                    changed = True
-        
-        if "completed_side_missions" in player:
-            completed = player["completed_side_missions"]
-            for i, mission_id in enumerate(completed):
-                if mission_id in id_migrations:
-                    completed[i] = id_migrations[mission_id]
-                    changed = True
-            deduped = list(dict.fromkeys(completed))
-            if len(deduped) != len(completed):
-                player["completed_side_missions"] = deduped
-                changed = True
-        
-        for old_id, new_id in id_migrations.items():
-            old_cd_key = f"side_cd_{old_id}"
-            new_cd_key = f"side_cd_{new_id}"
-            if old_cd_key in player:
-                player[new_cd_key] = player.pop(old_cd_key)
-                changed = True
-        
-        if changed:
-            migrated += 1
-    
-    if migrated > 0:
-        save_jjk_data()
-        print(f"[MIGRATE] Migrated {migrated} players")
-
 def get_jjk_player(user_id):
     """Get or create a JJK player profile"""
     uid = str(user_id)
@@ -907,61 +821,20 @@ def ensure_player_fields(player):
         "mission_offers": [],
         "mission_offers_time": None,
         "dispatch_slots": [],
-        "team_dispatch_slots": [],
-        "active_gate": None,
-        "active_dungeon": None,
-        "gate_clears": {},
-        "dungeon_clears": {},
         "collections": {},
         "boosts": {},
-        "cooldowns": {},
         "last_eat": None,
         "last_rest": None,
         "protection_wards": 0,
         "story_progress": {"current_arc": "fearsome_womb", "current_chapter": 1, "completed_arcs": [], "active_story": None},
         "facilities": {},
         "event_claims": [],
-        "last_facility_collect": None,
-        "sorcerer_levels": {},
-        "last_spar": None
+        "last_facility_collect": None
     }
     for key, val in defaults.items():
         if key not in player:
             player[key] = val
     return player
-
-def get_sorcerer_level(player, sorcerer_key):
-    """Get a sorcerer's level from player data"""
-    levels = player.get("sorcerer_levels", {})
-    return levels.get(sorcerer_key, {"level": 1, "xp": 0})
-
-def add_sorcerer_xp(player, sorcerer_key, xp_amount):
-    """Add XP to a sorcerer and handle level ups"""
-    if "sorcerer_levels" not in player:
-        player["sorcerer_levels"] = {}
-    if sorcerer_key not in player["sorcerer_levels"]:
-        player["sorcerer_levels"][sorcerer_key] = {"level": 1, "xp": 0}
-    
-    sorc = player["sorcerer_levels"][sorcerer_key]
-    sorc["xp"] += xp_amount
-    
-    levels_gained = 0
-    xp_needed = 50 + (sorc["level"] * 25)
-    while sorc["xp"] >= xp_needed:
-        sorc["xp"] -= xp_needed
-        sorc["level"] += 1
-        levels_gained += 1
-        xp_needed = 50 + (sorc["level"] * 25)
-    
-    return levels_gained
-
-def calculate_sorcerer_power(player, sorcerer_key):
-    """Calculate a sorcerer's combat power based on their level"""
-    sorc_data = JJK_SORCERERS.get(sorcerer_key, {})
-    base_power = sorc_data.get("income", 10) * 10
-    sorc_level = get_sorcerer_level(player, sorcerer_key)
-    level_bonus = sorc_level.get("level", 1) * 50
-    return base_power + level_bonus
 
 import random
 
@@ -1000,8 +873,6 @@ async def on_ready():
     load_prefixes()
     load_afk_users()
     load_jjk_data()
-    
-    migrate_player_data()
     
     print("Starting slash command sync...")
     try:
@@ -1713,148 +1584,6 @@ async def jjk_hire(ctx, *, sorcerer_name: str):
     
     await ctx.send(embed=embed)
 
-@bot.hybrid_command(name='sorcererinfo', aliases=['sinfo', 'mysorcerer'])
-async def jjk_sorcerer_info(ctx, *, sorcerer_name: str):
-    """View a sorcerer's stats and level"""
-    player = get_jjk_player(ctx.author.id)
-    if not player:
-        await ctx.send("Use `~jjkstart` to begin your journey!")
-        return
-    
-    sorc_key = sorcerer_name.lower().replace(" ", "").replace("-", "")
-    
-    found = None
-    for key in player.get("sorcerers", []):
-        sorc_data = JJK_SORCERERS.get(key, {})
-        if key == sorc_key or sorc_data.get("name", "").lower().replace(" ", "").replace("-", "") == sorc_key:
-            found = key
-            break
-    
-    if not found:
-        await ctx.send(f"You don't have **{sorcerer_name}**! Use `~sorcerers` to see your team.")
-        return
-    
-    sorc_data = JJK_SORCERERS.get(found, {})
-    sorc_level = get_sorcerer_level(player, found)
-    power = calculate_sorcerer_power(player, found)
-    xp_needed = 50 + (sorc_level["level"] * 25)
-    
-    embed = discord.Embed(
-        title=f"{sorc_data.get('emoji', '👤')} {sorc_data.get('name', found)}",
-        color=0x9B59B6
-    )
-    embed.add_field(name="Level", value=f"**{sorc_level['level']}**", inline=True)
-    embed.add_field(name="XP", value=f"{sorc_level['xp']}/{xp_needed}", inline=True)
-    embed.add_field(name="Combat Power", value=f"**{power:,}**", inline=True)
-    embed.add_field(name="Grade", value=sorc_data.get("grade", "Unknown"), inline=True)
-    embed.add_field(name="Income", value=f"+{sorc_data.get('income', 0)}/hr", inline=True)
-    embed.set_footer(text="Train this sorcerer with ~trainsorcerer or ~spar!")
-    
-    await ctx.send(embed=embed)
-
-@bot.hybrid_command(name='trainsorcerer', aliases=['tsorcerer', 'trainchar'])
-async def jjk_train_sorcerer(ctx, *, sorcerer_name: str):
-    """Train a sorcerer to level them up (costs 500 yen, 10min cooldown)"""
-    player = get_jjk_player(ctx.author.id)
-    if not player:
-        await ctx.send("Use `~jjkstart` to begin your journey!")
-        return
-    
-    sorc_key = sorcerer_name.lower().replace(" ", "").replace("-", "")
-    
-    found = None
-    for key in player.get("sorcerers", []):
-        sorc_data = JJK_SORCERERS.get(key, {})
-        if key == sorc_key or sorc_data.get("name", "").lower().replace(" ", "").replace("-", "") == sorc_key:
-            found = key
-            break
-    
-    if not found:
-        await ctx.send(f"You don't have **{sorcerer_name}**! Use `~sorcerers` to see your team.")
-        return
-    
-    train_cost = 500
-    if player["yen"] < train_cost:
-        await ctx.send(f"Training costs **{train_cost} yen**! You have {player['yen']:,} yen.")
-        return
-    
-    cd_key = f"sorcerer_train_{found}"
-    now = datetime.now(timezone.utc)
-    last_train = parse_iso_timestamp(player.get(cd_key))
-    if last_train:
-        elapsed = (now - last_train).total_seconds()
-        if elapsed < 600:
-            remaining = int(600 - elapsed)
-            await ctx.send(f"**{JJK_SORCERERS.get(found, {}).get('name', found)}** is resting! Try again in {remaining // 60}m {remaining % 60}s.")
-            return
-    
-    player["yen"] -= train_cost
-    player[cd_key] = now.isoformat()
-    
-    xp_gain = random.randint(30, 60)
-    levels = add_sorcerer_xp(player, found, xp_gain)
-    save_jjk_data()
-    
-    sorc_data = JJK_SORCERERS.get(found, {})
-    sorc_level = get_sorcerer_level(player, found)
-    
-    msg = f"🎯 **{sorc_data.get('name', found)}** trained and gained **+{xp_gain} XP**!"
-    if levels > 0:
-        msg += f"\n🎉 **LEVEL UP!** Now Level {sorc_level['level']}!"
-    
-    await ctx.send(msg)
-
-@bot.hybrid_command(name='spar', aliases=['practice', 'sparring'])
-async def jjk_spar(ctx, *, sorcerer_name: str):
-    """Spar with a sorcerer to train them (free, 30min cooldown, more XP)"""
-    player = get_jjk_player(ctx.author.id)
-    if not player:
-        await ctx.send("Use `~jjkstart` to begin your journey!")
-        return
-    
-    sorc_key = sorcerer_name.lower().replace(" ", "").replace("-", "")
-    
-    found = None
-    for key in player.get("sorcerers", []):
-        sorc_data = JJK_SORCERERS.get(key, {})
-        if key == sorc_key or sorc_data.get("name", "").lower().replace(" ", "").replace("-", "") == sorc_key:
-            found = key
-            break
-    
-    if not found:
-        await ctx.send(f"You don't have **{sorcerer_name}**! Use `~sorcerers` to see your team.")
-        return
-    
-    now = datetime.now(timezone.utc)
-    last_spar = parse_iso_timestamp(player.get("last_spar"))
-    if last_spar:
-        elapsed = (now - last_spar).total_seconds()
-        if elapsed < 1800:
-            remaining = int(1800 - elapsed)
-            await ctx.send(f"Sparring cooldown! Try again in **{remaining // 60}m {remaining % 60}s**.")
-            return
-    
-    player["last_spar"] = now.isoformat()
-    
-    xp_gain = random.randint(50, 100)
-    levels = add_sorcerer_xp(player, found, xp_gain)
-    save_jjk_data()
-    
-    sorc_data = JJK_SORCERERS.get(found, {})
-    sorc_level = get_sorcerer_level(player, found)
-    
-    battle_messages = [
-        f"🥊 You sparred intensely with **{sorc_data.get('name', found)}**!",
-        f"⚔️ **{sorc_data.get('name', found)}** put up a great fight in training!",
-        f"💥 Intense sparring session with **{sorc_data.get('name', found)}**!",
-    ]
-    
-    msg = random.choice(battle_messages) + f"\n+**{xp_gain} XP** gained!"
-    if levels > 0:
-        msg += f"\n🎉 **LEVEL UP!** Now Level {sorc_level['level']}!"
-    
-    await ctx.send(msg)
-
 @bot.hybrid_command(name='techniques', aliases=['techs'])
 async def jjk_techniques(ctx):
     """View available cursed techniques"""
@@ -2503,8 +2232,6 @@ class JJKGuideView(discord.ui.View):
         embed.add_field(name="📖 Story", value="6 story arcs", inline=True)
         embed.add_field(name="🗡️ PvP", value="Ranked battles", inline=True)
         embed.add_field(name="🎯 Side Missions", value="10 objectives", inline=True)
-        embed.add_field(name="🌀 Gates", value="Solo Leveling style", inline=True)
-        embed.add_field(name="🏰 Dungeons", value="Boss battles", inline=True)
         embed.add_field(name="🔧 Utility", value="AFK, stats, info", inline=True)
         embed.set_footer(text="Click a button to view commands!")
         return embed
@@ -2513,9 +2240,8 @@ class JJKGuideView(discord.ui.View):
         embed = discord.Embed(title="📝 Getting Started", color=0x9B59B6)
         embed.add_field(name="Begin Your Journey", value=f"""
 `{self.prefix}jjkstart` - Create your sorcerer profile
-`{self.prefix}school [@user]` - View your/their school stats
-`{self.prefix}setschoolname <name>` - Rename school (1,000 yen)
-`{self.prefix}balance [@user]` - Check yen balance
+`{self.prefix}school` - View your school stats
+`{self.prefix}balance` - Check your yen balance
 `{self.prefix}cooldowns` - View all cooldown timers
 `{self.prefix}lb` - View leaderboards (with tabs!)
         """, inline=False)
@@ -2531,61 +2257,13 @@ Level up to increase your grade and unlock more content!
 `{self.prefix}missions` - View 4 available missions
 `{self.prefix}accept <#>` - Accept a mission by number
 `{self.prefix}missionclaim` - Claim rewards when done
+Missions refresh every 30 minutes!
         """, inline=False)
-        embed.add_field(name="Solo Dispatch", value=f"""
-`{self.prefix}dispatchlist` - View dispatch options
-`{self.prefix}dispatch <sorcerer> <id>` - Send sorcerer
-`{self.prefix}dispatchstatus` / `{self.prefix}dispatchclaim`
-        """, inline=False)
-        embed.add_field(name="Team Dispatch (NEW!)", value=f"""
-`{self.prefix}teamlist` - View team missions (2-4 sorcerers)
-`{self.prefix}teamdispatch <id> <s1, s2, ...>` - Send team
-`{self.prefix}teamstatus` / `{self.prefix}teamclaim`
-        """, inline=False)
-        return embed
-    
-    def get_gates_embed(self):
-        embed = discord.Embed(title="🌀 Gates (Solo Leveling Style)", color=0x8B5CF6)
-        embed.add_field(name="Commands", value=f"""
-`{self.prefix}gates` - Scan for nearby gates
-`{self.prefix}gateenter <rank> [sorcerer]` - Enter a gate
-`{self.prefix}gatestatus` - Check gate progress
-`{self.prefix}gateclaim` - Claim rewards when cleared
-        """, inline=False)
-        embed.add_field(name="Gate Ranks", value="""
-**E-Rank** - Easy, quick clear (5-10 min)
-**D-Rank** - Moderate challenge (10-20 min)
-**C-Rank** - Skilled sorcerers (15-30 min)
-**B-Rank** - Dangerous (25-45 min)
-**A-Rank** - Special Grade threat (40-60 min)
-**S-Rank** - Catastrophic level (60-90 min)
-        """, inline=False)
-        embed.add_field(name="Tips", value="""
-Higher rank = better rewards but higher risk!
-Bring a strong sorcerer for bonus power.
-2 hour cooldown between gate scans.
-        """, inline=False)
-        return embed
-    
-    def get_dungeons_embed(self):
-        embed = discord.Embed(title="🏰 Dungeons", color=0xF97316)
-        embed.add_field(name="Commands", value=f"""
-`{self.prefix}dungeons` - View available dungeons
-`{self.prefix}dungeonenter <id> [sorcerer]` - Enter dungeon
-`{self.prefix}dungeonstatus` - Check dungeon progress
-`{self.prefix}dungeonclaim` - Claim boss rewards
-        """, inline=False)
-        embed.add_field(name="Available Dungeons", value="""
-**Cursed Warehouse** - 3 floors, Finger Bearer boss
-**Abandoned School** - 4 floors, Grasshopper Curse
-**Curse Womb Nest** - 5 floors, Death Painting
-**Domain Realm** - 6 floors, Disaster Curse
-**Malevolent Shrine** - 8 floors, Sukuna Fragment
-        """, inline=False)
-        embed.add_field(name="Tips", value="""
-Dungeons have multiple floors with a boss at the end.
-Sorcerers gain XP from dungeon clears!
-6 hour cooldown between dungeons.
+        embed.add_field(name="Dispatch System (Idle)", value=f"""
+`{self.prefix}dispatchlist` - View dispatch options (30min-12hr)
+`{self.prefix}dispatch <sorcerer> <id>` - Send a sorcerer
+`{self.prefix}dispatchstatus` - Check progress
+`{self.prefix}dispatchclaim` - Claim all completed
         """, inline=False)
         return embed
     
@@ -2632,8 +2310,7 @@ Complete collections for permanent bonuses!
         embed.add_field(name="Sorcerers", value=f"""
 `{self.prefix}sorcerers` - View available sorcerers
 `{self.prefix}hire <name>` - Hire a sorcerer
-`{self.prefix}trainsorcerer <name>` - Train sorcerer for PvP XP
-`{self.prefix}sorcererinfo <name>` - View sorcerer stats
+Sorcerers generate passive income!
         """, inline=False)
         embed.add_field(name="Techniques", value=f"""
 `{self.prefix}techniques` - View available techniques
@@ -2694,18 +2371,17 @@ Special bonuses during holidays!
     def get_pvp_embed(self):
         embed = discord.Embed(title="🗡️ PvP Battle System", color=0xFF6B6B)
         embed.add_field(name="Battle Commands", value=f"""
-`{self.prefix}pvp @user [sorcerer]` - Challenge with chosen fighter
+`{self.prefix}pvp @user` - Challenge another sorcerer
 `{self.prefix}pvpstats` - View your PvP stats & rank
-`{self.prefix}spar <sorcerer>` - Train sorcerer (cooldown 30m)
         """, inline=False)
         embed.add_field(name="ELO Ranking System", value="""
 **Unranked** → **Bronze** (800) → **Silver** (1000)
 → **Gold** (1200) → **Platinum** (1400)
 → **Diamond** (1600) → **Special Grade** (1800+)
         """, inline=False)
-        embed.add_field(name="Sorcerer Levels", value="""
-Each sorcerer gains XP from battles & sparring!
-Higher level = stronger combat power in PvP
+        embed.add_field(name="Combat Power", value="""
+Your power is based on: Level, Sorcerers, Techniques, Tools, Domain
+5 minute cooldown between battles!
         """, inline=False)
         return embed
     
@@ -2740,11 +2416,6 @@ Auto-clears when you send a message
 `{self.prefix}profile [@user]` - View JJK profile
 `{self.prefix}serverstats` - Server statistics
 `{self.prefix}botinfo` - Bot info and stats
-`{self.prefix}guide` - This help menu
-        """, inline=False)
-        embed.add_field(name="Admin Commands", value=f"""
-`{self.prefix}addyen @user <amt>` - Give yen (Admin)
-`{self.prefix}addxp @user <amt>` - Give XP (Admin)
         """, inline=False)
         return embed
     
@@ -2794,15 +2465,7 @@ Auto-clears when you send a message
     async def sidemissions_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         await interaction.response.edit_message(embed=self.get_sidemissions_embed(), view=self)
     
-    @discord.ui.button(label="Gates", style=discord.ButtonStyle.primary, emoji="🌀", row=3)
-    async def gates_button(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await interaction.response.edit_message(embed=self.get_gates_embed(), view=self)
-    
-    @discord.ui.button(label="Dungeons", style=discord.ButtonStyle.primary, emoji="🏰", row=3)
-    async def dungeons_button(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await interaction.response.edit_message(embed=self.get_dungeons_embed(), view=self)
-    
-    @discord.ui.button(label="Utility", style=discord.ButtonStyle.secondary, emoji="🔧", row=3)
+    @discord.ui.button(label="Utility", style=discord.ButtonStyle.secondary, emoji="🔧", row=2)
     async def utility_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         await interaction.response.edit_message(embed=self.get_utility_embed(), view=self)
 
@@ -3311,831 +2974,6 @@ async def dispatch_claim(ctx):
     
     if loot:
         embed.add_field(name="🎁 Rare Loot", value="\n".join(loot), inline=True)
-    
-    await ctx.send(embed=embed)
-
-# =====================
-# TEAM DISPATCH COMMANDS
-# =====================
-
-@bot.hybrid_command(name='teamlist', aliases=['teamdispatchlist', 'tdlist'])
-async def team_dispatch_list(ctx):
-    """View team dispatch missions requiring multiple sorcerers"""
-    player = get_jjk_player(ctx.author.id)
-    if not player:
-        await ctx.send("Use `~jjkstart` to begin your journey!")
-        return
-    
-    embed = discord.Embed(title="👥 Team Dispatch Missions", description="Send multiple sorcerers together for bigger rewards!", color=0xFF6B6B)
-    
-    for tm in TEAM_DISPATCH_MISSIONS:
-        if tm["min_level"] <= player["level"]:
-            duration_text = f"{tm['duration_min']}-{tm['duration_max']}m"
-            risk_pct = int(tm["risk"] * 100)
-            loot_pct = int(tm["rare_loot_chance"] * 100)
-            
-            embed.add_field(
-                name=f"[{tm['id']}] {tm['name']} ({tm['min_team']}-{tm['max_team']} sorcerers)",
-                value=f"{tm['desc']}\n⏱️ {duration_text} | 💰 {tm['base_yen']:,} | ✨ {tm['base_xp']} XP\n⚠️ Risk: {risk_pct}% | 🎁 Loot: {loot_pct}%",
-                inline=False
-            )
-    
-    dispatched = [d.get("sorcerer") for d in player.get("dispatch_slots", [])]
-    team_dispatched = []
-    for td in player.get("team_dispatch_slots", []):
-        team_dispatched.extend(td.get("sorcerers", []))
-    all_dispatched = set(dispatched + team_dispatched)
-    
-    available_sorcerers = [s for s in player.get("sorcerers", []) if s not in all_dispatched]
-    if available_sorcerers:
-        sorcerer_names = ", ".join([JJK_SORCERERS.get(s, {}).get("name", s) for s in available_sorcerers[:10]])
-        if len(available_sorcerers) > 10:
-            sorcerer_names += f" (+{len(available_sorcerers)-10} more)"
-        embed.add_field(name="Available Sorcerers", value=sorcerer_names, inline=False)
-    
-    embed.set_footer(text="Use ~teamdispatch <mission_id> <sorcerer1, sorcerer2, ...>")
-    await ctx.send(embed=embed)
-
-@bot.hybrid_command(name='teamdispatch', aliases=['tdispatch', 'tsend'])
-async def team_dispatch_sorcerer(ctx, *, args: str):
-    """Send multiple sorcerers on a team dispatch mission"""
-    player = get_jjk_player(ctx.author.id)
-    if not player:
-        await ctx.send("Use `~jjkstart` to begin your journey!")
-        return
-    
-    parts = args.strip().split(maxsplit=1)
-    if len(parts) < 2:
-        await ctx.send("❌ Usage: `~teamdispatch <mission_id> <sorcerer1, sorcerer2, ...>`\nExample: `~teamdispatch cursed_spirit_hunt Yuji, Megumi`")
-        return
-    
-    mission_id = parts[0].lower()
-    sorcerer_names = [s.strip() for s in parts[1].split(",")]
-    
-    mission = None
-    for tm in TEAM_DISPATCH_MISSIONS:
-        if tm["id"] == mission_id:
-            mission = tm
-            break
-    
-    if not mission:
-        await ctx.send(f"❌ Mission `{mission_id}` not found. Use `~teamlist` to see available missions.")
-        return
-    
-    if mission["min_level"] > player["level"]:
-        await ctx.send(f"❌ You need Level {mission['min_level']} for this mission!")
-        return
-    
-    if len(sorcerer_names) < mission["min_team"]:
-        await ctx.send(f"❌ This mission requires at least {mission['min_team']} sorcerers!")
-        return
-    
-    if len(sorcerer_names) > mission["max_team"]:
-        await ctx.send(f"❌ This mission allows at most {mission['max_team']} sorcerers!")
-        return
-    
-    dispatched = [d.get("sorcerer") for d in player.get("dispatch_slots", [])]
-    team_dispatched = []
-    for td in player.get("team_dispatch_slots", []):
-        team_dispatched.extend(td.get("sorcerers", []))
-    all_dispatched = set(dispatched + team_dispatched)
-    
-    sorcerer_keys = []
-    for sorcerer_name in sorcerer_names:
-        sorcerer_key = None
-        sorcerer_name_lower = sorcerer_name.lower()
-        for key in player.get("sorcerers", []):
-            if key.lower() == sorcerer_name_lower or JJK_SORCERERS.get(key, {}).get("name", "").lower() == sorcerer_name_lower:
-                sorcerer_key = key
-                break
-        
-        if not sorcerer_key:
-            await ctx.send(f"❌ You don't own `{sorcerer_name}`! Use `~sorcerers` to see your sorcerers.")
-            return
-        
-        if sorcerer_key in all_dispatched or sorcerer_key in sorcerer_keys:
-            await ctx.send(f"❌ `{JJK_SORCERERS.get(sorcerer_key, {}).get('name', sorcerer_key)}` is already on a mission or selected!")
-            return
-        
-        sorcerer_keys.append(sorcerer_key)
-    
-    now = datetime.now(timezone.utc)
-    duration = random.randint(mission["duration_min"], mission["duration_max"]) * 60
-    end_time = now + timedelta(seconds=duration)
-    
-    team_power = sum(JJK_SORCERERS.get(s, {}).get("income", 100) * 10 + get_sorcerer_level(player, s) * 50 for s in sorcerer_keys)
-    synergy_bonus = 1.0
-    series_counts = {}
-    for s in sorcerer_keys:
-        series = JJK_SORCERERS.get(s, {}).get("series", "jjk")
-        series_counts[series] = series_counts.get(series, 0) + 1
-    if max(series_counts.values(), default=0) >= 2:
-        synergy_bonus = 1.25
-    
-    dispatch_data = {
-        "sorcerers": sorcerer_keys,
-        "mission_id": mission_id,
-        "mission_name": mission["name"],
-        "end_time": end_time.isoformat(),
-        "base_yen": int(mission["base_yen"] * len(sorcerer_keys) * 0.7 * synergy_bonus),
-        "base_xp": int(mission["base_xp"] * len(sorcerer_keys) * 0.7 * synergy_bonus),
-        "risk": mission["risk"],
-        "rare_loot_chance": mission["rare_loot_chance"] * (1 + 0.1 * len(sorcerer_keys)),
-        "team_power": team_power,
-        "synergy_bonus": synergy_bonus
-    }
-    
-    if "team_dispatch_slots" not in player:
-        player["team_dispatch_slots"] = []
-    player["team_dispatch_slots"].append(dispatch_data)
-    save_jjk_data()
-    
-    duration_text = f"{duration // 60} minutes"
-    sorcerer_display = ", ".join([JJK_SORCERERS.get(s, {}).get("name", s) for s in sorcerer_keys])
-    synergy_text = " (+25% synergy bonus!)" if synergy_bonus > 1 else ""
-    
-    embed = discord.Embed(
-        title=f"👥 Team Dispatched!",
-        description=f"**{sorcerer_display}** sent on **{mission['name']}**!{synergy_text}",
-        color=0xFF6B6B
-    )
-    embed.add_field(name="Duration", value=duration_text, inline=True)
-    embed.add_field(name="Team Power", value=f"{team_power:,}", inline=True)
-    embed.add_field(name="Potential Rewards", value=f"💰 ~{dispatch_data['base_yen']:,} yen | ✨ ~{dispatch_data['base_xp']} XP", inline=False)
-    
-    await ctx.send(embed=embed)
-
-@bot.hybrid_command(name='teamstatus', aliases=['tstatus'])
-async def team_dispatch_status(ctx):
-    """Check team dispatch status"""
-    player = get_jjk_player(ctx.author.id)
-    if not player:
-        await ctx.send("Use `~jjkstart` to begin your journey!")
-        return
-    
-    team_dispatches = player.get("team_dispatch_slots", [])
-    if not team_dispatches:
-        await ctx.send("📭 No team dispatches active! Use `~teamlist` to see missions.")
-        return
-    
-    embed = discord.Embed(title="👥 Team Dispatch Status", color=0xFF6B6B)
-    now = datetime.now(timezone.utc)
-    ready_count = 0
-    
-    for d in team_dispatches:
-        end_time = parse_iso_timestamp(d.get("end_time"))
-        sorcerer_names = ", ".join([JJK_SORCERERS.get(s, {}).get("name", s) for s in d.get("sorcerers", [])])
-        
-        if end_time and end_time <= now:
-            status = "✅ READY TO CLAIM"
-            ready_count += 1
-        else:
-            remaining = end_time - now if end_time else timedelta(0)
-            mins = int(remaining.total_seconds() // 60)
-            status = f"⏳ {mins} min remaining"
-        
-        embed.add_field(
-            name=f"📋 {d['mission_name']}",
-            value=f"Team: {sorcerer_names}\n{status}",
-            inline=False
-        )
-    
-    if ready_count > 0:
-        embed.set_footer(text=f"Use ~teamclaim to claim {ready_count} completed mission(s)")
-    
-    await ctx.send(embed=embed)
-
-@bot.hybrid_command(name='teamclaim', aliases=['tclaim'])
-async def team_dispatch_claim(ctx):
-    """Claim all completed team dispatch missions"""
-    player = get_jjk_player(ctx.author.id)
-    if not player:
-        await ctx.send("Use `~jjkstart` to begin your journey!")
-        return
-    
-    team_dispatches = player.get("team_dispatch_slots", [])
-    if not team_dispatches:
-        await ctx.send("📭 No team dispatches active!")
-        return
-    
-    now = datetime.now(timezone.utc)
-    completed = []
-    still_active = []
-    
-    for d in team_dispatches:
-        end_time = parse_iso_timestamp(d.get("end_time"))
-        if end_time and end_time <= now:
-            completed.append(d)
-        else:
-            still_active.append(d)
-    
-    if not completed:
-        await ctx.send("⏳ No team dispatches are ready yet! Check `~teamstatus`")
-        return
-    
-    total_yen = 0
-    total_xp = 0
-    injuries = []
-    loot = []
-    sorcerer_xp_gains = []
-    
-    for d in completed:
-        yen_var = random.uniform(0.8, 1.3)
-        xp_var = random.uniform(0.9, 1.2)
-        yen = apply_yen_multipliers(int(d["base_yen"] * yen_var), player)
-        xp = apply_xp_multipliers(int(d["base_xp"] * xp_var), player)
-        
-        injury_reduction = get_facility_bonus(player, "injury_reduction")
-        adjusted_risk = max(0, d["risk"] - injury_reduction)
-        
-        for sorcerer_key in d.get("sorcerers", []):
-            sxp = random.randint(30, 60)
-            leveled = add_sorcerer_xp(player, sorcerer_key, sxp)
-            if leveled:
-                sorcerer_xp_gains.append(f"{JJK_SORCERERS.get(sorcerer_key, {}).get('name', sorcerer_key)} leveled up!")
-            
-            if random.random() < adjusted_risk * 0.5:
-                injury_key = get_injury_from_risk(adjusted_risk, player)
-                if injury_key:
-                    injury_result = apply_injury(player, injury_key)
-                    if injury_result:
-                        injuries.append(f"{JJK_SORCERERS.get(sorcerer_key, {}).get('name', sorcerer_key)}: {injury_result['name']}")
-        
-        loot_chance = d.get("rare_loot_chance", 0.1)
-        loot_bonus = get_facility_bonus(player, "loot_bonus")
-        if random.random() < loot_chance + loot_bonus:
-            loot_item = roll_rare_loot(1.5, player)
-            if loot_item:
-                if "collections" not in player:
-                    player["collections"] = {}
-                player["collections"][loot_item] = player["collections"].get(loot_item, 0) + 1
-                loot.append(RARE_LOOT.get(loot_item, {}).get("name", loot_item))
-        
-        total_yen += yen
-        total_xp += xp
-    
-    player["team_dispatch_slots"] = still_active
-    player["yen"] += total_yen
-    player["xp"] += total_xp
-    
-    while player["xp"] >= xp_for_level(player["level"]):
-        player["xp"] -= xp_for_level(player["level"])
-        player["level"] += 1
-    
-    save_jjk_data()
-    
-    embed = discord.Embed(
-        title=f"👥 Team Dispatch Complete ({len(completed)} missions)",
-        color=0x00FF00
-    )
-    embed.add_field(name="Rewards", value=f"💰 {total_yen:,} yen\n✨ {total_xp} XP", inline=True)
-    
-    if sorcerer_xp_gains:
-        embed.add_field(name="📈 Level Ups", value="\n".join(sorcerer_xp_gains[:5]), inline=True)
-    
-    if injuries:
-        embed.add_field(name="🩹 Injuries", value="\n".join(injuries[:5]), inline=True)
-    
-    if loot:
-        embed.add_field(name="🎁 Rare Loot", value="\n".join(loot), inline=True)
-    
-    await ctx.send(embed=embed)
-
-# =====================
-# GATES SYSTEM (Solo Leveling Style)
-# =====================
-
-@bot.hybrid_command(name='gates', aliases=['gate', 'gatescan'])
-async def gates_scan(ctx):
-    """Scan for gates (Solo Leveling style)"""
-    player = get_jjk_player(ctx.author.id)
-    if not player:
-        await ctx.send("Use `~jjkstart` to begin your journey!")
-        return
-    
-    if player.get("active_gate"):
-        gate_data = player["active_gate"]
-        end_time = parse_iso_timestamp(gate_data.get("end_time"))
-        now = datetime.now(timezone.utc)
-        if end_time and end_time > now:
-            remaining = int((end_time - now).total_seconds() // 60)
-            await ctx.send(f"🌀 You're already in a **{gate_data['rank']}-Rank Gate**! {remaining} min remaining.\nUse `~gateclaim` when done.")
-            return
-    
-    cd_key = "gate_scan_cd"
-    cooldown_time = player.get("cooldowns", {}).get(cd_key)
-    if cooldown_time:
-        cd_end = parse_iso_timestamp(cooldown_time)
-        now = datetime.now(timezone.utc)
-        if cd_end and cd_end > now:
-            remaining = int((cd_end - now).total_seconds() // 60)
-            await ctx.send(f"⏳ Gate scan on cooldown! {remaining} minutes remaining.")
-            return
-    
-    player_power = calculate_combat_power(player)
-    
-    available_gates = []
-    for rank, data in GATES.items():
-        if data["min_level"] <= player["level"]:
-            available_gates.append((rank, data))
-    
-    if not available_gates:
-        await ctx.send("❌ No gates available at your level!")
-        return
-    
-    weights = [0.35, 0.25, 0.20, 0.12, 0.06, 0.02]
-    available_weights = weights[:len(available_gates)]
-    total_weight = sum(available_weights)
-    available_weights = [w/total_weight for w in available_weights]
-    
-    discovered = random.choices(available_gates, weights=available_weights, k=min(3, len(available_gates)))
-    discovered = list({g[0]: g for g in discovered}.values())
-    
-    embed = discord.Embed(
-        title="🌀 Gate Scan Complete",
-        description="Gates have appeared! Choose one to enter.",
-        color=0x8B5CF6
-    )
-    embed.add_field(name="Your Power", value=f"⚔️ {player_power:,}", inline=False)
-    
-    for rank, data in discovered:
-        power_status = "✅ Recommended" if player_power >= data["min_power"] else f"⚠️ Need {data['min_power']:,} power"
-        embed.add_field(
-            name=f"🌀 {data['name']}",
-            value=f"⏱️ {data['duration_min']}-{data['duration_max']} min\n💰 {data['base_yen']:,} | ✨ {data['base_xp']} XP\n⚠️ Risk: {int(data['risk']*100)}% | {power_status}",
-            inline=True
-        )
-    
-    embed.set_footer(text="Use ~gateenter <rank> [sorcerer] to enter a gate")
-    await ctx.send(embed=embed)
-
-@bot.hybrid_command(name='gateenter', aliases=['entergate'])
-async def gate_enter(ctx, rank: str, *, sorcerer_name: str = None):
-    """Enter a gate"""
-    player = get_jjk_player(ctx.author.id)
-    if not player:
-        await ctx.send("Use `~jjkstart` to begin your journey!")
-        return
-    
-    rank = rank.upper()
-    if rank not in GATES:
-        await ctx.send(f"❌ Invalid rank! Use E, D, C, B, A, or S.")
-        return
-    
-    gate_data = GATES[rank]
-    
-    if gate_data["min_level"] > player["level"]:
-        await ctx.send(f"❌ You need Level {gate_data['min_level']} for {rank}-Rank gates!")
-        return
-    
-    if player.get("active_gate"):
-        await ctx.send("❌ You're already in a gate! Use `~gateclaim` first.")
-        return
-    
-    player_power = calculate_combat_power(player)
-    sorcerer_key = None
-    sorcerer_power = 0
-    
-    if sorcerer_name:
-        sorcerer_name_lower = sorcerer_name.lower().strip()
-        for key in player.get("sorcerers", []):
-            if key.lower() == sorcerer_name_lower or JJK_SORCERERS.get(key, {}).get("name", "").lower() == sorcerer_name_lower:
-                sorcerer_key = key
-                sorcerer_power = calculate_sorcerer_power(player, key)
-                break
-        if not sorcerer_key:
-            await ctx.send(f"❌ You don't own that sorcerer!")
-            return
-    
-    total_power = player_power + sorcerer_power
-    
-    if total_power < gate_data["min_power"] * 0.5:
-        await ctx.send(f"❌ Your power ({total_power:,}) is too low! Minimum: {int(gate_data['min_power']*0.5):,}")
-        return
-    
-    now = datetime.now(timezone.utc)
-    duration = random.randint(gate_data["duration_min"], gate_data["duration_max"]) * 60
-    end_time = now + timedelta(seconds=duration)
-    
-    power_ratio = min(total_power / gate_data["min_power"], 2.0)
-    success_chance = min(0.95, 0.5 + (power_ratio - 0.5) * 0.5)
-    
-    player["active_gate"] = {
-        "rank": rank,
-        "end_time": end_time.isoformat(),
-        "base_yen": gate_data["base_yen"],
-        "base_xp": gate_data["base_xp"],
-        "risk": gate_data["risk"],
-        "rare_loot_chance": gate_data["rare_loot_chance"],
-        "sorcerer": sorcerer_key,
-        "total_power": total_power,
-        "success_chance": success_chance
-    }
-    
-    if "cooldowns" not in player:
-        player["cooldowns"] = {}
-    player["cooldowns"]["gate_scan_cd"] = (now + timedelta(hours=2)).isoformat()
-    
-    save_jjk_data()
-    
-    duration_text = f"{duration // 60} minutes"
-    sorcerer_text = f" with **{JJK_SORCERERS.get(sorcerer_key, {}).get('name', sorcerer_key)}**" if sorcerer_key else ""
-    
-    embed = discord.Embed(
-        title=f"🌀 Entered {gate_data['name']}!",
-        description=f"You've entered the gate{sorcerer_text}!",
-        color=gate_data["color"]
-    )
-    embed.add_field(name="Duration", value=duration_text, inline=True)
-    embed.add_field(name="Your Power", value=f"{total_power:,}", inline=True)
-    embed.add_field(name="Success Rate", value=f"{int(success_chance*100)}%", inline=True)
-    embed.set_footer(text="Use ~gateclaim when the timer is done!")
-    
-    await ctx.send(embed=embed)
-
-@bot.hybrid_command(name='gatestatus', aliases=['gstatus'])
-async def gate_status(ctx):
-    """Check your active gate status"""
-    player = get_jjk_player(ctx.author.id)
-    if not player:
-        await ctx.send("Use `~jjkstart` to begin your journey!")
-        return
-    
-    if not player.get("active_gate"):
-        await ctx.send("🌀 No active gate! Use `~gates` to scan for gates.")
-        return
-    
-    gate = player["active_gate"]
-    end_time = parse_iso_timestamp(gate.get("end_time"))
-    now = datetime.now(timezone.utc)
-    
-    if end_time and end_time <= now:
-        await ctx.send(f"✅ **{gate['rank']}-Rank Gate** cleared! Use `~gateclaim` to collect rewards!")
-        return
-    
-    remaining = int((end_time - now).total_seconds() // 60) if end_time else 0
-    sorcerer_text = f" with {JJK_SORCERERS.get(gate.get('sorcerer'), {}).get('name', 'Unknown')}" if gate.get('sorcerer') else ""
-    
-    embed = discord.Embed(
-        title=f"🌀 {gate['rank']}-Rank Gate",
-        description=f"Clearing gate{sorcerer_text}...",
-        color=GATES.get(gate["rank"], {}).get("color", 0x8B5CF6)
-    )
-    embed.add_field(name="Time Remaining", value=f"⏳ {remaining} minutes", inline=True)
-    embed.add_field(name="Your Power", value=f"⚔️ {gate.get('total_power', 0):,}", inline=True)
-    embed.add_field(name="Success Rate", value=f"🎯 {int(gate.get('success_chance', 0.5)*100)}%", inline=True)
-    
-    await ctx.send(embed=embed)
-
-@bot.hybrid_command(name='gateclaim', aliases=['gclaim'])
-async def gate_claim(ctx):
-    """Claim rewards from completed gate"""
-    player = get_jjk_player(ctx.author.id)
-    if not player:
-        await ctx.send("Use `~jjkstart` to begin your journey!")
-        return
-    
-    if not player.get("active_gate"):
-        await ctx.send("🌀 No active gate! Use `~gates` to scan for gates.")
-        return
-    
-    gate = player["active_gate"]
-    end_time = parse_iso_timestamp(gate.get("end_time"))
-    now = datetime.now(timezone.utc)
-    
-    if end_time and end_time > now:
-        remaining = int((end_time - now).total_seconds() // 60)
-        await ctx.send(f"⏳ Gate not cleared yet! {remaining} minutes remaining.")
-        return
-    
-    rank = gate["rank"]
-    gate_info = GATES.get(rank, {})
-    success = random.random() < gate.get("success_chance", 0.5)
-    
-    if success:
-        yen_var = random.uniform(0.9, 1.4)
-        xp_var = random.uniform(0.9, 1.3)
-        yen = apply_yen_multipliers(int(gate["base_yen"] * yen_var), player)
-        xp = apply_xp_multipliers(int(gate["base_xp"] * xp_var), player)
-        
-        player["yen"] += yen
-        player["xp"] += xp
-        
-        loot_gained = []
-        loot_bonus = get_facility_bonus(player, "loot_bonus")
-        if random.random() < gate.get("rare_loot_chance", 0.1) + loot_bonus:
-            loot_item = roll_rare_loot(2.0, player)
-            if loot_item:
-                if "collections" not in player:
-                    player["collections"] = {}
-                player["collections"][loot_item] = player["collections"].get(loot_item, 0) + 1
-                loot_gained.append(RARE_LOOT.get(loot_item, {}).get("name", loot_item))
-        
-        sorcerer_level_up = None
-        if gate.get("sorcerer"):
-            sxp = random.randint(50, 100)
-            if add_sorcerer_xp(player, gate["sorcerer"], sxp):
-                sorcerer_level_up = JJK_SORCERERS.get(gate["sorcerer"], {}).get("name", gate["sorcerer"])
-        
-        while player["xp"] >= xp_for_level(player["level"]):
-            player["xp"] -= xp_for_level(player["level"])
-            player["level"] += 1
-        
-        if "gate_clears" not in player:
-            player["gate_clears"] = {}
-        player["gate_clears"][rank] = player["gate_clears"].get(rank, 0) + 1
-        
-        embed = discord.Embed(
-            title=f"✨ {rank}-Rank Gate Cleared!",
-            description="You successfully cleared the gate!",
-            color=0x00FF00
-        )
-        embed.add_field(name="Rewards", value=f"💰 {yen:,} yen\n✨ {xp} XP", inline=True)
-        
-        if loot_gained:
-            embed.add_field(name="🎁 Rare Loot", value="\n".join(loot_gained), inline=True)
-        
-        if sorcerer_level_up:
-            embed.add_field(name="📈 Level Up!", value=f"{sorcerer_level_up} leveled up!", inline=True)
-    else:
-        injury_key = get_injury_from_risk(gate.get("risk", 0.3), player)
-        injury_text = "None"
-        if injury_key:
-            injury_result = apply_injury(player, injury_key)
-            if injury_result:
-                injury_text = injury_result["name"]
-        
-        embed = discord.Embed(
-            title=f"💀 {rank}-Rank Gate Failed",
-            description="You were overwhelmed by the curse inside...",
-            color=0xFF0000
-        )
-        embed.add_field(name="🩹 Injury", value=injury_text, inline=True)
-        embed.add_field(name="Lost", value="No rewards gained", inline=True)
-    
-    player["active_gate"] = None
-    save_jjk_data()
-    
-    await ctx.send(embed=embed)
-
-# =====================
-# DUNGEONS SYSTEM
-# =====================
-
-@bot.hybrid_command(name='dungeons', aliases=['dungeonlist', 'dglist'])
-async def dungeon_list(ctx):
-    """View available dungeons"""
-    player = get_jjk_player(ctx.author.id)
-    if not player:
-        await ctx.send("Use `~jjkstart` to begin your journey!")
-        return
-    
-    if player.get("active_dungeon"):
-        dungeon = player["active_dungeon"]
-        end_time = parse_iso_timestamp(dungeon.get("end_time"))
-        now = datetime.now(timezone.utc)
-        if end_time and end_time > now:
-            remaining = int((end_time - now).total_seconds() // 60)
-            await ctx.send(f"🏰 You're already in **{dungeon['name']}**! {remaining} min remaining.\nUse `~dungeonclaim` when done.")
-            return
-    
-    player_power = calculate_combat_power(player)
-    
-    embed = discord.Embed(
-        title="🏰 Available Dungeons",
-        description="Enter dungeons to face bosses and earn rare loot!",
-        color=0xF97316
-    )
-    embed.add_field(name="Your Power", value=f"⚔️ {player_power:,}", inline=False)
-    
-    for dungeon_id, data in DUNGEONS.items():
-        if data["min_level"] <= player["level"]:
-            clears = player.get("dungeon_clears", {}).get(dungeon_id, 0)
-            embed.add_field(
-                name=f"🏰 [{dungeon_id}] {data['name']}",
-                value=f"🏛️ {data['floors']} floors | ⏱️ {data['duration_min']}+ min\n💰 {data['base_yen']:,} | ✨ {data['base_xp']} XP\n👹 Boss: {data['boss']} | Clears: {clears}",
-                inline=False
-            )
-    
-    embed.set_footer(text="Use ~dungeonenter <dungeon_id> [sorcerer] to enter")
-    await ctx.send(embed=embed)
-
-@bot.hybrid_command(name='dungeonenter', aliases=['denter'])
-async def dungeon_enter(ctx, dungeon_id: str, *, sorcerer_name: str = None):
-    """Enter a dungeon"""
-    player = get_jjk_player(ctx.author.id)
-    if not player:
-        await ctx.send("Use `~jjkstart` to begin your journey!")
-        return
-    
-    dungeon_id = dungeon_id.lower()
-    if dungeon_id not in DUNGEONS:
-        await ctx.send(f"❌ Dungeon not found! Use `~dungeons` to see available dungeons.")
-        return
-    
-    dungeon_data = DUNGEONS[dungeon_id]
-    
-    if dungeon_data["min_level"] > player["level"]:
-        await ctx.send(f"❌ You need Level {dungeon_data['min_level']} for this dungeon!")
-        return
-    
-    if player.get("active_dungeon"):
-        await ctx.send("❌ You're already in a dungeon! Use `~dungeonclaim` first.")
-        return
-    
-    cd_key = "dungeon_cd"
-    cooldown_time = player.get("cooldowns", {}).get(cd_key)
-    if cooldown_time:
-        cd_end = parse_iso_timestamp(cooldown_time)
-        now = datetime.now(timezone.utc)
-        if cd_end and cd_end > now:
-            remaining = int((cd_end - now).total_seconds() // 60)
-            await ctx.send(f"⏳ Dungeon cooldown! {remaining} minutes remaining.")
-            return
-    
-    player_power = calculate_combat_power(player)
-    sorcerer_key = None
-    sorcerer_power = 0
-    
-    if sorcerer_name:
-        sorcerer_name_lower = sorcerer_name.lower().strip()
-        for key in player.get("sorcerers", []):
-            if key.lower() == sorcerer_name_lower or JJK_SORCERERS.get(key, {}).get("name", "").lower() == sorcerer_name_lower:
-                sorcerer_key = key
-                sorcerer_power = calculate_sorcerer_power(player, key)
-                break
-        if not sorcerer_key:
-            await ctx.send(f"❌ You don't own that sorcerer!")
-            return
-    
-    total_power = player_power + sorcerer_power
-    
-    now = datetime.now(timezone.utc)
-    base_duration = dungeon_data["duration_min"] * 60
-    floors = dungeon_data["floors"]
-    floor_time = base_duration // floors
-    total_duration = base_duration + random.randint(0, floor_time * 2)
-    end_time = now + timedelta(seconds=total_duration)
-    
-    player["active_dungeon"] = {
-        "id": dungeon_id,
-        "name": dungeon_data["name"],
-        "floors": floors,
-        "current_floor": 1,
-        "end_time": end_time.isoformat(),
-        "base_yen": dungeon_data["base_yen"],
-        "base_xp": dungeon_data["base_xp"],
-        "risk": dungeon_data["risk"],
-        "rare_loot_chance": dungeon_data["rare_loot_chance"],
-        "boss": dungeon_data["boss"],
-        "sorcerer": sorcerer_key,
-        "total_power": total_power
-    }
-    
-    if "cooldowns" not in player:
-        player["cooldowns"] = {}
-    player["cooldowns"]["dungeon_cd"] = (now + timedelta(hours=6)).isoformat()
-    
-    save_jjk_data()
-    
-    duration_text = f"{total_duration // 60} minutes"
-    sorcerer_text = f" with **{JJK_SORCERERS.get(sorcerer_key, {}).get('name', sorcerer_key)}**" if sorcerer_key else ""
-    
-    embed = discord.Embed(
-        title=f"🏰 Entered {dungeon_data['name']}!",
-        description=f"You've entered the dungeon{sorcerer_text}!",
-        color=0xF97316
-    )
-    embed.add_field(name="Floors", value=f"🏛️ {floors} floors", inline=True)
-    embed.add_field(name="Duration", value=duration_text, inline=True)
-    embed.add_field(name="Your Power", value=f"⚔️ {total_power:,}", inline=True)
-    embed.add_field(name="Boss", value=f"👹 {dungeon_data['boss']}", inline=True)
-    embed.set_footer(text="Use ~dungeonstatus to check progress, ~dungeonclaim when done!")
-    
-    await ctx.send(embed=embed)
-
-@bot.hybrid_command(name='dungeonstatus', aliases=['dgstatus'])
-async def dungeon_status(ctx):
-    """Check your dungeon status"""
-    player = get_jjk_player(ctx.author.id)
-    if not player:
-        await ctx.send("Use `~jjkstart` to begin your journey!")
-        return
-    
-    if not player.get("active_dungeon"):
-        await ctx.send("🏰 No active dungeon! Use `~dungeons` to see available dungeons.")
-        return
-    
-    dungeon = player["active_dungeon"]
-    end_time = parse_iso_timestamp(dungeon.get("end_time"))
-    now = datetime.now(timezone.utc)
-    
-    if end_time and end_time <= now:
-        await ctx.send(f"✅ **{dungeon['name']}** cleared! Use `~dungeonclaim` to collect rewards!")
-        return
-    
-    remaining = int((end_time - now).total_seconds() // 60) if end_time else 0
-    total_time = dungeon.get("floors", 3) * 10
-    elapsed = total_time - remaining
-    current_floor = min(dungeon["floors"], max(1, int(elapsed / (total_time / dungeon["floors"])) + 1))
-    
-    sorcerer_text = f" with {JJK_SORCERERS.get(dungeon.get('sorcerer'), {}).get('name', 'Unknown')}" if dungeon.get('sorcerer') else ""
-    
-    progress_bar = "🟩" * current_floor + "⬜" * (dungeon["floors"] - current_floor)
-    
-    embed = discord.Embed(
-        title=f"🏰 {dungeon['name']}",
-        description=f"Clearing dungeon{sorcerer_text}...",
-        color=0xF97316
-    )
-    embed.add_field(name="Progress", value=f"{progress_bar}\nFloor {current_floor}/{dungeon['floors']}", inline=False)
-    embed.add_field(name="Time Remaining", value=f"⏳ {remaining} minutes", inline=True)
-    embed.add_field(name="Boss", value=f"👹 {dungeon['boss']}", inline=True)
-    
-    await ctx.send(embed=embed)
-
-@bot.hybrid_command(name='dungeonclaim', aliases=['dclaim2'])
-async def dungeon_claim(ctx):
-    """Claim rewards from completed dungeon"""
-    player = get_jjk_player(ctx.author.id)
-    if not player:
-        await ctx.send("Use `~jjkstart` to begin your journey!")
-        return
-    
-    if not player.get("active_dungeon"):
-        await ctx.send("🏰 No active dungeon! Use `~dungeons` to see available dungeons.")
-        return
-    
-    dungeon = player["active_dungeon"]
-    end_time = parse_iso_timestamp(dungeon.get("end_time"))
-    now = datetime.now(timezone.utc)
-    
-    if end_time and end_time > now:
-        remaining = int((end_time - now).total_seconds() // 60)
-        await ctx.send(f"⏳ Dungeon not cleared yet! {remaining} minutes remaining.")
-        return
-    
-    yen_var = random.uniform(0.9, 1.5)
-    xp_var = random.uniform(0.9, 1.4)
-    floor_bonus = dungeon["floors"] * 0.1
-    yen = apply_yen_multipliers(int(dungeon["base_yen"] * yen_var * (1 + floor_bonus)), player)
-    xp = apply_xp_multipliers(int(dungeon["base_xp"] * xp_var * (1 + floor_bonus)), player)
-    
-    player["yen"] += yen
-    player["xp"] += xp
-    
-    injuries = []
-    injury_reduction = get_facility_bonus(player, "injury_reduction")
-    adjusted_risk = max(0, dungeon.get("risk", 0.3) - injury_reduction)
-    if random.random() < adjusted_risk:
-        injury_key = get_injury_from_risk(adjusted_risk, player)
-        if injury_key:
-            injury_result = apply_injury(player, injury_key)
-            if injury_result:
-                injuries.append(injury_result["name"])
-    
-    loot_gained = []
-    loot_bonus = get_facility_bonus(player, "loot_bonus")
-    if random.random() < dungeon.get("rare_loot_chance", 0.1) + loot_bonus:
-        loot_item = roll_rare_loot(2.5, player)
-        if loot_item:
-            if "collections" not in player:
-                player["collections"] = {}
-            player["collections"][loot_item] = player["collections"].get(loot_item, 0) + 1
-            loot_gained.append(RARE_LOOT.get(loot_item, {}).get("name", loot_item))
-    
-    sorcerer_level_up = None
-    if dungeon.get("sorcerer"):
-        sxp = random.randint(60, 120)
-        if add_sorcerer_xp(player, dungeon["sorcerer"], sxp):
-            sorcerer_level_up = JJK_SORCERERS.get(dungeon["sorcerer"], {}).get("name", dungeon["sorcerer"])
-    
-    while player["xp"] >= xp_for_level(player["level"]):
-        player["xp"] -= xp_for_level(player["level"])
-        player["level"] += 1
-    
-    if "dungeon_clears" not in player:
-        player["dungeon_clears"] = {}
-    player["dungeon_clears"][dungeon["id"]] = player["dungeon_clears"].get(dungeon["id"], 0) + 1
-    
-    embed = discord.Embed(
-        title=f"🏰 {dungeon['name']} Cleared!",
-        description=f"You defeated **{dungeon['boss']}** and cleared all {dungeon['floors']} floors!",
-        color=0x00FF00
-    )
-    embed.add_field(name="Rewards", value=f"💰 {yen:,} yen\n✨ {xp} XP", inline=True)
-    
-    if loot_gained:
-        embed.add_field(name="🎁 Rare Loot", value="\n".join(loot_gained), inline=True)
-    
-    if sorcerer_level_up:
-        embed.add_field(name="📈 Level Up!", value=f"{sorcerer_level_up} leveled up!", inline=True)
-    
-    if injuries:
-        embed.add_field(name="🩹 Injuries", value="\n".join(injuries), inline=True)
-    
-    player["active_dungeon"] = None
-    save_jjk_data()
     
     await ctx.send(embed=embed)
 
@@ -4768,8 +3606,8 @@ def calculate_elo_change(winner_elo, loser_elo, k=32):
     return max(gain, 10), max(loss, 5)
 
 @bot.hybrid_command(name='pvp', aliases=['battle', 'fight', 'duel'])
-async def jjk_pvp(ctx, opponent: discord.Member, *, sorcerer_name: Optional[str] = None):
-    """Challenge another sorcerer to a PvP battle! Optionally choose your fighter."""
+async def jjk_pvp(ctx, opponent: discord.Member):
+    """Challenge another sorcerer to a PvP battle!"""
     if opponent == ctx.author:
         await ctx.send("You can't fight yourself!")
         return
@@ -4797,20 +3635,6 @@ async def jjk_pvp(ctx, opponent: discord.Member, *, sorcerer_name: Optional[str]
         await ctx.send(f"{opponent.display_name} needs to be at least **Level 5** to participate in PvP!")
         return
     
-    player_sorcerer = None
-    player_sorcerer_name = "Your School"
-    if sorcerer_name:
-        sorc_key = sorcerer_name.lower().replace(" ", "").replace("-", "")
-        for key in player.get("sorcerers", []):
-            sorc_data = JJK_SORCERERS.get(key, {})
-            if key == sorc_key or sorc_data.get("name", "").lower().replace(" ", "").replace("-", "") == sorc_key:
-                player_sorcerer = key
-                player_sorcerer_name = sorc_data.get("name", key)
-                break
-        if not player_sorcerer:
-            await ctx.send(f"You don't have **{sorcerer_name}**! Use `~sorcerers` to see your team.")
-            return
-    
     # Check cooldown (5 min between battles)
     now = datetime.now(timezone.utc)
     last_pvp = parse_iso_timestamp(player.get('last_pvp'))
@@ -4833,13 +3657,9 @@ async def jjk_pvp(ctx, opponent: discord.Member, *, sorcerer_name: Optional[str]
         enemy['pvp_wins'] = 0
         enemy['pvp_losses'] = 0
     
-    # Calculate combat power (with optional sorcerer boost)
+    # Calculate combat power
     player_power = calculate_combat_power(player)
     enemy_power = calculate_combat_power(enemy)
-    
-    if player_sorcerer:
-        sorcerer_power = calculate_sorcerer_power(player, player_sorcerer)
-        player_power += sorcerer_power
     
     # Battle simulation with randomness
     player_roll = random.randint(70, 130) / 100.0
@@ -4888,13 +3708,6 @@ async def jjk_pvp(ctx, opponent: discord.Member, *, sorcerer_name: Optional[str]
     winner['xp'] += xp_reward
     check_level_up(winner)
     
-    sorcerer_levelup = None
-    if player_sorcerer and winner == player:
-        sorc_xp = random.randint(40, 80)
-        levels = add_sorcerer_xp(player, player_sorcerer, sorc_xp)
-        if levels > 0:
-            sorcerer_levelup = (player_sorcerer_name, get_sorcerer_level(player, player_sorcerer)["level"])
-    
     # Update cooldowns
     player['last_pvp'] = now.isoformat()
     enemy['last_pvp'] = now.isoformat()
@@ -4907,9 +3720,8 @@ async def jjk_pvp(ctx, opponent: discord.Member, *, sorcerer_name: Optional[str]
         color=0xFF6B6B
     )
     
-    fighter_text = f" ({player_sorcerer_name})" if player_sorcerer else ""
     embed.add_field(
-        name=f"{ctx.author.display_name}{fighter_text}",
+        name=f"{ctx.author.display_name}",
         value=f"Power: {player_power:,}\nRoll: {player_score:,}\n{get_pvp_rank(player['pvp_elo'])['emoji']} {player['pvp_elo']} ELO",
         inline=True
     )
@@ -4940,13 +3752,6 @@ async def jjk_pvp(ctx, opponent: discord.Member, *, sorcerer_name: Optional[str]
         embed.add_field(
             name="📉 Rank Down",
             value=f"{loser_user.display_name}: {old_loser_rank['emoji']} → {new_loser_rank['emoji']} **{new_loser_rank['name']}**",
-            inline=False
-        )
-    
-    if sorcerer_levelup:
-        embed.add_field(
-            name="🎉 Sorcerer Level Up!",
-            value=f"**{sorcerer_levelup[0]}** is now Level {sorcerer_levelup[1]}!",
             inline=False
         )
     
@@ -5006,14 +3811,14 @@ async def jjk_pvp_stats(ctx, member: Optional[discord.Member] = None):
 # =====================
 
 SIDE_MISSIONS = [
-    {"id": "training_dummy", "name": "Training Dummy", "desc": "Clear 10 training dummies for Maki", "requirement": {"type": "hunt_count", "count": 10}, "reward": {"yen": 2000, "xp": 200}, "repeatable": True, "cooldown_hours": 24},
+    {"id": "training_dummy", "name": "Destroy Training Dummies", "desc": "Clear 10 training dummies for Maki", "requirement": {"type": "hunt_count", "count": 10}, "reward": {"yen": 2000, "xp": 200}, "repeatable": True, "cooldown_hours": 24},
     {"id": "curse_collector", "name": "Curse Collector", "desc": "Exorcise 25 curses", "requirement": {"type": "hunt_count", "count": 25}, "reward": {"yen": 5000, "xp": 500}, "repeatable": True, "cooldown_hours": 48},
-    {"id": "training_montage", "name": "Training Montage", "desc": "Train 15 times", "requirement": {"type": "train_count", "count": 15}, "reward": {"yen": 3000, "xp": 600}, "repeatable": True, "cooldown_hours": 24},
+    {"id": "training_arc", "name": "Training Montage", "desc": "Train 15 times", "requirement": {"type": "train_count", "count": 15}, "reward": {"yen": 3000, "xp": 600}, "repeatable": True, "cooldown_hours": 24},
     {"id": "wealthy_sorcerer", "name": "Wealthy Sorcerer", "desc": "Accumulate 50,000 yen total", "requirement": {"type": "yen_threshold", "amount": 50000}, "reward": {"yen": 5000, "xp": 250}, "repeatable": False},
     {"id": "squad_builder", "name": "Squad Builder", "desc": "Hire 5 sorcerers", "requirement": {"type": "sorcerer_count", "count": 5}, "reward": {"yen": 8000, "xp": 400}, "repeatable": False},
-    {"id": "technique_student", "name": "Technique Student", "desc": "Learn 3 techniques", "requirement": {"type": "technique_count", "count": 3}, "reward": {"yen": 10000, "xp": 800}, "repeatable": False},
-    {"id": "domain_initiate", "name": "Domain Initiate", "desc": "Develop an Incomplete Domain", "requirement": {"type": "domain_level", "level": 1}, "reward": {"yen": 15000, "xp": 1000}, "repeatable": False},
-    {"id": "dedication", "name": "Dedication", "desc": "Reach a 7-day daily streak", "requirement": {"type": "daily_streak", "count": 7}, "reward": {"yen": 7000, "xp": 700}, "repeatable": True, "cooldown_hours": 168},
+    {"id": "technique_master", "name": "Technique Student", "desc": "Learn 3 techniques", "requirement": {"type": "technique_count", "count": 3}, "reward": {"yen": 10000, "xp": 800}, "repeatable": False},
+    {"id": "domain_init", "name": "Domain Initiate", "desc": "Develop an Incomplete Domain", "requirement": {"type": "domain_level", "level": 1}, "reward": {"yen": 15000, "xp": 1000}, "repeatable": False},
+    {"id": "daily_streak", "name": "Dedication", "desc": "Reach a 7-day daily streak", "requirement": {"type": "daily_streak", "count": 7}, "reward": {"yen": 7000, "xp": 700}, "repeatable": True, "cooldown_hours": 168},
     {"id": "first_blood", "name": "First Blood", "desc": "Win your first PvP battle", "requirement": {"type": "pvp_wins", "count": 1}, "reward": {"yen": 3000, "xp": 300}, "repeatable": False},
     {"id": "pvp_veteran", "name": "PvP Veteran", "desc": "Win 10 PvP battles", "requirement": {"type": "pvp_wins", "count": 10}, "reward": {"yen": 15000, "xp": 1500}, "repeatable": False},
 ]
@@ -5132,7 +3937,7 @@ async def jjk_side_missions(ctx):
         
         embed.add_field(
             name=f"{'🎯' if is_complete else '📌'} {mission['name']}",
-            value=f"ID: `{mission['id']}`\n{mission['desc']}\n{status}\n{reward_text}",
+            value=f"{mission['desc']}\n{status}\n{reward_text}",
             inline=True
         )
         available_count += 1
@@ -5140,7 +3945,7 @@ async def jjk_side_missions(ctx):
     if available_count == 0:
         embed.description = "All side missions completed! Check back later."
     
-    embed.set_footer(text="Use ~claimside <id> to claim (e.g. ~claimside training_dummy)")
+    embed.set_footer(text="Use ~claimside <mission_id> to claim rewards")
     await ctx.send(embed=embed)
 
 @bot.hybrid_command(name='claimside', aliases=['claimquest', 'claimobjective'])
@@ -5151,16 +3956,15 @@ async def jjk_claim_side(ctx, mission_id: str):
         await ctx.send("Use `~jjkstart` to begin your journey!")
         return
     
-    mission_id_lower = mission_id.lower().replace(" ", "_")
+    mission_id = mission_id.lower()
     mission = None
     for m in SIDE_MISSIONS:
-        if m["id"] == mission_id_lower or m["name"].lower().replace(" ", "_") == mission_id_lower:
+        if m["id"] == mission_id:
             mission = m
             break
     
     if not mission:
-        valid_ids = ", ".join([f"`{m['id']}`" for m in SIDE_MISSIONS])
-        await ctx.send(f"Mission `{mission_id}` not found!\nValid IDs: {valid_ids}")
+        await ctx.send(f"Mission `{mission_id}` not found! Use `~sidemissions` to see available missions.")
         return
     
     completed_missions = player.get("completed_side_missions", [])
@@ -5291,7 +4095,7 @@ class LeaderboardView(discord.ui.View):
         return embed
     
     async def get_pvp_embed(self):
-        sorted_players = sorted(jjk_players.items(), key=lambda x: x[1].get('pvp_elo', 1000), reverse=True)[:10]
+        sorted_players = sorted(jjk_players.items(), key=lambda x: x[1].get('pvp_stats', {}).get('elo', 1000), reverse=True)[:10]
         embed = discord.Embed(title="🏆 Leaderboard - PvP Rankings", color=0xFF6B6B)
         if not sorted_players:
             embed.description = "No players yet!"
@@ -5300,15 +4104,16 @@ class LeaderboardView(discord.ui.View):
         medals = ["🥇", "🥈", "🥉"]
         for i, (uid, player) in enumerate(sorted_players):
             medal = medals[i] if i < 3 else f"**{i+1}.**"
-            elo = player.get('pvp_elo', 1000)
-            wins = player.get('pvp_wins', 0)
-            losses = player.get('pvp_losses', 0)
-            rank = get_pvp_rank(elo)
+            pvp = player.get('pvp_stats', {})
+            elo = pvp.get('elo', 1000)
+            wins = pvp.get('wins', 0)
+            losses = pvp.get('losses', 0)
+            rank = get_pvp_rank(elo) if 'get_pvp_rank' in dir() else "Unranked"
             try:
                 name = f"<@{uid}>"
             except:
                 name = f"Sorcerer #{uid[-4:]}"
-            lines.append(f"{medal} {name}\n└ {rank['emoji']} {elo} ELO | {wins}W-{losses}L")
+            lines.append(f"{medal} {name}\n└ {elo} ELO | {wins}W-{losses}L")
         embed.description = "\n".join(lines)
         return embed
     
